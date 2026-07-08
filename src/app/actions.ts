@@ -82,3 +82,20 @@ export async function deleteContributionAction(slug: string, id: string) {
   await db.deleteContribution(id);
   revalidatePath(`/soirees/${slug}`);
 }
+
+export async function submitBilan(slug: string, formData: FormData) {
+  const changes: { bottleId: string; quantityAfter: number }[] = [];
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith("quantity-")) continue;
+    const bottleId = key.slice("quantity-".length);
+    const quantityAfter = Number(value);
+    if (Number.isNaN(quantityAfter)) continue;
+    changes.push({ bottleId, quantityAfter });
+  }
+
+  await db.applyStockAdjustments(slug, changes);
+  revalidatePath("/stock");
+  revalidatePath("/cocktails");
+  revalidatePath(`/soirees/${slug}`);
+  redirect(`/soirees/${slug}`);
+}
