@@ -1,0 +1,137 @@
+{
+  "bottles": [
+    {
+      "id": "seed1",
+      "name": "Havana Club 3 ans",
+      "type": "rhum",
+      "quantity": 1,
+      "tags": [
+        "rhum blanc"
+      ],
+      "vip": false,
+      "createdAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "seed2",
+      "name": "Tanqueray",
+      "type": "gin",
+      "quantity": 1,
+      "tags": [
+        "gin"
+      ],
+      "vip": false,
+      "createdAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "seed4",
+      "name": "Jack Daniel's",
+      "type": "whisky",
+      "quantity": 1,
+      "tags": [
+        "whisky"
+      ],
+      "vip": false,
+      "createdAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "seed5",
+      "name": "Schweppes Tonic",
+      "type": "mixer",
+      "quantity": 4,
+      "tags": [
+        "tonic"
+      ],
+      "vip": false,
+      "createdAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "seed6",
+      "name": "Citrons verts",
+      "type": "mixer",
+      "quantity": 6,
+      "tags": [
+        "citron vert",
+        "citron"
+      ],
+      "vip": false,
+      "createdAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "seed7",
+      "name": "Coca-Cola",
+      "type": "mixer",
+      "quantity": 3,
+      "tags": [
+        "cola"
+      ],
+      "vip": false,
+      "createdAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "seed8",
+      "name": "Sucre de canne",
+      "type": "mixer",
+      "quantity": 1,
+      "tags": [
+        "sucre"
+      ],
+      "vip": false,
+      "createdAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "seed9",
+      "name": "Menthe fraîche",
+      "type": "mixer",
+      "quantity": 1,
+      "tags": [
+        "menthe"
+      ],
+      "vip": false,
+      "createdAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "seed10",
+      "name": "Eau de Seltz",
+      "type": "mixer",
+      "quantity": 2,
+      "tags": [
+        "soda"
+      ],
+      "vip": false,
+      "createdAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "seed11",
+      "name": "Hibiki 17 ans",
+      "type": "whisky",
+      "quantity": 1,
+      "tags": [
+        "whisky"
+      ],
+      "vip": true,
+      "notes": "Cadeau, on n'ouvre pas n'importe quand",
+      "createdAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "seed12",
+      "name": "Don Julio 1942",
+      "type": "tequila",
+      "quantity": 1,
+      "tags": [
+        "tequila"
+      ],
+      "vip": true,
+      "createdAt": "2026-06-01T00:00:00.000Z"
+    }
+  ],
+  "events": [
+    {
+      "slug": "test",
+      "name": "test",
+      "date": "2026-07-11",
+      "vipNames": [],
+      "createdAt": "2026-07-08T21:15:41.346Z"
+    }
+  ],
+  "contributions": []
+}

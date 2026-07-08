@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #14090a;
+  --color-ink-2: #1d0e0d;
+  --color-brick: #7a2a1f;
+  --color-brick-light: #96392a;
+  --color-brick-dark: #571d15;
+  --color-gold: #f0c24c;
+  --color-gold-dim: #c99a52;
+  --color-cream: #f6ecdf;
+  --color-muted: #c7a690;
+
+  --font-display: var(--font-italiana), serif;
+  --font-sans: var(--font-jost), sans-serif;
+}
+
+:root {
+  --background: var(--color-ink);
+  --foreground: var(--color-cream);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+}
+
+input, select, textarea {
+  color-scheme: dark;
+  font-family: var(--font-sans);
+}
+
+.tracking-caps {
+  letter-spacing: 0.18em;
+}
