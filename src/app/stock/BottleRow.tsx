@@ -11,7 +11,8 @@ export default function BottleRow({ bottle }: { bottle: Bottle }) {
   );
   const [isPending, startTransition] = useTransition();
 
-  const isLow = bottle.lowStockThreshold != null && quantity <= bottle.lowStockThreshold;
+  const parsedThreshold = threshold.trim() === "" ? null : Number(threshold);
+  const isLow = parsedThreshold !== null && !Number.isNaN(parsedThreshold) && quantity <= parsedThreshold;
 
   function change(delta: number) {
     const next = Math.max(0, Math.round((quantity + delta) * 10) / 10);
