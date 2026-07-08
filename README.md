@@ -16,6 +16,14 @@ npm install
 npm run dev
 ```
 
+Avant de lancer le serveur, crée un fichier `.env.local` à la racine avec un mot de passe pour les pages d'administration :
+
+```bash
+echo "ADMIN_PASSWORD=ton-mot-de-passe" > .env.local
+```
+
+Sans cette variable, `/stock`, `/soirees` et `/cocktails` restent inaccessibles (redirection vers `/login`) — seule la page invité `/soirees/<slug>` reste publique.
+
 Puis ouvre [http://localhost:3000](http://localhost:3000).
 
 Un jeu de données d'exemple est déjà présent dans `data/store.json` (quelques bouteilles, dont 2 en VIP). Tu peux vider ce fichier ou modifier son contenu directement, ou simplement gérer tout depuis l'interface `/stock`.
