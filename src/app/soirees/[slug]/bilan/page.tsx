@@ -18,27 +18,26 @@ export default async function BilanPage({ params }: { params: Promise<{ slug: st
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-xs uppercase tracking-caps text-gold-dim mb-2">Bilan</p>
-        <h1 className="font-display text-4xl text-gold">{event.name}</h1>
-        <p className="text-muted text-sm mt-2 max-w-lg">
-          Ajuste les quantités restantes pour les bouteilles concernées par cette soirée. Laisse
-          inchangé ce qui n&apos;a pas bougé.
+        <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">Bilan de fin de soirée</span>
+        <h1 className="font-display text-4xl text-cream mt-1">{event.name}</h1>
+        <p className="text-muted text-xs mt-2 max-w-lg leading-relaxed">
+          Ajustez les volumes restants pour les bouteilles consommées durant cette soirée. Les stocks inchangés conserveront leurs valeurs.
         </p>
       </div>
 
       <form action={submitBilan.bind(null, slug)} className="space-y-6">
-        <div className="rounded-xl border border-cream/10 bg-ink-2 p-6 space-y-3">
+        <div className="rounded-xl border border-orange/10 bg-ink-2/40 p-6 space-y-4 box-orange-glow">
           {relevant.length === 0 ? (
-            <p className="text-muted text-sm">Aucune bouteille à ajuster.</p>
+            <p className="text-muted text-xs italic text-center py-4">Aucune bouteille à ajuster.</p>
           ) : (
             relevant.map((b) => (
               <div
                 key={b.id}
-                className="flex items-center justify-between gap-4 border-b border-cream/10 pb-3 last:border-0 last:pb-0"
+                className="flex items-center justify-between gap-4 border-b border-orange/5 pb-4 last:border-0 last:pb-0"
               >
                 <div>
-                  <p className="text-cream font-medium">{b.name}</p>
-                  <p className="text-xs text-muted">Actuellement : {b.quantity}</p>
+                  <p className="text-cream font-medium text-sm">{b.name}</p>
+                  <p className="text-xs text-muted/65">Volume actuel : {b.quantity}</p>
                 </div>
                 <input
                   type="number"
@@ -46,7 +45,7 @@ export default async function BilanPage({ params }: { params: Promise<{ slug: st
                   step="0.5"
                   min="0"
                   defaultValue={b.quantity}
-                  className="w-24 bg-ink border border-brick-light/60 rounded-lg px-3 py-2 text-sm text-right focus:outline-none focus:border-gold/60"
+                  className="w-24 bg-ink border border-orange/15 rounded-xl px-3 py-2 text-xs text-right focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
                 />
               </div>
             ))
@@ -54,9 +53,9 @@ export default async function BilanPage({ params }: { params: Promise<{ slug: st
         </div>
         <button
           type="submit"
-          className="bg-gold text-ink font-medium rounded-lg px-6 py-2 hover:bg-cream transition-colors"
+          className="w-full bg-orange text-white font-medium rounded-xl py-3 hover:bg-orange-hover box-orange-glow transition-all uppercase tracking-wider text-xs font-semibold"
         >
-          Valider le bilan
+          Valider et clore l&apos;événement
         </button>
       </form>
     </div>

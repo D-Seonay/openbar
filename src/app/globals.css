@@ -1,15 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ink: #14090a;
-  --color-ink-2: #1d0e0d;
-  --color-brick: #7a2a1f;
-  --color-brick-light: #96392a;
-  --color-brick-dark: #571d15;
-  --color-gold: #f0c24c;
-  --color-gold-dim: #c99a52;
-  --color-cream: #f6ecdf;
-  --color-muted: #c7a690;
+  --color-ink: #0f0708;
+  --color-ink-2: #190d0e;
+  --color-brick: #6b1f15;
+  --color-brick-light: #8a2a1c;
+  --color-brick-dark: #4d150f;
+  --color-gold: #f5be4f;
+  --color-gold-dim: #cca05d;
+  --color-cream: #fbf5ed;
+  --color-muted: #c9a491;
+  --color-orange: #ff632b;
+  --color-orange-hover: #ff7d4d;
+  --color-orange-dim: #e04b16;
+  --color-orange-dark: #8a2806;
 
   --font-display: var(--font-italiana), serif;
   --font-sans: var(--font-jost), sans-serif;
@@ -38,3 +42,33 @@ input, select, textarea {
 .tracking-caps {
   letter-spacing: 0.18em;
 }
+
+/* Glow effects and styling enhancements */
+.orange-glow {
+  text-shadow: 0 0 10px rgba(255, 99, 43, 0.3);
+}
+
+.box-orange-glow {
+  box-shadow: 0 0 20px rgba(255, 99, 43, 0.08);
+}
+
+.box-orange-glow-hover:hover {
+  box-shadow: 0 0 25px rgba(255, 99, 43, 0.15);
+}
+
+/* Custom scrollbar for premium menu feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-ink);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-brick-dark);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-orange-dark);
+}
+

@@ -35,8 +35,6 @@ export default function GuestPanel({
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKey);
-    // Reading a client-only localStorage value on mount; there is no way to know it during SSR/first render.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (saved) setName(saved);
   }, [storageKey]);
 
@@ -51,25 +49,27 @@ export default function GuestPanel({
 
   if (!name) {
     return (
-      <section className="rounded-xl border border-gold/25 bg-brick-dark/40 p-6">
-        <h2 className="font-display text-xl text-gold mb-2">Qui es-tu ?</h2>
-        <p className="text-sm text-muted mb-4">
-          Entre ton prénom pour voir ce qu&apos;il reste à ramener (et débloquer l&apos;accès VIP si tu es
-          sur la liste).
-        </p>
+      <section className="rounded-xl border border-orange/10 bg-ink-2/40 p-6 max-w-md mx-auto box-orange-glow text-center space-y-4 my-8">
+        <div className="text-3xl">🔑</div>
+        <div>
+          <h2 className="font-display text-2xl text-cream">Qui es-tu ?</h2>
+          <p className="text-xs text-muted mt-1 leading-relaxed">
+            Entrez votre prénom pour consulter le stock disponible, voir ce qu&apos;il reste à ramener, et débloquer les boissons secrètes.
+          </p>
+        </div>
         <div className="flex gap-2">
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && identify()}
-            placeholder="Ton prénom"
-            className="bg-ink border border-brick-light/60 rounded-lg px-3 py-2 text-sm flex-1 placeholder:text-muted/60 focus:outline-none focus:border-gold/60"
+            placeholder="Votre prénom..."
+            className="bg-ink border border-orange/15 rounded-xl px-3 py-2 text-xs flex-1 placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream text-center"
           />
           <button
             onClick={identify}
-            className="bg-gold text-ink font-medium rounded-lg px-4 py-2 text-sm hover:bg-cream transition-colors"
+            className="bg-orange text-white font-medium rounded-xl px-4 py-2 text-xs hover:bg-orange-hover box-orange-glow transition-all"
           >
-            C&apos;est moi
+            Entrer
           </button>
         </div>
       </section>
@@ -78,140 +78,195 @@ export default function GuestPanel({
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between rounded-xl border border-cream/10 bg-ink-2 p-4">
-        <p className="text-sm text-cream">
-          Salut <span className="font-medium">{name}</span> 👋
-          {isVip && <span className="ml-2 text-gold">🥂 Accès VIP débloqué</span>}
+      {/* User profile header */}
+      <div className="flex items-center justify-between rounded-xl border border-orange/15 bg-ink-2/50 p-4 box-orange-glow">
+        <p className="text-xs text-cream flex items-center gap-2">
+          <span>👋</span>
+          <span>
+            Ravi de vous voir, <strong className="text-orange">{name}</strong>
+          </span>
+          {isVip && (
+            <span className="ml-2 text-gold font-bold bg-gold/10 px-2.5 py-0.5 rounded-full border border-gold/20 text-[9px] uppercase tracking-wider animate-pulse">
+              👑 Privilèges VIP Activés
+            </span>
+          )}
         </p>
         <button
           onClick={() => {
             window.localStorage.removeItem(storageKey);
             setName(null);
           }}
-          className="text-xs text-muted hover:text-cream"
+          className="text-[10px] text-muted hover:text-orange uppercase tracking-wider font-semibold transition-colors"
         >
-          Pas toi ?
+          Se déconnecter
         </button>
       </div>
 
-      <section>
-        <h2 className="font-display text-xl text-cream mb-4">Déjà sur place</h2>
-        {stock.length === 0 ? (
-          <p className="text-muted text-sm">Rien de noté pour l&apos;instant.</p>
-        ) : (
-          <ul className="grid sm:grid-cols-2 gap-2 text-sm">
-            {stock.map((b, i) => (
-              <li
-                key={i}
-                className="rounded-lg border border-cream/10 bg-ink-2 px-3 py-2 flex justify-between text-cream"
-              >
-                <span>{b.name}</span>
-                <span className="text-muted">{b.quantity}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section>
-        <h2 className="font-display text-xl text-cream mb-4">Qui ramène quoi</h2>
-        {contributions.length === 0 ? (
-          <p className="text-muted text-sm">Personne n&apos;a encore rien noté. Sois le premier !</p>
-        ) : (
-          <ul className="space-y-2 text-sm">
-            {contributions.map((c) => (
-              <li
-                key={c.id}
-                className="rounded-lg border border-cream/10 bg-ink-2 px-3 py-2 flex items-center justify-between text-cream"
-              >
-                <span>
-                  <span className="font-medium text-gold">{c.guestName}</span> apporte {c.item}
-                  {c.quantity ? ` (${c.quantity})` : ""}
-                </span>
-                {c.guestName.toLowerCase() === name.toLowerCase() && (
-                  <button
-                    onClick={() => startTransition(() => deleteContributionAction(slug, c.id))}
-                    className="text-xs text-muted hover:text-red-400"
-                  >
-                    Retirer
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <form
-          action={async (formData: FormData) => {
-            formData.set("guestName", name);
-            await addContribution(slug, formData);
-          }}
-          className="mt-4 grid sm:grid-cols-[1fr_auto_auto] gap-2"
-        >
-          <input
-            name="item"
-            required
-            placeholder="Ce que tu ramènes (ex: Gin Hendrick's)"
-            className="bg-ink border border-brick-light/60 rounded-lg px-3 py-2 text-sm placeholder:text-muted/60 focus:outline-none focus:border-gold/60"
-          />
-          <input
-            name="quantity"
-            placeholder="Quantité"
-            className="bg-ink border border-brick-light/60 rounded-lg px-3 py-2 text-sm w-28 placeholder:text-muted/60 focus:outline-none focus:border-gold/60"
-          />
-          <button
-            type="submit"
-            className="bg-gold text-ink font-medium rounded-lg px-4 py-2 text-sm hover:bg-cream transition-colors"
-          >
-            J&apos;apporte ça
-          </button>
-        </form>
-      </section>
-
-      <section>
-        <h2 className="font-display text-xl text-cream mb-4">Cocktails prévus</h2>
-        {readyCocktails.length === 0 ? (
-          <p className="text-muted text-sm">Rien de calculable pour l&apos;instant.</p>
-        ) : (
-          <div className="grid sm:grid-cols-2 gap-3">
-            {readyCocktails.map(({ recipe }) => (
-              <div key={recipe.id} className="rounded-lg border border-cream/10 bg-ink-2 p-3 text-sm">
-                <p className="font-medium text-cream">{recipe.name}</p>
-                <p className="text-gold-dim text-xs mt-1">{recipe.tags.join(" · ")}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {isVip && (
-        <section className="rounded-xl border border-gold/25 bg-brick-dark/40 p-6">
-          <h2 className="font-display text-xl text-gold mb-4">Réserve VIP</h2>
-          {vipStock.length > 0 && (
-            <ul className="grid sm:grid-cols-2 gap-2 text-sm mb-4">
-              {vipStock.map((b, i) => (
-                <li
-                  key={i}
-                  className="rounded-lg border border-gold/20 bg-ink/20 px-3 py-2 flex justify-between text-cream"
-                >
-                  <span>{b.name}</span>
-                  <span className="text-muted">{b.quantity}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          {vipCocktails.length > 0 && (
-            <div className="grid sm:grid-cols-2 gap-3">
-              {vipCocktails.map(({ recipe }) => (
-                <div key={recipe.id} className="rounded-lg border border-gold/20 bg-ink/20 p-3 text-sm">
-                  <p className="font-medium text-cream">{recipe.name}</p>
-                  <p className="text-gold-dim text-xs mt-1">{recipe.tags.join(" · ")}</p>
-                </div>
-              ))}
+      <div className="grid md:grid-cols-2 gap-8">
+        {/* Left Column: Contributions and Inputs */}
+        <div className="space-y-8">
+          {/* Who brings what section */}
+          <section className="bg-ink-2/20 border border-orange/10 p-5 rounded-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-orange/5 pb-2">
+              <h2 className="font-display text-lg text-cream">Qui apporte quoi</h2>
+              <span className="text-[10px] uppercase font-mono text-orange bg-orange/10 px-2 py-0.5 rounded border border-orange/20">
+                {contributions.length} Contributions
+              </span>
             </div>
+
+            {contributions.length === 0 ? (
+              <p className="text-muted text-xs italic py-4 text-center">Aucune bouteille promise pour l&apos;instant. Ouvrez le bal !</p>
+            ) : (
+              <ul className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
+                {contributions.map((c) => (
+                  <li
+                    key={c.id}
+                    className="rounded-lg border border-orange/5 bg-ink-2/60 px-3 py-2 flex items-center justify-between text-xs text-cream hover:border-orange/20 transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="font-semibold text-orange-dim">{c.guestName}</span>
+                      <span className="text-muted/65">apporte</span>
+                      <span className="font-medium text-cream">{c.item}</span>
+                      {c.quantity && (
+                        <span className="text-[10px] font-mono bg-orange-dark/25 px-1.5 py-0.5 rounded text-orange border border-orange-dark/30">
+                          {c.quantity}
+                        </span>
+                      )}
+                    </span>
+                    {c.guestName.toLowerCase() === name.toLowerCase() && (
+                      <button
+                        onClick={() => startTransition(() => deleteContributionAction(slug, c.id))}
+                        className="text-[10px] text-muted/50 hover:text-red-400 font-semibold uppercase tracking-wider transition-colors"
+                      >
+                        Retirer
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <form
+              action={async (formData: FormData) => {
+                formData.set("guestName", name);
+                await addContribution(slug, formData);
+              }}
+              className="mt-4 grid sm:grid-cols-[1fr_auto_auto] gap-2 pt-3 border-t border-orange/5"
+            >
+              <input
+                name="item"
+                required
+                placeholder="Ex: Gin Hendrick's, Tonic, Citrons..."
+                className="bg-ink border border-orange/10 rounded-xl px-3 py-2 text-xs placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+              />
+              <input
+                name="quantity"
+                placeholder="Ex: 1 bouteille"
+                className="bg-ink border border-orange/10 rounded-xl px-3 py-2 text-xs placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream w-24"
+              />
+              <button
+                type="submit"
+                className="bg-orange text-white font-medium rounded-xl px-4 py-2 text-xs hover:bg-orange-hover box-orange-glow transition-all uppercase tracking-wider font-semibold"
+              >
+                Partager
+              </button>
+            </form>
+          </section>
+
+          {/* Already on location section */}
+          <section className="space-y-3">
+            <h2 className="font-display text-lg text-cream border-b border-orange/5 pb-2">Déjà disponible sur place</h2>
+            {stock.length === 0 ? (
+              <p className="text-muted text-xs italic">Aucune bouteille déclarée en stock.</p>
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-2 text-xs max-h-[220px] overflow-y-auto pr-1">
+                {stock.map((b, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border border-orange/5 bg-ink-2/30 px-3 py-2 flex justify-between items-center text-cream"
+                  >
+                    <span className="font-medium truncate mr-2">{b.name}</span>
+                    <span className="text-[10px] font-mono bg-orange-dark/15 border border-orange-dark/30 px-2 py-0.5 rounded text-orange">
+                      Qté: {b.quantity}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+
+        {/* Right Column: Cocktail Offerings & VIP Reserve */}
+        <div className="space-y-8">
+          <section className="space-y-4">
+            <h2 className="font-display text-lg text-cream border-b border-orange/5 pb-2">Cocktails réalisables ce soir</h2>
+            {readyCocktails.length === 0 ? (
+              <p className="text-muted text-xs italic">Aucun cocktail n&apos;est réalisable avec les réserves actuelles. N&apos;hésitez pas à apporter des mixers !</p>
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1">
+                {readyCocktails.map(({ recipe }) => (
+                  <div key={recipe.id} className="rounded-xl border border-orange/10 bg-ink-2/40 p-4 hover:border-orange/20 transition-all flex flex-col justify-between">
+                    <div>
+                      <p className="font-display text-base text-cream font-medium">{recipe.name}</p>
+                      <p className="text-orange text-[10px] mt-0.5 uppercase tracking-wider font-mono">{recipe.glass}</p>
+                    </div>
+                    <p className="text-muted text-[10px] mt-2 line-clamp-2 italic">{recipe.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* VIP Section */}
+          {isVip && (
+            <section className="rounded-xl border border-gold/25 bg-brick-dark/10 p-5 space-y-4 box-orange-glow">
+              <div className="flex items-center gap-2 border-b border-gold/15 pb-2">
+                <span className="text-lg">🔒</span>
+                <div>
+                  <h3 className="font-display text-lg text-gold">Cabinet Secret VIP</h3>
+                  <p className="text-[10px] text-muted">Disponible pour les initiés.</p>
+                </div>
+              </div>
+
+              {vipStock.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[10px] text-gold uppercase tracking-wider font-semibold">Alcools de la réserve</p>
+                  <div className="grid sm:grid-cols-2 gap-2 text-xs">
+                    {vipStock.map((b, i) => (
+                      <div
+                        key={i}
+                        className="rounded-lg border border-gold/10 bg-ink/30 px-3 py-2 flex justify-between items-center text-cream"
+                      >
+                        <span className="font-medium truncate mr-2">{b.name}</span>
+                        <span className="text-[9px] font-mono bg-gold/10 border border-gold/20 px-2 py-0.5 rounded text-gold font-bold">
+                          {b.quantity}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {vipCocktails.length > 0 && (
+                <div className="space-y-2 pt-2">
+                  <p className="text-[10px] text-gold uppercase tracking-wider font-semibold">Cocktails VIP débloqués</p>
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    {vipCocktails.map(({ recipe }) => (
+                      <div key={recipe.id} className="rounded-xl border border-gold/15 bg-ink/20 p-3 text-xs flex flex-col justify-between">
+                        <div>
+                          <p className="font-display text-sm text-cream font-medium">{recipe.name}</p>
+                          <p className="text-gold text-[9px] uppercase tracking-wider font-mono">{recipe.glass}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
           )}
-        </section>
-      )}
+        </div>
+      </div>
     </div>
   );
 }
+

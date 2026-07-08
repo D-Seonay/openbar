@@ -33,15 +33,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={`h-full ${italiana.variable} ${jost.variable}`}>
-      <body className="min-h-full flex flex-col bg-ink text-cream">
-        <header className="border-b border-brick/40 bg-ink/95 backdrop-blur sticky top-0 z-10">
+      <body className="min-h-full flex flex-col bg-ink text-cream selection:bg-orange/35 selection:text-white">
+        <header className="border-b border-orange/20 bg-ink/90 backdrop-blur-md sticky top-0 z-50 transition-all duration-300">
           <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
-            <Link href="/" className="font-display text-xl tracking-wide text-gold">
-              Le Bar de Noa
+            <Link href="/" className="font-display text-2xl tracking-wider text-orange hover:text-orange-hover transition-colors flex items-center gap-2">
+              <span className="text-xl">🍸</span> Le Bar de Noa
             </Link>
-            <nav className="flex gap-8 text-xs uppercase tracking-caps text-muted">
+            <nav className="flex gap-6 text-xs uppercase tracking-caps text-muted font-medium">
               {NAV.map((item) => (
-                <Link key={item.href} href={item.href} className="hover:text-gold transition-colors">
+                <Link key={item.href} href={item.href} className="hover:text-orange hover:orange-glow py-1 transition-colors duration-200">
                   {item.label}
                 </Link>
               ))}
@@ -49,8 +49,8 @@ export default function RootLayout({
           </div>
         </header>
         <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10">{children}</main>
-        <footer className="border-t border-brick/40 text-center text-[11px] uppercase tracking-caps text-muted py-5">
-          Fait maison, comme les cocktails
+        <footer className="border-t border-brick/40 text-center text-[10px] uppercase tracking-caps text-muted/65 py-6 bg-ink-2/30">
+          Fait maison avec passion · Le Bar de Noa © {new Date().getFullYear()}
         </footer>
       </body>
     </html>

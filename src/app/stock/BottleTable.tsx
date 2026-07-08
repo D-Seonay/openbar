@@ -45,43 +45,37 @@ export default function BottleTable({
 
   const content =
     filtered.length === 0 ? (
-      <p className="text-muted text-sm">{bottles.length === 0 ? empty : "Aucune bouteille ne correspond."}</p>
+      <div className="text-center py-10 rounded-xl border border-dashed border-orange/10 bg-ink-2/20">
+        <p className="text-muted text-sm">{bottles.length === 0 ? empty : "Aucune bouteille ne correspond aux critères de recherche."}</p>
+      </div>
     ) : (
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-left text-gold-dim text-xs uppercase tracking-caps border-b border-cream/10">
-            <th className="py-2 font-medium">Bouteille</th>
-            <th className="py-2 font-medium">Type</th>
-            <th className="py-2 font-medium">Quantité</th>
-            <th className="py-2 font-medium">Alerte</th>
-            <th className="py-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.map((b) => (
-            <BottleRow key={b.id} bottle={b} />
-          ))}
-        </tbody>
-      </table>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filtered.map((b) => (
+          <BottleRow key={b.id} bottle={b} />
+        ))}
+      </div>
     );
 
   const body = (
-    <>
+    <div className="space-y-4">
       {bottles.length > 0 && (
-        <div className="flex flex-col sm:flex-row gap-2 mb-4">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher un nom ou un tag..."
-            className="bg-ink border border-brick-light/60 rounded-lg px-3 py-2 text-sm flex-1 placeholder:text-muted/60 focus:outline-none focus:border-gold/60"
-          />
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Rechercher une bouteille ou un ingrédient..."
+              className="w-full bg-ink-2/60 border border-orange/10 rounded-xl px-4 py-2.5 pl-10 text-sm placeholder:text-muted/50 focus:outline-none focus:border-orange focus:bg-ink-2 transition-all duration-300"
+            />
+            <span className="absolute left-3.5 top-3 text-muted/65 text-sm">🔍</span>
+          </div>
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="bg-ink border border-brick-light/60 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold/60"
+            className="bg-ink-2/60 border border-orange/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-orange focus:bg-ink-2 transition-all duration-300 text-cream"
           >
             {TYPE_OPTIONS.map(([value, label]) => (
-              <option key={value} value={value}>
+              <option key={value} value={value} className="bg-ink">
                 {label}
               </option>
             ))}
@@ -89,15 +83,21 @@ export default function BottleTable({
         </div>
       )}
       {content}
-    </>
+    </div>
   );
 
   if (bare) return body;
 
   return (
-    <section>
-      {title && <h2 className="font-display text-xl text-cream mb-4">{title}</h2>}
+    <section className="space-y-4">
+      {title && (
+        <div className="flex items-center gap-3 border-b border-orange/10 pb-2">
+          <span className="w-1.5 h-3 bg-orange rounded-full" />
+          <h2 className="font-display text-xl text-cream">{title}</h2>
+        </div>
+      )}
       {body}
     </section>
   );
 }
+

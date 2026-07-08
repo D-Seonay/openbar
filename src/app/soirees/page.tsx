@@ -1,89 +1,119 @@
 import Link from "next/link";
 import { listEvents } from "@/lib/db";
-import { createEvent, deleteEventAction } from "@/app/actions";
+import { createEvent } from "@/app/actions";
 import CopyLink from "./CopyLink";
+import DeleteEventButton from "./DeleteEventButton";
 
 export default async function SoireesPage() {
   const events = await listEvents();
   const sorted = [...events].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       <div>
-        <p className="text-xs uppercase tracking-caps text-gold-dim mb-2">Organisation</p>
-        <h1 className="font-display text-4xl text-gold">Soirées</h1>
-        <p className="text-muted text-sm mt-2 max-w-lg">
-          Crée une soirée, envoie le lien à tes invités pour qu&apos;ils indiquent ce qu&apos;ils ramènent.
+        <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">Organisation & Événements</span>
+        <h1 className="font-display text-4xl text-cream mt-1">Soirées Privées</h1>
+        <p className="text-muted text-xs mt-2 max-w-lg leading-relaxed">
+          Planifiez vos soirées et générez des liens d&apos;invitation pour permettre à vos convives d&apos;indiquer ce qu&apos;ils apportent.
         </p>
       </div>
 
-      <section className="rounded-xl border border-cream/10 bg-ink-2 p-6">
-        <h2 className="font-display text-xl text-cream mb-4">Nouvelle soirée</h2>
-        <form action={createEvent} className="grid sm:grid-cols-2 gap-3">
-          <input
-            name="name"
-            placeholder="Nom de la soirée (ex: Apéro du samedi)"
-            required
-            className="bg-ink border border-brick-light/60 rounded-lg px-3 py-2 text-sm sm:col-span-2 placeholder:text-muted/60 focus:outline-none focus:border-gold/60"
-          />
-          <input
-            name="date"
-            type="date"
-            required
-            className="bg-ink border border-brick-light/60 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold/60"
-          />
-          <input
-            name="vipNames"
-            placeholder="Prénoms VIP, séparés par des virgules (optionnel)"
-            className="bg-ink border border-brick-light/60 rounded-lg px-3 py-2 text-sm placeholder:text-muted/60 focus:outline-none focus:border-gold/60"
-          />
-          <button
-            type="submit"
-            className="sm:col-span-2 bg-gold text-ink font-medium rounded-lg py-2 hover:bg-cream transition-colors"
-          >
-            Créer la soirée
-          </button>
-        </form>
-      </section>
-
-      <section>
-        <h2 className="font-display text-xl text-cream mb-4">Toutes les soirées</h2>
-        {sorted.length === 0 ? (
-          <p className="text-muted text-sm">Aucune soirée pour l&apos;instant.</p>
-        ) : (
-          <div className="space-y-3">
-            {sorted.map((event) => (
-              <div
-                key={event.slug}
-                className="rounded-xl border border-cream/10 bg-ink-2 p-4 flex items-center justify-between gap-4"
-              >
-                <div>
-                  <Link href={`/soirees/${event.slug}`} className="font-display text-lg text-cream hover:text-gold">
-                    {event.name}
-                  </Link>
-                  <p className="text-xs text-muted mt-0.5">
-                    {new Date(event.date).toLocaleDateString("fr-FR", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                    {event.vipNames.length > 0 && (
-                      <span className="text-gold"> · {event.vipNames.length} VIP</span>
-                    )}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <CopyLink path={`/soirees/${event.slug}`} />
-                  <form action={deleteEventAction.bind(null, event.slug)}>
-                    <button className="text-xs text-muted hover:text-red-400">Supprimer</button>
-                  </form>
-                </div>
-              </div>
-            ))}
+      <div className="grid md:grid-cols-3 gap-6 items-start">
+        {/* Create Event Card */}
+        <section className="bg-ink-2/40 border border-orange/10 p-6 rounded-xl box-orange-glow md:col-span-1 space-y-4">
+          <div>
+            <h2 className="font-display text-xl text-cream">Créer un Événement</h2>
+            <p className="text-muted text-[11px] mt-0.5">Configurez une nouvelle date.</p>
           </div>
-        )}
-      </section>
+          <form action={createEvent} className="space-y-3.5">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted mb-1 block">Nom de la soirée</label>
+              <input
+                name="name"
+                placeholder="Ex: Soirée Mojitos"
+                required
+                className="w-full bg-ink border border-orange/10 rounded-xl px-3 py-2 text-xs placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted mb-1 block">Date</label>
+              <input
+                name="date"
+                type="date"
+                required
+                className="w-full bg-ink border border-orange/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted mb-1 block">Convives VIP (Séparés par virgules)</label>
+              <input
+                name="vipNames"
+                placeholder="Ex: Noa, Sarah, Thomas"
+                className="w-full bg-ink border border-orange/10 rounded-xl px-3 py-2 text-xs placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-orange text-white font-medium rounded-xl py-2.5 hover:bg-orange-hover box-orange-glow transition-all text-xs uppercase tracking-wider font-semibold"
+            >
+              Créer la soirée
+            </button>
+          </form>
+        </section>
+
+        {/* Events list */}
+        <section className="md:col-span-2 space-y-4">
+          <div className="flex items-center gap-3 border-b border-orange/10 pb-2">
+            <span className="w-1.5 h-3 bg-orange rounded-full" />
+            <h2 className="font-display text-xl text-cream">Historique & Événements à venir</h2>
+          </div>
+
+          {sorted.length === 0 ? (
+            <div className="text-center py-12 rounded-xl border border-dashed border-orange/10 bg-ink-2/20">
+              <span className="text-3xl block mb-2">📅</span>
+              <p className="text-muted text-sm">Aucune soirée de planifiée pour le moment.</p>
+            </div>
+          ) : (
+            <div className="grid gap-3">
+              {sorted.map((event) => (
+                <div
+                  key={event.slug}
+                  className="rounded-xl border border-orange/10 bg-ink-2/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-orange/20 transition-all box-orange-glow-hover"
+                >
+                  <div>
+                    <Link href={`/soirees/${event.slug}`} className="font-display text-lg text-cream hover:text-orange transition-colors">
+                      {event.name}
+                    </Link>
+                    <p className="text-xs text-muted mt-1 flex flex-wrap gap-2 items-center">
+                      <span className="text-orange-dim capitalize font-mono text-[10px]">
+                        {new Date(event.date).toLocaleDateString("fr-FR", {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </span>
+                      {event.vipNames.length > 0 && (
+                        <>
+                          <span className="text-muted/40">•</span>
+                          <span className="text-gold font-medium bg-brick-dark/30 px-2 py-0.5 rounded border border-gold/15 text-[9px] uppercase tracking-wider">
+                            🔒 {event.vipNames.length} VIP
+                          </span>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-0 border-orange/5 pt-2 sm:pt-0 shrink-0">
+                    <CopyLink path={`/soirees/${event.slug}`} />
+                    <DeleteEventButton slug={event.slug} name={event.name} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
+

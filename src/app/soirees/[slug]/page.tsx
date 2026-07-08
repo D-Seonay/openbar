@@ -25,11 +25,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-orange/15 pb-4">
         <div>
-          <p className="text-xs uppercase tracking-caps text-gold-dim mb-2">Soirée</p>
-          <h1 className="font-display text-4xl text-gold">{event.name}</h1>
-          <p className="text-muted text-sm mt-2 capitalize">
+          <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">Soirée en cours</span>
+          <h1 className="font-display text-4xl text-cream mt-1">{event.name}</h1>
+          <p className="text-muted text-xs mt-2 capitalize font-mono text-orange-dim">
             {new Date(event.date).toLocaleDateString("fr-FR", {
               weekday: "long",
               day: "numeric",
@@ -40,9 +40,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </div>
         <Link
           href={`/soirees/${slug}/bilan`}
-          className="shrink-0 text-xs px-3 py-2 rounded-md border border-brick-light/60 text-muted hover:border-gold hover:text-gold transition-colors"
+          className="shrink-0 text-xs px-4 py-2.5 rounded-xl border border-orange/20 text-orange hover:bg-orange hover:text-white transition-all duration-300 font-semibold uppercase tracking-wider text-center"
         >
-          Faire le bilan
+          📝 Faire le bilan du stock
         </Link>
       </div>
 
