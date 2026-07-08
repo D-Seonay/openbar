@@ -6,7 +6,7 @@ import { hashPassword, SESSION_COOKIE } from "@/lib/auth";
 // page stays public, the bilan screen stays admin-only.
 const PUBLIC_GUEST_PAGE = /^\/soirees\/[^/]+$/;
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname === "/login" || PUBLIC_GUEST_PAGE.test(pathname)) {
