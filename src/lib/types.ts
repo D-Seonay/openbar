@@ -40,8 +40,19 @@ export interface Contribution {
   createdAt: string;
 }
 
+export interface StockAdjustment {
+  id: string;
+  eventSlug: string;
+  bottleId: string;
+  bottleName: string;
+  quantityBefore: number;
+  quantityAfter: number;
+  createdAt: string;
+}
+
 export interface Store {
   bottles: Bottle[];
   events: EventItem[];
   contributions: Contribution[];
+  stockAdjustments: StockAdjustment[];
 }

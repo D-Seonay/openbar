@@ -1,11 +1,11 @@
 import { promises as fs } from "fs";
 import path from "path";
-import type { Bottle, EventItem, Contribution, Store } from "./types";
+import type { Bottle, EventItem, Contribution, StockAdjustment, Store } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "store.json");
 
-const empty: Store = { bottles: [], events: [], contributions: [] };
+const empty: Store = { bottles: [], events: [], contributions: [], stockAdjustments: [] };
 
 // Simple write queue so concurrent server actions don't corrupt the file.
 let queue: Promise<unknown> = Promise.resolve();
@@ -28,6 +28,7 @@ export async function readStore(): Promise<Store> {
       bottles: parsed.bottles ?? [],
       events: parsed.events ?? [],
       contributions: parsed.contributions ?? [],
+      stockAdjustments: parsed.stockAdjustments ?? [],
     };
   } catch {
     return { ...empty };
@@ -138,6 +139,7 @@ export async function deleteEvent(slug: string) {
   return mutate((store) => {
     store.events = store.events.filter((e) => e.slug !== slug);
     store.contributions = store.contributions.filter((c) => c.eventSlug !== slug);
+    store.stockAdjustments = store.stockAdjustments.filter((a) => a.eventSlug !== slug);
     return true;
   });
 }
@@ -173,4 +175,42 @@ export async function deleteContribution(id: string) {
 export function isVipGuest(event: EventItem, guestName: string) {
   const normalized = guestName.trim().toLowerCase();
   return event.vipNames.some((v) => v.toLowerCase() === normalized);
+}
+
+// ---------- Stock adjustments ----------
+
+export async function listStockAdjustments(eventSlug: string): Promise<StockAdjustment[]> {
+  const store = await readStore();
+  return store.stockAdjustments
+    .filter((a) => a.eventSlug === eventSlug)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+export async function applyStockAdjustments(
+  eventSlug: string,
+  changes: { bottleId: string; quantityAfter: number }[]
+): Promise<StockAdjustment[]> {
+  return mutate((store) => {
+    const created: StockAdjustment[] = [];
+    for (const change of changes) {
+      const bottle = store.bottles.find((b) => b.id === change.bottleId);
+      if (!bottle) continue;
+      const quantityBefore = bottle.quantity;
+      const quantityAfter = Math.max(0, change.quantityAfter);
+      if (quantityBefore === quantityAfter) continue;
+      bottle.quantity = quantityAfter;
+      const adjustment: StockAdjustment = {
+        id: makeId(),
+        eventSlug,
+        bottleId: bottle.id,
+        bottleName: bottle.name,
+        quantityBefore,
+        quantityAfter,
+        createdAt: new Date().toISOString(),
+      };
+      store.stockAdjustments.push(adjustment);
+      created.push(adjustment);
+    }
+    return created;
+  });
 }
