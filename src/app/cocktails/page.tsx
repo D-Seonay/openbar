@@ -1,5 +1,6 @@
 import { listBottles } from "@/lib/db";
 import { evaluateRecipes, type RecipeAvailability } from "@/lib/cocktails";
+import ShoppingList from "./ShoppingList";
 
 export default async function CocktailsPage() {
   const bottles = await listBottles();
@@ -37,7 +38,12 @@ export default async function CocktailsPage() {
 
       {notReady.length > 0 && (
         <section>
-          <h2 className="font-display text-xl text-cream mb-4">Encore un peu de shopping</h2>
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <h2 className="font-display text-xl text-cream">Encore un peu de shopping</h2>
+            <ShoppingList
+              items={Array.from(new Set(notReady.flatMap((r) => r.missingTags))).sort()}
+            />
+          </div>
           <div className="grid sm:grid-cols-2 gap-3">
             {notReady.slice(0, 8).map(({ recipe, missingTags }) => (
               <div key={recipe.id} className="rounded-lg border border-cream/10 bg-ink-2 p-3 text-sm">
