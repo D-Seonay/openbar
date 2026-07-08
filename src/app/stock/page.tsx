@@ -70,6 +70,14 @@ export default async function StockPage() {
             placeholder="Note (optionnel)"
             className="bg-ink border border-brick-light/60 rounded-lg px-3 py-2 text-sm sm:col-span-2 placeholder:text-muted/60 focus:outline-none focus:border-gold/60"
           />
+          <input
+            name="lowStockThreshold"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="Seuil d'alerte (optionnel, ex: 1)"
+            className="bg-ink border border-brick-light/60 rounded-lg px-3 py-2 text-sm placeholder:text-muted/60 focus:outline-none focus:border-gold/60"
+          />
           <label className="flex items-center gap-2 text-sm text-gold">
             <input type="checkbox" name="vip" className="accent-gold" />
             Réserver à la section VIP
@@ -117,6 +125,7 @@ function BottleTable({
             <th className="py-2 font-medium">Bouteille</th>
             <th className="py-2 font-medium">Type</th>
             <th className="py-2 font-medium">Quantité</th>
+            <th className="py-2 font-medium">Alerte</th>
             <th className="py-2"></th>
           </tr>
         </thead>

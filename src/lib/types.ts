@@ -19,6 +19,7 @@ export interface Bottle {
   tags: string[];
   vip: boolean;
   notes?: string;
+  lowStockThreshold?: number;
   createdAt: string;
 }
 

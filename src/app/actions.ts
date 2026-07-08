@@ -21,8 +21,10 @@ export async function createBottle(formData: FormData) {
   const vip = formData.get("vip") === "on";
   const tags = parseTags(formData.get("tags"));
   const notes = String(formData.get("notes") ?? "").trim() || undefined;
+  const thresholdRaw = String(formData.get("lowStockThreshold") ?? "").trim();
+  const lowStockThreshold = thresholdRaw ? Number(thresholdRaw) : undefined;
 
-  await db.addBottle({ name, type, quantity, vip, tags, notes });
+  await db.addBottle({ name, type, quantity, vip, tags, notes, lowStockThreshold });
   revalidatePath("/stock");
   revalidatePath("/cocktails");
 }
@@ -31,6 +33,12 @@ export async function updateBottleQuantity(id: string, quantity: number) {
   await db.updateBottle(id, { quantity: Math.max(0, quantity) });
   revalidatePath("/stock");
   revalidatePath("/cocktails");
+}
+
+export async function updateBottleThreshold(id: string, threshold: number | null) {
+  await db.updateBottle(id, { lowStockThreshold: threshold ?? undefined });
+  revalidatePath("/stock");
+  revalidatePath("/");
 }
 
 export async function deleteBottleAction(id: string) {
