@@ -1,6 +1,6 @@
 import { listBottles } from "@/lib/db";
 import { createBottle } from "@/app/actions";
-import BottleRow from "./BottleRow";
+import BottleTable from "./BottleTable";
 
 const TYPES = [
   ["whisky", "Whisky"],
@@ -101,48 +101,5 @@ export default async function StockPage() {
         <BottleTable bottles={vip} empty="Pas encore de bouteille VIP." bare />
       </section>
     </div>
-  );
-}
-
-function BottleTable({
-  title,
-  bottles,
-  empty,
-  bare,
-}: {
-  title?: string;
-  bottles: Awaited<ReturnType<typeof listBottles>>;
-  empty: string;
-  bare?: boolean;
-}) {
-  const content =
-    bottles.length === 0 ? (
-      <p className="text-muted text-sm">{empty}</p>
-    ) : (
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-left text-gold-dim text-xs uppercase tracking-caps border-b border-cream/10">
-            <th className="py-2 font-medium">Bouteille</th>
-            <th className="py-2 font-medium">Type</th>
-            <th className="py-2 font-medium">Quantité</th>
-            <th className="py-2 font-medium">Alerte</th>
-            <th className="py-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {bottles.map((b) => (
-            <BottleRow key={b.id} bottle={b} />
-          ))}
-        </tbody>
-      </table>
-    );
-
-  if (bare) return content;
-
-  return (
-    <section>
-      {title && <h2 className="font-display text-xl text-cream mb-4">{title}</h2>}
-      {content}
-    </section>
   );
 }
