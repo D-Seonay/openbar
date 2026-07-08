@@ -9,6 +9,9 @@ export default async function HomePage() {
   const stockCount = bottles.filter((b) => b.type !== "mixer" && b.quantity > 0).length;
   const vipCount = bottles.filter((b) => b.vip).length;
   const availability = evaluateRecipes(bottles);
+  const lowStock = bottles
+    .filter((b) => b.lowStockThreshold != null && b.quantity <= b.lowStockThreshold)
+    .sort((a, b) => a.quantity - b.quantity);
   const makeableNow = availability.filter((a) => a.makeable && !a.usesVip).length;
 
   const today = new Date().toISOString().slice(0, 10);
@@ -97,6 +100,24 @@ export default async function HomePage() {
             )}
           </div>
         </div>
+
+        {lowStock.length > 0 && (
+          <div className="mt-8 pt-6 border-t border-cream/15">
+            <p className="text-xs uppercase tracking-caps text-gold-dim mb-2">
+              {lowStock.length} bouteille{lowStock.length > 1 ? "s" : ""} en alerte
+            </p>
+            <ul className="text-sm space-y-1">
+              {lowStock.slice(0, 5).map((b) => (
+                <li key={b.id} className="flex justify-between text-cream">
+                  <span>{b.name}</span>
+                  <span className="text-red-400">
+                    {b.quantity} restant{b.quantity > 1 ? "s" : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
