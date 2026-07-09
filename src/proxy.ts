@@ -11,7 +11,7 @@ export async function proxy(request: NextRequest) {
     const expectedHash = expected ? await hashPassword(expected) : null;
     const sessionCookie = request.cookies.get(SESSION_COOKIE)?.value;
 
-    if (expectedHash && sessionCookie !== expectedHash) {
+    if (!expectedHash || sessionCookie !== expectedHash) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }

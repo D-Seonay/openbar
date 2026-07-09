@@ -12,7 +12,7 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function isAdminLoggedIn(): Promise<boolean> {
   const expected = process.env.ADMIN_PASSWORD ?? "";
-  if (!expected) return true;
+  if (!expected) return false;
   const expectedHash = await hashPassword(expected);
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get(SESSION_COOKIE)?.value;
