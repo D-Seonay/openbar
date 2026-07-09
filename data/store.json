@@ -9,7 +9,8 @@
         "rhum blanc"
       ],
       "vip": false,
-      "createdAt": "2026-06-01T00:00:00.000Z"
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "lowStockThreshold": 1
     },
     {
       "id": "seed2",
@@ -48,24 +49,32 @@
       "id": "seed6",
       "name": "Citrons verts",
       "type": "mixer",
-      "quantity": 6,
+      "quantity": 9,
       "tags": [
         "citron vert",
         "citron"
       ],
       "vip": false,
-      "createdAt": "2026-06-01T00:00:00.000Z"
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "volumes": [
+        {
+          "size": "15",
+          "quantity": 9
+        }
+      ]
     },
     {
       "id": "seed7",
       "name": "Coca-Cola",
       "type": "mixer",
-      "quantity": 3,
+      "quantity": 0,
       "tags": [
         "cola"
       ],
       "vip": false,
-      "createdAt": "2026-06-01T00:00:00.000Z"
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "volumes": [],
+      "imageUrl": "/uploads/bottle-1783555868884-5er0yh.png"
     },
     {
       "id": "seed8",
@@ -122,6 +131,31 @@
       ],
       "vip": true,
       "createdAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "name": "test",
+      "type": "gin",
+      "quantity": 2,
+      "vip": false,
+      "tags": [],
+      "id": "injtw1glmrcoej54",
+      "createdAt": "2026-07-08T22:55:16.072Z"
+    },
+    {
+      "name": "dfsf",
+      "type": "whisky",
+      "quantity": 1,
+      "vip": false,
+      "tags": [],
+      "volumes": [
+        {
+          "size": "70cl",
+          "quantity": 1
+        }
+      ],
+      "imageUrl": "https://cdn.dribbble.com/userupload/47197774/file/451caf6a436694ff4c9885de31713f43.png?resize=2048x1536&vertical=center",
+      "id": "02tbrdlimrcqw2l1",
+      "createdAt": "2026-07-09T00:04:53.653Z"
     }
   ],
   "events": [
@@ -131,7 +165,54 @@
       "date": "2026-07-11",
       "vipNames": [],
       "createdAt": "2026-07-08T21:15:41.346Z"
+    },
+    {
+      "slug": "test-test",
+      "name": "test test",
+      "date": "2026-07-12",
+      "vipNames": [
+        "test"
+      ],
+      "createdAt": "2026-07-08T23:50:03.892Z"
     }
   ],
-  "contributions": []
+  "contributions": [
+    {
+      "eventSlug": "test",
+      "guestName": "Juliane",
+      "item": "vodka black",
+      "quantity": "2",
+      "id": "188ckpczmrcli3uw",
+      "createdAt": "2026-07-08T21:34:04.040Z"
+    }
+  ],
+  "stockAdjustments": [
+    {
+      "id": "a70ceksfmrcorphc",
+      "eventSlug": "test",
+      "bottleId": "seed1",
+      "bottleName": "Havana Club 3 ans",
+      "quantityBefore": 1,
+      "quantityAfter": 0,
+      "createdAt": "2026-07-08T23:05:30.816Z"
+    },
+    {
+      "id": "3v6n1045mrcp201j",
+      "eventSlug": "test",
+      "bottleId": "seed7",
+      "bottleName": "Coca-Cola",
+      "quantityBefore": 3,
+      "quantityAfter": 2,
+      "createdAt": "2026-07-08T23:13:31.063Z"
+    },
+    {
+      "id": "6sql2xj6mrcp201j",
+      "eventSlug": "test",
+      "bottleId": "injtw1glmrcoej54",
+      "bottleName": "test",
+      "quantityBefore": 1,
+      "quantityAfter": 2,
+      "createdAt": "2026-07-08T23:13:31.063Z"
+    }
+  ]
 }

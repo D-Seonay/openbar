@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title>Le Bar de Noa — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #14090a;
+    --ink-2: #1d0e0d;
+    --brick: #7a2a1f;
+    --brick-light: #96392a;
+    --brick-dark: #571d15;
+    --gold: #f0c24c;
+    --gold-dim: #c99a52;
+    --cream: #f6ecdf;
+    --muted: #c7a690;
+    --display: "Italiana", serif;
+    --sans: "Jost", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--cream);
+    font-family: var(--sans);
+    font-weight: 400;
+  }
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 60px 24px 120px;
+  }
+  h1.title {
+    font-family: var(--display);
+    color: var(--gold);
+    font-size: 56px;
+    margin: 0 0 8px;
+  }
+  p.subtitle {
+    color: var(--muted);
+    margin: 0 0 64px;
+    font-size: 14px;
+  }
+  section.block {
+    margin-bottom: 64px;
+    border-top: 1px solid rgba(246,236,223,0.1);
+    padding-top: 32px;
+  }
+  .eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--gold-dim);
+    margin: 0 0 16px;
+  }
+  h2.section-title {
+    font-family: var(--display);
+    color: var(--cream);
+    font-size: 28px;
+    margin: 0 0 24px;
+  }
+
+  /* palette */
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  .swatch {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(246,236,223,0.12);
+  }
+  .swatch-color { height: 72px; }
+  .swatch-label {
+    background: var(--ink-2);
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  .swatch-label b { display: block; color: var(--cream); font-size: 12px; }
+  .swatch-label span { color: var(--muted); }
+
+  /* type specimen */
+  .specimen { margin-bottom: 20px; }
+  .specimen .label { font-size: 11px; color: var(--gold-dim); text-transform: uppercase; letter-spacing: 0.18em; margin-bottom: 6px; }
+  .display-xl { font-family: var(--display); color: var(--gold); font-size: 64px; line-height: 1; }
+  .display-lg { font-family: var(--display); color: var(--gold); font-size: 40px; }
+  .display-md { font-family: var(--display); color: var(--cream); font-size: 22px; }
+  .body-text { color: var(--muted); font-size: 14px; max-width: 480px; }
+  .caps { font-size: 12px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--muted); }
+
+  /* buttons */
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .btn-primary {
+    background: var(--gold); color: var(--ink); font-weight: 500;
+    border: none; border-radius: 8px; padding: 10px 18px; font-family: var(--sans);
+    cursor: pointer; font-size: 14px;
+  }
+  .btn-pill { border-radius: 999px; }
+  .btn-secondary {
+    background: transparent; color: var(--muted); border: 1px solid var(--brick-light);
+    border-radius: 8px; padding: 8px 14px; font-size: 12px; font-family: var(--sans); cursor: pointer;
+  }
+  .btn-danger {
+    background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: var(--sans);
+  }
+
+  /* inputs */
+  input {
+    background: var(--ink); border: 1px solid rgba(150,57,42,0.6); border-radius: 8px;
+    padding: 10px 12px; font-size: 14px; color: var(--cream); font-family: var(--sans);
+    width: 260px;
+  }
+  input::placeholder { color: rgba(199,166,144,0.6); }
+
+  /* cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .card {
+    border-radius: 12px; border: 1px solid rgba(246,236,223,0.1); background: var(--ink-2); padding: 20px;
+  }
+  .card-vip {
+    border-radius: 12px; border: 1px solid rgba(240,194,76,0.25); background: rgba(87,29,21,0.4); padding: 20px;
+  }
+  .card h3 { font-family: var(--display); color: var(--cream); margin: 0 0 6px; font-size: 18px; }
+  .card p { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+  .tag-line { color: var(--gold-dim); font-size: 12px; letter-spacing: 0.02em; }
+
+  .stat {
+    border-radius: 8px; border: 1px solid rgba(246,236,223,0.15); background: rgba(20,9,10,0.2);
+    padding: 16px; text-align: left;
+  }
+  .stat .num { font-family: var(--display); color: var(--cream); font-size: 30px; }
+  .stat .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--gold-dim); margin-top: 4px; }
+
+  .badge-vip {
+    display: inline-block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em;
+    background: var(--gold); color: var(--ink); padding: 2px 6px; border-radius: 4px; font-weight: 700;
+  }
+
+  /* nav mock */
+  .nav-mock {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(20,9,10,0.95); border-bottom: 1px solid rgba(122,42,31,0.4);
+    padding: 16px 24px; border-radius: 8px;
+  }
+  .nav-mock .logo { font-family: var(--display); color: var(--gold); font-size: 20px; }
+  .nav-mock nav { display: flex; gap: 32px; }
+  .nav-mock nav a { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; text-decoration: none; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--gold-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; border-bottom: 1px solid rgba(246,236,223,0.1); padding-bottom: 8px; }
+  td { padding: 10px 0; border-bottom: 1px solid rgba(246,236,223,0.1); color: var(--cream); }
+  td.muted-cell { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1 class="title">Design System</h1>
+  <p class="subtitle">Le Bar de Noa — référence visuelle vivante. Ouvre ce fichier dans un navigateur pour vérifier tout écart de style.</p>
+
+  <section class="block">
+    <p class="eyebrow">01 — Palette</p>
+    <h2 class="section-title">Couleurs</h2>
+    <div class="swatches">
+      <div class="swatch"><div class="swatch-color" style="background:var(--ink)"></div><div class="swatch-label"><b>ink</b><span>#14090a</span></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--ink-2)"></div><div class="swatch-label"><b>ink-2</b><span>#1d0e0d</span></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--brick)"></div><div class="swatch-label"><b>brick</b><span>#7a2a1f</span></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--brick-light)"></div><div class="swatch-label"><b>brick-light</b><span>#96392a</span></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--brick-dark)"></div><div class="swatch-label"><b>brick-dark</b><span>#571d15</span></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--gold)"></div><div class="swatch-label"><b>gold</b><span>#f0c24c</span></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--gold-dim)"></div><div class="swatch-label"><b>gold-dim</b><span>#c99a52</span></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--cream)"></div><div class="swatch-label"><b>cream</b><span>#f6ecdf</span></div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--muted)"></div><div class="swatch-label"><b>muted</b><span>#c7a690</span></div></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <p class="eyebrow">02 — Typographie</p>
+    <h2 class="section-title">Italiana + Jost</h2>
+    <div class="specimen">
+      <div class="label">Display — titre hero</div>
+      <div class="display-xl">Bar de Noa</div>
+    </div>
+    <div class="specimen">
+      <div class="label">Display — titre de page</div>
+      <div class="display-lg">Cocktails</div>
+    </div>
+    <div class="specimen">
+      <div class="label">Display — titre de carte</div>
+      <div class="display-md">Mojito</div>
+    </div>
+    <div class="specimen">
+      <div class="label">Corps de texte (Jost)</div>
+      <p class="body-text">Calculé automatiquement à partir de ton stock (alcools + mixers). Le corps de texte utilise toujours Jost, jamais Italiana.</p>
+    </div>
+    <div class="specimen">
+      <div class="label">Petites majuscules (nav / eyebrows)</div>
+      <div class="caps">Stock · Cocktails · Soirées</div>
+    </div>
+  </section>
+
+  <section class="block">
+    <p class="eyebrow">03 — Boutons</p>
+    <h2 class="section-title">Actions</h2>
+    <div class="row">
+      <button class="btn-primary">Ajouter au stock</button>
+      <button class="btn-primary btn-pill">Voir la soirée →</button>
+      <button class="btn-secondary">Copier le lien</button>
+      <button class="btn-danger">Supprimer</button>
+    </div>
+  </section>
+
+  <section class="block">
+    <p class="eyebrow">04 — Formulaires</p>
+    <h2 class="section-title">Champs</h2>
+    <div class="row">
+      <input placeholder="Nom (ex: Havana 7 ans)" />
+      <input placeholder="Ton prénom" />
+    </div>
+  </section>
+
+  <section class="block">
+    <p class="eyebrow">05 — Cartes</p>
+    <h2 class="section-title">Standard vs VIP</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Mojito</h3>
+        <p class="tag-line">rhum blanc · citron vert · menthe · sucre · soda</p>
+        <p>Écraser menthe, sucre et citron vert au fond du verre…</p>
+      </div>
+      <div class="card-vip">
+        <h3>Old Fashioned <span class="badge-vip" style="margin-left:6px;">VIP</span></h3>
+        <p class="tag-line">whisky · sucre · angostura</p>
+        <p>Réalisable grâce à une bouteille de la réserve VIP.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <p class="eyebrow">06 — Statistiques</p>
+    <h2 class="section-title">Cartes chiffrées</h2>
+    <div class="cards">
+      <div class="stat"><div class="num">12</div><div class="lbl">Bouteilles en stock</div></div>
+      <div class="stat"><div class="num">2</div><div class="lbl">Réserve VIP</div></div>
+      <div class="stat"><div class="num">5</div><div class="lbl">Cocktails réalisables</div></div>
+      <div class="stat"><div class="num">1</div><div class="lbl">Soirées à venir</div></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <p class="eyebrow">07 — Navigation</p>
+    <h2 class="section-title">Header</h2>
+    <div class="nav-mock">
+      <div class="logo">Le Bar de Noa</div>
+      <nav>
+        <a href="#">Stock</a>
+        <a href="#">Cocktails</a>
+        <a href="#">Soirées</a>
+      </nav>
+    </div>
+  </section>
+
+  <section class="block">
+    <p class="eyebrow">08 — Tableau</p>
+    <h2 class="section-title">Stock</h2>
+    <table>
+      <thead>
+        <tr><th>Bouteille</th><th>Type</th><th>Quantité</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Havana Club 3 ans</td><td class="muted-cell">Rhum</td><td class="muted-cell">1</td></tr>
+        <tr><td>Hibiki 17 ans <span class="badge-vip">VIP</span></td><td class="muted-cell">Whisky</td><td class="muted-cell">1</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+</body>
+</html>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listBottles, listEvents } from "@/lib/db";
 import { evaluateRecipes } from "@/lib/cocktails";
+import PageTransition from "@/components/PageTransition";
 
 export default async function HomePage() {
   const bottles = await listBottles();
@@ -19,45 +20,47 @@ export default async function HomePage() {
   const nextEvent = upcoming[0];
 
   return (
-    <div className="-mx-6 -my-10 grid lg:grid-cols-2 min-h-[calc(100vh-8.5rem)]">
+    <PageTransition className="-mx-6 -my-10 grid lg:grid-cols-2 min-h-[calc(100vh-8.5rem)]">
       {/* Left: moody spotlight panel */}
-      <div className="relative overflow-hidden bg-ink-2 border-b lg:border-b-0 lg:border-r border-orange/15 flex items-end p-12 min-h-[360px]">
+      <div className="relative overflow-hidden bg-ink-2 border-b lg:border-b-0 lg:border-r border-white/[0.07] flex items-end p-12 min-h-[380px]">
         <div
-          className="absolute inset-0 opacity-80"
+          className="absolute inset-0 opacity-90 pointer-events-none"
           style={{
             background:
-              "radial-gradient(circle at 50% 80%, rgba(255,99,43,0.3) 0%, rgba(107,31,21,0.15) 45%, rgba(15,7,8,0) 80%), radial-gradient(circle at 10% 10%, rgba(245,190,79,0.06) 0%, rgba(15,7,8,0) 50%)",
+              "radial-gradient(circle at 50% 85%, rgba(255,107,53,0.18) 0%, rgba(61,35,26,0.1) 45%, rgba(17,13,12,0) 80%), radial-gradient(circle at 15% 15%, rgba(232,165,99,0.06) 0%, rgba(17,13,12,0) 50%)",
           }}
         />
-        <div className="relative z-10">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-orange mb-3 block">Atmosphère Privée</span>
-          <h2 className="font-display text-4xl sm:text-5xl text-cream leading-tight font-light">
-            Le Salon <br />
-            <span className="text-orange">de Noa</span>
+        <div className="relative z-10 max-w-md">
+          <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-caps text-gold px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] mb-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-orange animate-pulse" /> Cave Privée & Salon
+          </span>
+          <h2 className="font-display text-4xl sm:text-5xl font-bold text-cream leading-tight">
+            L&apos;art du <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange to-gold">Cocktail</span>
           </h2>
-          <p className="text-muted text-sm mt-4 max-w-sm leading-relaxed">
-            Votre espace personnel de mixologie. Gérez votre stock d&apos;exception, découvrez les recettes réalisables et planifiez vos plus belles soirées.
+          <p className="text-muted text-sm mt-4 leading-relaxed font-normal">
+            Votre espace personnel de mixologie. Gérez vos réserves au millilitre près, explorez des recettes équilibrées et planifiez vos soirées d&apos;exception.
           </p>
         </div>
       </div>
 
       {/* Right: content panel with refined background */}
-      <div className="relative bg-ink px-10 py-12 flex flex-col justify-between border-t lg:border-t-0 border-orange/10">
-        <div className="absolute inset-0 bg-radial-[circle_at_top_right] from-brick-dark/15 via-transparent to-transparent pointer-events-none" />
+      <div className="relative bg-ink px-8 sm:px-12 py-12 flex flex-col justify-between border-t lg:border-t-0 border-white/[0.07]">
+        <div className="absolute inset-0 bg-radial-[circle_at_top_right] from-orange/5 via-transparent to-transparent pointer-events-none" />
         
         <div className="relative z-10 space-y-8">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">Tableau de Bord</span>
-            <span className="text-xs text-muted/80 bg-ink-2 px-2.5 py-1 rounded-full border border-orange/15">
-              {String(upcoming.length).padStart(2, "0")} · soirée{upcoming.length > 1 ? "s" : ""} à venir
+            <span className="text-xs uppercase tracking-caps text-orange font-semibold">Vue d&apos;ensemble</span>
+            <span className="text-xs text-muted font-medium bg-ink-2 px-3 py-1 rounded-full border border-white/[0.08]">
+              {String(upcoming.length).padStart(2, "0")} soirée{upcoming.length > 1 ? "s" : ""} à venir
             </span>
           </div>
 
           <div>
-            <h1 className="font-display text-5xl sm:text-6xl text-cream leading-none tracking-wide">
+            <h1 className="font-display text-4xl sm:text-5xl font-bold text-cream tracking-tight">
               Le Bar <span className="text-orange">de Noa</span>
             </h1>
-            <p className="text-muted text-xs mt-2">Cocktails sur mesure · Gestion des réserves</p>
+            <p className="text-muted text-xs mt-1.5 uppercase tracking-caps">Mixologie sur mesure · Gestion de cave</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mt-6">
@@ -129,7 +132,7 @@ export default async function HomePage() {
           )}
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }
 

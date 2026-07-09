@@ -1,9 +1,11 @@
 "use server";
 
+import fs from "node:fs/promises";
+import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import * as db from "@/lib/db";
-import type { BottleType } from "@/lib/types";
+import type { BottleType, BottleVolume } from "@/lib/types";
 
 function parseTags(raw: FormDataEntryValue | null): string[] {
   if (!raw) return [];
@@ -17,20 +19,42 @@ export async function createBottle(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return;
   const type = String(formData.get("type") ?? "autre") as BottleType;
-  const quantity = Number(formData.get("quantity") ?? 0) || 0;
   const vip = formData.get("vip") === "on";
   const tags = parseTags(formData.get("tags"));
   const notes = String(formData.get("notes") ?? "").trim() || undefined;
   const thresholdRaw = String(formData.get("lowStockThreshold") ?? "").trim();
   const lowStockThreshold = thresholdRaw ? Number(thresholdRaw) : undefined;
+  const imageUrl = String(formData.get("imageUrl") ?? "").trim() || undefined;
 
-  await db.addBottle({ name, type, quantity, vip, tags, notes, lowStockThreshold });
+  // Parse volumes list from hidden input
+  const volumesRaw = String(formData.get("volumes") ?? "").trim();
+  let volumes: BottleVolume[] = [];
+  let quantity = Number(formData.get("quantity") ?? 0) || 0;
+
+  if (volumesRaw) {
+    try {
+      volumes = JSON.parse(volumesRaw) as BottleVolume[];
+      // If volumes are specified, set quantity as the sum of bottle quantities
+      quantity = volumes.reduce((sum, v) => sum + v.quantity, 0);
+    } catch {
+      // fallback to basic quantity
+    }
+  }
+
+  await db.addBottle({ name, type, quantity, vip, tags, notes, lowStockThreshold, volumes, imageUrl });
   revalidatePath("/stock");
   revalidatePath("/cocktails");
 }
 
 export async function updateBottleQuantity(id: string, quantity: number) {
   await db.updateBottle(id, { quantity: Math.max(0, quantity) });
+  revalidatePath("/stock");
+  revalidatePath("/cocktails");
+}
+
+export async function updateBottleVolumes(id: string, volumes: BottleVolume[], imageUrl?: string) {
+  const quantity = volumes.reduce((sum, v) => sum + v.quantity, 0);
+  await db.updateBottle(id, { volumes, quantity, imageUrl });
   revalidatePath("/stock");
   revalidatePath("/cocktails");
 }
@@ -98,4 +122,22 @@ export async function submitBilan(slug: string, formData: FormData) {
   revalidatePath("/cocktails");
   revalidatePath(`/soirees/${slug}`);
   redirect(`/soirees/${slug}`);
+}
+
+export async function uploadBottleImage(formData: FormData): Promise<string | null> {
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) return null;
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  const uploadsDir = path.join(process.cwd(), "public", "uploads");
+  await fs.mkdir(uploadsDir, { recursive: true });
+
+  const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "png";
+  const filename = `bottle-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const filePath = path.join(uploadsDir, filename);
+
+  await fs.writeFile(filePath, buffer);
+  return `/uploads/${filename}`;
 }

@@ -1,129 +1,79 @@
 import { listBottles } from "@/lib/db";
-import { createBottle } from "@/app/actions";
+import { calculateBottleTotalLiters, calculateTotalBottlesCount, formatLiters } from "@/lib/volumeUtils";
 import StockTabs from "./StockTabs";
-
-const TYPES = [
-  ["whisky", "Whisky"],
-  ["rhum", "Rhum"],
-  ["vodka", "Vodka"],
-  ["gin", "Gin"],
-  ["tequila", "Tequila"],
-  ["liqueur", "Liqueur / apéritif"],
-  ["vin", "Vin"],
-  ["champagne", "Champagne / bulles"],
-  ["biere", "Bière"],
-  ["mixer", "Soft / mixer (tonic, jus, sirop...)"],
-  ["autre", "Autre"],
-] as const;
+import AddBottleForm from "./AddBottleForm";
+import PageTransition from "@/components/PageTransition";
+import AlertsManagerTrigger from "./AlertsManagerTrigger";
 
 export default async function StockPage() {
   const bottles = await listBottles();
   const normal = bottles.filter((b) => !b.vip);
   const vip = bottles.filter((b) => b.vip);
 
-  const addBottleForm = (
-    <form action={createBottle} className="grid sm:grid-cols-2 gap-4">
-      <div className="sm:col-span-2">
-        <label className="text-xs uppercase text-muted tracking-wider mb-1 block">Nom de la bouteille</label>
-        <input
-          name="name"
-          placeholder="Ex: Havana Club 7 ans"
-          required
-          className="w-full bg-ink border border-orange/10 rounded-xl px-4 py-2.5 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-        />
-      </div>
+  const totalBottlesCount = bottles.reduce((sum, b) => sum + calculateTotalBottlesCount(b), 0);
+  const totalLitersCount = bottles.reduce((sum, b) => sum + calculateBottleTotalLiters(b), 0);
+  const lowStockCount = bottles.filter(
+    (b) => b.lowStockThreshold != null && b.quantity <= b.lowStockThreshold
+  ).length;
 
-      <div>
-        <label className="text-xs uppercase text-muted tracking-wider mb-1 block">Type d&apos;ingrédient</label>
-        <select
-          name="type"
-          className="w-full bg-ink border border-orange/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-        >
-          {TYPES.map(([value, label]) => (
-            <option key={value} value={value} className="bg-ink">
-              {label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="text-xs uppercase text-muted tracking-wider mb-1 block">Quantité de départ</label>
-        <input
-          name="quantity"
-          type="number"
-          step="0.5"
-          min="0"
-          defaultValue={1}
-          placeholder="Quantité"
-          className="w-full bg-ink border border-orange/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-        />
-      </div>
-
-      <div className="sm:col-span-2">
-        <label className="text-xs uppercase text-muted tracking-wider mb-1 block">Tags pour cocktails (séparés par virgules)</label>
-        <input
-          name="tags"
-          placeholder="Ex: rhum brun, citron vert, menthe"
-          className="w-full bg-ink border border-orange/10 rounded-xl px-4 py-2.5 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-        />
-      </div>
-
-      <div className="sm:col-span-2">
-        <label className="text-xs uppercase text-muted tracking-wider mb-1 block">Notes / Commentaires</label>
-        <input
-          name="notes"
-          placeholder="Ex: étagère du haut, bouteille offerte par Noa"
-          className="w-full bg-ink border border-orange/10 rounded-xl px-4 py-2.5 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-        />
-      </div>
-
-      <div>
-        <label className="text-xs uppercase text-muted tracking-wider mb-1 block">Seuil d&apos;alerte (Optionnel)</label>
-        <input
-          name="lowStockThreshold"
-          type="number"
-          min="0"
-          step="1"
-          placeholder="Ex: 1"
-          className="w-full bg-ink border border-orange/10 rounded-xl px-4 py-2.5 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-        />
-      </div>
-
-      <div className="flex items-end pb-2">
-        <label className="flex items-center gap-2.5 text-sm text-gold cursor-pointer select-none">
-          <input 
-            type="checkbox" 
-            name="vip" 
-            className="w-5 h-5 rounded border-orange/30 text-orange focus:ring-orange bg-ink accent-gold cursor-pointer" 
-          />
-          <span>Réserver à la section VIP</span>
-        </label>
-      </div>
-
-      <button
-        type="submit"
-        className="sm:col-span-2 bg-orange text-white font-medium rounded-xl py-3 hover:bg-orange-hover box-orange-glow transition-all duration-300 mt-2 uppercase tracking-widest text-xs"
-      >
-        Ajouter au stock
-      </button>
-    </form>
-  );
+  const addBottleForm = <AddBottleForm />;
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-start">
-        <div>
-          <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">Inventaire & Réserves</span>
-          <h1 className="font-display text-4xl text-cream mt-1">Le Stock</h1>
-          <p className="text-muted text-xs mt-2 max-w-lg leading-relaxed">
-            Gérez vos bouteilles d&apos;alcool, softs et mixers. Les cocktails disponibles se mettent à jour automatiquement selon vos réserves.
-          </p>
+    <PageTransition className="space-y-8">
+      {/* Fresh Grocery Landing Hero Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-ink-2 border border-white/[0.08] p-6 sm:p-10 shadow-2xl">
+        <div
+          className="absolute inset-0 opacity-80 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle at 85% 20%, rgba(255,107,53,0.18) 0%, rgba(61,35,26,0.08) 45%, rgba(17,13,12,0) 80%), radial-gradient(circle at 15% 85%, rgba(232,165,99,0.07) 0%, rgba(17,13,12,0) 60%)",
+          }}
+        />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+          <div className="space-y-3 max-w-xl">
+            <div className="inline-flex items-center gap-2 text-xs uppercase tracking-caps text-gold font-bold bg-white/[0.04] px-3 py-1 rounded-full border border-white/[0.08]">
+              <span className="w-2 h-2 rounded-full bg-orange animate-pulse" />
+              <span>Marché & Épicerie Fine de Spiritueux</span>
+            </div>
+            <h1 className="font-display text-4xl sm:text-6xl font-bold text-cream tracking-tight leading-none">
+              Le Marché <span className="text-orange">& La Cave</span>
+            </h1>
+            <p className="text-muted text-xs sm:text-sm leading-relaxed">
+              Explorez vos rayons comme dans un marché artisanal d&apos;exception. Ajoutez ou retirez des bouteilles en un clic, surveillez vos volumes en litres et préparez vos courses.
+            </p>
+          </div>
+
+          {/* Fresh Grocery Live KPIs Pills */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 shrink-0">
+            <div className="bg-ink/80 border border-white/[0.08] rounded-2xl p-3.5 text-center min-w-[110px]">
+              <span className="text-[10px] uppercase tracking-caps text-muted block font-semibold">En Rayon</span>
+              <span className="font-display text-2xl font-bold text-cream mt-1 block">
+                {totalBottlesCount} <span className="text-xs font-normal text-muted">btl</span>
+              </span>
+            </div>
+
+            <div className="bg-ink/80 border border-white/[0.08] rounded-2xl p-3.5 text-center min-w-[110px]">
+              <span className="text-[10px] uppercase tracking-caps text-muted block font-semibold">Volume Total</span>
+              <span className="font-display text-2xl font-bold text-orange mt-1 block">
+                {formatLiters(totalLitersCount)}
+              </span>
+            </div>
+
+            <AlertsManagerTrigger bottles={bottles} lowStockCount={lowStockCount} />
+
+            <div className="bg-ink/80 border border-white/[0.08] rounded-2xl p-3.5 text-center min-w-[110px]">
+              <span className="text-[10px] uppercase tracking-caps text-gold block font-semibold">Réserve VIP</span>
+              <span className="font-display text-2xl font-bold text-gold mt-1 block">
+                {vip.length} <span className="text-xs font-normal text-gold-dim">réf.</span>
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Interactive Tabs & Fresh Market Shelves */}
       <StockTabs normalBottles={normal} vipBottles={vip} addBottleForm={addBottleForm} />
-    </div>
+    </PageTransition>
   );
 }
-

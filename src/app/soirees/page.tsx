@@ -3,16 +3,17 @@ import { listEvents } from "@/lib/db";
 import { createEvent } from "@/app/actions";
 import CopyLink from "./CopyLink";
 import DeleteEventButton from "./DeleteEventButton";
+import PageTransition from "@/components/PageTransition";
 
 export default async function SoireesPage() {
   const events = await listEvents();
   const sorted = [...events].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
-    <div className="space-y-8">
+    <PageTransition className="space-y-8">
       <div>
-        <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">Organisation & Événements</span>
-        <h1 className="font-display text-4xl text-cream mt-1">Soirées Privées</h1>
+        <span className="text-xs uppercase tracking-caps text-orange font-semibold">Organisation & Événements</span>
+        <h1 className="font-display text-4xl sm:text-5xl font-bold text-cream mt-1 tracking-tight">Soirées Privées</h1>
         <p className="text-muted text-xs mt-2 max-w-lg leading-relaxed">
           Planifiez vos soirées et générez des liens d&apos;invitation pour permettre à vos convives d&apos;indiquer ce qu&apos;ils apportent.
         </p>
@@ -113,7 +114,7 @@ export default async function SoireesPage() {
           )}
         </section>
       </div>
-    </div>
+    </PageTransition>
   );
 }
 

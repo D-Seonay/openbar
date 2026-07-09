@@ -11,16 +11,23 @@ export type BottleType =
   | "mixer"
   | "autre";
 
+export interface BottleVolume {
+  size: string; // e.g. "70cl", "1L", "1.5L"
+  quantity: number; // count of bottles of this size
+}
+
 export interface Bottle {
   id: string;
   name: string;
   type: BottleType;
-  quantity: number;
+  quantity: number; // Total sum of quantities
   tags: string[];
   vip: boolean;
   notes?: string;
   lowStockThreshold?: number;
   createdAt: string;
+  volumes?: BottleVolume[];
+  imageUrl?: string;
 }
 
 export interface EventItem {

@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ink: #0f0708;
-  --color-ink-2: #190d0e;
-  --color-brick: #6b1f15;
-  --color-brick-light: #8a2a1c;
-  --color-brick-dark: #4d150f;
-  --color-gold: #f5be4f;
-  --color-gold-dim: #cca05d;
-  --color-cream: #fbf5ed;
-  --color-muted: #c9a491;
-  --color-orange: #ff632b;
-  --color-orange-hover: #ff7d4d;
-  --color-orange-dim: #e04b16;
-  --color-orange-dark: #8a2806;
+  --color-ink: #110d0c;
+  --color-ink-2: #1b1614;
+  --color-brick: #3d231a;
+  --color-brick-light: #573023;
+  --color-brick-dark: #2a1711;
+  --color-gold: #E8A563;
+  --color-gold-dim: #BFA082;
+  --color-cream: #FAF6F2;
+  --color-muted: #A8988C;
+  --color-orange: #FF6B35;
+  --color-orange-hover: #FF8254;
+  --color-orange-dim: #D45524;
+  --color-orange-dark: #5E230E;
 
-  --font-display: var(--font-italiana), serif;
-  --font-sans: var(--font-jost), sans-serif;
+  --font-display: var(--font-outfit), sans-serif;
+  --font-sans: var(--font-jakarta), sans-serif;
 }
 
 :root {
@@ -32,6 +32,7 @@ body {
 
 h1, h2, h3, .font-display {
   font-family: var(--font-display);
+  letter-spacing: -0.015em;
 }
 
 input, select, textarea {
@@ -40,20 +41,20 @@ input, select, textarea {
 }
 
 .tracking-caps {
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
 }
 
-/* Glow effects and styling enhancements */
+/* Refined Glow effects and subtle glass styling */
 .orange-glow {
-  text-shadow: 0 0 10px rgba(255, 99, 43, 0.3);
+  text-shadow: 0 0 16px rgba(255, 107, 53, 0.4);
 }
 
 .box-orange-glow {
-  box-shadow: 0 0 20px rgba(255, 99, 43, 0.08);
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 107, 53, 0.08);
 }
 
 .box-orange-glow-hover:hover {
-  box-shadow: 0 0 25px rgba(255, 99, 43, 0.15);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 107, 53, 0.16);
 }
 
 /* Custom scrollbar for premium menu feel */
