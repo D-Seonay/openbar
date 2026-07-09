@@ -12,7 +12,7 @@ export default async function HomePage() {
   const availability = evaluateRecipes(bottles);
   const lowStock = bottles
     .filter((b) => b.lowStockThreshold != null && b.quantity <= b.lowStockThreshold)
-    .sort((a, b) => a.quantity - b.quantity);
+    .sort((a, b) => (a.quantity - a.lowStockThreshold!) - (b.quantity - b.lowStockThreshold!));
   const makeableNow = availability.filter((a) => a.makeable && !a.usesVip).length;
 
   const today = new Date().toISOString().slice(0, 10);
