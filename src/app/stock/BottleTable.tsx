@@ -39,6 +39,19 @@ export default function BottleTable({
   const [query, setQuery] = useState("");
   const [selectedAisle, setSelectedAisle] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [secretTapCount, setSecretTapCount] = useState(0);
+  const [externalTrigger, setExternalTrigger] = useState(false);
+
+  const handleSecretHeaderTap = () => {
+    setSecretTapCount((prev) => {
+      const next = prev + 1;
+      if (next >= 3) {
+        setExternalTrigger(true);
+        return 0;
+      }
+      return next;
+    });
+  };
 
   const regularBottles = useMemo(() => bottles.filter((b) => !b.vip), [bottles]);
   const vipBottles = useMemo(() => bottles.filter((b) => b.vip), [bottles]);
@@ -213,11 +226,13 @@ export default function BottleTable({
       )}
       {content}
 
-      {/* Secret VIP Prestige Section protected by extra password */}
+      {/* Secret VIP Prestige Section protected by extra password & v-i-p sequence */}
       <VipSecretSection
         vipBottles={vipBottles}
         isAdmin={isAdmin}
         viewMode={viewMode}
+        externalModalTrigger={externalTrigger}
+        onResetExternalTrigger={() => setExternalTrigger(false)}
       />
     </div>
   );
@@ -227,9 +242,21 @@ export default function BottleTable({
   return (
     <section className="space-y-4">
       {title && (
-        <div className="flex items-center gap-3 border-b border-white/[0.08] pb-3">
-          <span className="w-2 h-4 bg-orange rounded-full" />
-          <h2 className="font-display text-2xl text-cream font-bold">{title}</h2>
+        <div
+          onClick={handleSecretHeaderTap}
+          className="flex items-center justify-between border-b border-white/[0.08] pb-3 select-none cursor-pointer group"
+          title="Stock en cave (astuce : tapez v-i-p au clavier ou triple-tapez le titre sur mobile)"
+        >
+          <div className="flex items-center gap-3">
+            <span className="w-2 h-4 bg-orange group-active:bg-gold rounded-full transition-colors" />
+            <h2 className="font-display text-2xl text-cream font-bold">{title}</h2>
+          </div>
+          {secretTapCount > 0 && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gold/15 border border-gold/40 text-[10px] text-gold font-bold">
+              <span>Séquence secrète</span>
+              <span>{secretTapCount}/3</span>
+            </span>
+          )}
         </div>
       )}
       {body}

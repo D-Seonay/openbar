@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Bottle } from "@/lib/types";
 import { verifyVipPassword } from "@/app/actions";
@@ -12,18 +12,22 @@ interface VipSecretSectionProps {
   vipBottles: Bottle[];
   isAdmin: boolean;
   viewMode?: "grid" | "list";
+  externalModalTrigger?: boolean;
+  onResetExternalTrigger?: () => void;
 }
 
 export default function VipSecretSection({
   vipBottles,
   isAdmin,
   viewMode = "grid",
+  externalModalTrigger = false,
+  onResetExternalTrigger,
 }: VipSecretSectionProps) {
-  // If user is Admin, unlock automatically. Otherwise default locked.
-  const [unlocked, setUnlocked] = useState(isAdmin);
+  const [unlocked, setUnlocked] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
+  const [keyBuffer, setKeyBuffer] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const totalVipLiters = vipBottles.reduce(
@@ -31,93 +35,104 @@ export default function VipSecretSection({
     0
   );
 
-  const handleUnlockSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(false);
-    startTransition(async () => {
-      const ok = await verifyVipPassword(password);
-      if (ok) {
-        setUnlocked(true);
-        setModalOpen(false);
-        setPassword("");
-      } else {
-        setError(true);
-      }
-    });
-  };
+  // Listen for external trigger (e.g. mobile triple tap on header title)
+  useEffect(() => {
+    if (externalModalTrigger) {
+      setError(false);
+      setPassword("");
+      setModalOpen(true);
+      if (onResetExternalTrigger) onResetExternalTrigger();
+    }
+  }, [externalModalTrigger, onResetExternalTrigger]);
+
+  // Global Keyboard Listener for 'v' -> 'i' -> 'p' sequence
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Ignore keystrokes inside existing input fields
+    const target = e.target as HTMLElement;
+    if (
+      target.tagName === "INPUT" ||
+      target.tagName === "TEXTAREA" ||
+      target.isContentEditable
+    ) {
+      return;
+    }
+
+    const char = e.key.toLowerCase();
+    if (char.length === 1 && char >= "a" && char <= "z") {
+      setKeyBuffer((prev) => {
+        const next = (prev + char).slice(-3);
+        if (next === "vip") {
+          setError(false);
+          setPassword("");
+          setModalOpen(true);
+          return "";
+        }
+        return next;
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   if (vipBottles.length === 0) return null;
 
   return (
-    <div className="mt-12 space-y-6 border-t border-gold/20 pt-8">
-      {/* VIP Section Title Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-ink-2 via-ink to-ink-2 border border-gold/30 shadow-xl box-gold-glow">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gold/15 border border-gold/40 flex items-center justify-center text-2xl shrink-0">
-            {unlocked ? "🍾" : "🔐"}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="font-display text-xl sm:text-2xl font-bold text-gold tracking-tight">
-                Réserve Privée VIP
-              </h2>
-              <span className="text-[10px] uppercase tracking-caps bg-gold/20 border border-gold/40 text-gold font-bold px-2.5 py-0.5 rounded-full">
-                {unlocked ? "Déverrouillé" : "Secret / Protégé"}
-              </span>
-            </div>
-            <p className="text-xs text-cream/70 mt-0.5">
-              {unlocked
-                ? `${vipBottles.length} cuvée(s) d'exception • ${formatLiters(
-                    totalVipLiters
-                  )} au total en réserve prestige.`
-                : "Les cuvées rares et flacons de prestige de Noa sont protégés par mot de passe secret."}
-            </p>
-          </div>
-        </div>
-
-        <div>
-          {!unlocked ? (
-            <button
-              onClick={() => {
-                setError(false);
-                setModalOpen(true);
-              }}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gold to-orange text-ink font-bold text-xs shadow-lg shadow-gold/20 hover:opacity-95 transition-all cursor-pointer flex items-center gap-2"
-            >
-              <span>🗝️</span>
-              <span>Déverrouiller la Cave VIP</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => setUnlocked(false)}
-              className="px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-muted hover:text-cream text-xs font-semibold border border-white/[0.08] transition-all cursor-pointer"
-            >
-              🔒 Verrouiller
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Unlocked VIP Bottles Display */}
+    <>
+      {/* Once Unlocked: Reveal the VIP Section */}
       <AnimatePresence>
         {unlocked && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="space-y-4"
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-12 space-y-6 border-t border-gold/30 pt-8"
           >
+            {/* VIP Section Title Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-ink-2 via-ink to-ink-2 border border-gold/40 shadow-2xl box-gold-glow">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gold/15 border border-gold/40 flex items-center justify-center text-2xl shrink-0">
+                  🍾
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-gold tracking-tight">
+                      Réserve Privée VIP
+                    </h2>
+                    <span className="text-[10px] uppercase tracking-caps bg-gold/20 border border-gold/40 text-gold font-bold px-2.5 py-0.5 rounded-full">
+                      Cuvées Prestige • Déverrouillé
+                    </span>
+                  </div>
+                  <p className="text-xs text-cream/70 mt-0.5">
+                    {vipBottles.length} cuvée(s) d&apos;exception •{" "}
+                    {formatLiters(totalVipLiters)} au total en cave secrète.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setUnlocked(false)}
+                className="px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-muted hover:text-cream text-xs font-semibold border border-white/[0.08] transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <span>🔒</span>
+                <span>Masquer & Verrouiller</span>
+              </button>
+            </div>
+
+            {/* Unlocked VIP Bottles Display */}
             {viewMode === "grid" ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {vipBottles.map((bottle) => (
-                  <BottleGridCard key={bottle.id} bottle={bottle} />
+                  <BottleGridCard key={bottle.id} bottle={bottle} isAdmin={isAdmin} />
                 ))}
               </div>
             ) : (
               <div className="space-y-2">
                 {vipBottles.map((bottle) => (
-                  <BottleListRow key={bottle.id} bottle={bottle} />
+                  <BottleListRow key={bottle.id} bottle={bottle} isAdmin={isAdmin} />
                 ))}
               </div>
             )}
@@ -125,7 +140,7 @@ export default function VipSecretSection({
         )}
       </AnimatePresence>
 
-      {/* Secret Password Modal */}
+      {/* Secret Password Modal triggered by 'v-i-p' or mobile triple tap */}
       <AnimatePresence>
         {modalOpen && (
           <motion.div
@@ -149,21 +164,42 @@ export default function VipSecretSection({
                   🗝️
                 </span>
                 <div>
-                  <h3 className="font-display text-xl font-bold text-gold">
-                    Accès Réserve Prestige VIP
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display text-xl font-bold text-gold">
+                      Réserve Privée VIP
+                    </h3>
+                    <span className="text-[10px] uppercase font-bold bg-gold/20 text-gold px-2 py-0.5 rounded-full">
+                      Secret
+                    </span>
+                  </div>
                   <p className="text-xs text-muted mt-0.5">
-                    Entrez le mot de passe secret (indice : vipnoa)
+                    Séquence VIP détectée. Saisissez le mot de passe secret.
                   </p>
                 </div>
               </div>
 
-              <form onSubmit={handleUnlockSubmit} className="space-y-4">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setError(false);
+                  startTransition(async () => {
+                    const ok = await verifyVipPassword(password);
+                    if (ok) {
+                      setUnlocked(true);
+                      setModalOpen(false);
+                      setPassword("");
+                    } else {
+                      setError(true);
+                    }
+                  });
+                }}
+                className="space-y-4"
+              >
                 <div>
                   <input
                     type="password"
                     autoFocus
-                    placeholder="Mot de passe secret..."
+                    placeholder="Mot de passe VIP (indice : vipnoa)..."
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-ink border border-gold/30 rounded-xl px-4 py-3 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:border-gold focus:bg-ink/80 text-center tracking-widest font-mono"
@@ -196,6 +232,6 @@ export default function VipSecretSection({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }
