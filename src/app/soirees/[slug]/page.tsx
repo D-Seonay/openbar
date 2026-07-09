@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getEvent, listContributions, listBottles } from "@/lib/db";
+import { getEvent, listContributions, listBottles, listStockAdjustments } from "@/lib/db";
 import { evaluateRecipes } from "@/lib/cocktails";
 import GuestPanel from "./GuestPanel";
 
@@ -9,7 +9,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const event = await getEvent(slug);
   if (!event) notFound();
 
-  const [contributions, bottles] = await Promise.all([listContributions(slug), listBottles()]);
+  const [contributions, bottles, adjustments] = await Promise.all([
+    listContributions(slug),
+    listBottles(),
+    listStockAdjustments(slug),
+  ]);
 
   const stock = bottles
     .filter((b) => !b.vip && b.type !== "mixer" && b.quantity > 0)
@@ -27,7 +31,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-orange/15 pb-4">
         <div>
-          <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">Soirée en cours</span>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">
+            Soirée en cours
+          </span>
           <h1 className="font-display text-4xl text-cream mt-1">{event.name}</h1>
           <p className="text-muted text-xs mt-2 capitalize font-mono text-orange-dim">
             {new Date(event.date).toLocaleDateString("fr-FR", {
@@ -40,11 +46,62 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </div>
         <Link
           href={`/soirees/${slug}/bilan`}
-          className="shrink-0 text-xs px-4 py-2.5 rounded-xl border border-orange/20 text-orange hover:bg-orange hover:text-white transition-all duration-300 font-semibold uppercase tracking-wider text-center"
+          className="shrink-0 text-xs px-4 py-2.5 rounded-xl border border-orange/30 bg-orange/10 text-orange hover:bg-orange hover:text-ink transition-all duration-300 font-bold uppercase tracking-wider text-center shadow-md shadow-orange/10"
         >
-          📝 Faire le bilan du stock
+          📝 Faire / Modifier le bilan
         </Link>
       </div>
+
+      {/* Recap Banner if Bilan was performed */}
+      {adjustments.length > 0 && (
+        <div className="rounded-2xl border border-orange/30 bg-ink-2/90 p-5 shadow-xl box-orange-glow space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-lg bg-orange/20 text-orange flex items-center justify-center text-base">
+                📊
+              </span>
+              <div>
+                <h3 className="font-display text-lg font-bold text-cream">
+                  Bilan de la Soirée enregistré
+                </h3>
+                <p className="text-xs text-muted">
+                  {adjustments.length} référence(s) ajustée(s) lors du bilan
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-2">
+            {adjustments.map((adj) => {
+              const diff = adj.quantityAfter - adj.quantityBefore;
+              return (
+                <div
+                  key={adj.id}
+                  className="flex items-center justify-between p-3 rounded-xl bg-ink border border-white/[0.06] text-xs"
+                >
+                  <span className="font-semibold text-cream truncate max-w-[170px]">
+                    {adj.bottleName}
+                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="font-mono text-muted">
+                      {adj.quantityBefore} → {adj.quantityAfter}
+                    </span>
+                    <span
+                      className={`font-bold px-1.5 py-0.5 rounded text-[10px] ${
+                        diff < 0
+                          ? "bg-red-500/15 text-red-400"
+                          : "bg-emerald-500/15 text-emerald-400"
+                      }`}
+                    >
+                      {diff > 0 ? `+${diff}` : `${diff}`} btl
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <GuestPanel
         slug={slug}

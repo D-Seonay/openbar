@@ -198,7 +198,27 @@ export async function applyStockAdjustments(
       const quantityBefore = bottle.quantity;
       const quantityAfter = Math.max(0, change.quantityAfter);
       if (quantityBefore === quantityAfter) continue;
+
+      const diff = quantityBefore - quantityAfter;
       bottle.quantity = quantityAfter;
+
+      // Keep volumes array in sync if it exists
+      if (bottle.volumes && bottle.volumes.length > 0) {
+        if (diff > 0) {
+          let toRemove = diff;
+          for (let i = bottle.volumes.length - 1; i >= 0 && toRemove > 0; i--) {
+            const vol = bottle.volumes[i];
+            const removeHere = Math.min(vol.quantity, toRemove);
+            vol.quantity -= removeHere;
+            toRemove -= removeHere;
+          }
+          bottle.volumes = bottle.volumes.filter((v) => v.quantity > 0);
+        } else if (diff < 0) {
+          const added = Math.abs(diff);
+          bottle.volumes[0].quantity += added;
+        }
+      }
+
       const adjustment: StockAdjustment = {
         id: makeId(),
         eventSlug,
