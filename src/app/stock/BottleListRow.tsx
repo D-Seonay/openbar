@@ -7,7 +7,13 @@ import { updateBottleQuantity } from "@/app/actions";
 import BottlePreview from "./BottlePreview";
 import BottleDetailModal from "./BottleDetailModal";
 
-export default function BottleListRow({ bottle }: { bottle: Bottle }) {
+export default function BottleListRow({
+  bottle,
+  isAdmin = false,
+}: {
+  bottle: Bottle;
+  isAdmin?: boolean;
+}) {
   const [modalOpen, setModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -90,37 +96,43 @@ export default function BottleListRow({ bottle }: { bottle: Bottle }) {
 
         {/* Right: Fresh Grocery Stepper & Volume Badge */}
         <div className="flex items-center justify-between sm:justify-end gap-5 sm:gap-6 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/[0.05] flex-shrink-0">
-          {/* Grocery Inline Stepper */}
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1 bg-ink/90 border border-white/[0.1] rounded-xl p-1 shadow-inner"
-          >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleQuickAdjust(-1);
-              }}
-              disabled={isPending || totalBottles === 0}
-              className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-orange/20 hover:text-orange text-cream font-bold transition-colors flex items-center justify-center text-sm disabled:opacity-30 cursor-pointer"
-              title="Retirer 1 bouteille"
+          {/* Grocery Inline Stepper or Read-Only Badge */}
+          {isAdmin ? (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1 bg-ink/90 border border-white/[0.1] rounded-xl p-1 shadow-inner"
             >
-              −
-            </button>
-            <span className="w-10 text-center font-mono text-xs font-bold text-cream">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleQuickAdjust(-1);
+                }}
+                disabled={isPending || totalBottles === 0}
+                className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-orange/20 hover:text-orange text-cream font-bold transition-colors flex items-center justify-center text-sm disabled:opacity-30 cursor-pointer"
+                title="Retirer 1 bouteille"
+              >
+                −
+              </button>
+              <span className="w-10 text-center font-mono text-xs font-bold text-cream">
+                {totalBottles} btl
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleQuickAdjust(1);
+                }}
+                disabled={isPending}
+                className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-orange/20 hover:text-orange text-cream font-bold transition-colors flex items-center justify-center text-sm cursor-pointer"
+                title="Ajouter 1 bouteille"
+              >
+                +
+              </button>
+            </div>
+          ) : (
+            <div className="bg-ink/80 border border-white/[0.07] rounded-xl px-3 py-1.5 font-mono text-xs font-bold text-cream">
               {totalBottles} btl
-            </span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleQuickAdjust(1);
-              }}
-              disabled={isPending}
-              className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-orange/20 hover:text-orange text-cream font-bold transition-colors flex items-center justify-center text-sm cursor-pointer"
-              title="Ajouter 1 bouteille"
-            >
-              +
-            </button>
-          </div>
+            </div>
+          )}
 
           {/* Total Liters Price/Market Badge */}
           <div className="text-right min-w-[85px]">
@@ -143,7 +155,7 @@ export default function BottleListRow({ bottle }: { bottle: Bottle }) {
       </div>
 
       {modalOpen && (
-        <BottleDetailModal bottle={bottle} onClose={() => setModalOpen(false)} />
+        <BottleDetailModal bottle={bottle} onClose={() => setModalOpen(false)} isAdmin={isAdmin} />
       )}
     </>
   );

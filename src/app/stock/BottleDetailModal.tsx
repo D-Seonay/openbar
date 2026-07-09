@@ -12,9 +12,10 @@ import ImagePicker from "@/components/ImagePicker";
 interface BottleDetailModalProps {
   bottle: Bottle;
   onClose: () => void;
+  isAdmin?: boolean;
 }
 
-export default function BottleDetailModal({ bottle, onClose }: BottleDetailModalProps) {
+export default function BottleDetailModal({ bottle, onClose, isAdmin = false }: BottleDetailModalProps) {
   const [volumes, setVolumes] = useState<BottleVolume[]>(bottle.volumes ?? []);
   const [imageUrl, setImageUrl] = useState(bottle.imageUrl ?? "");
   const [newSize, setNewSize] = useState("");
@@ -225,27 +226,29 @@ export default function BottleDetailModal({ bottle, onClose }: BottleDetailModal
         </div>
 
         {/* Footer / Threshold / Delete */}
-        <div className="pt-4 border-t border-orange/15 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <label className="text-muted">Alerte stock bas :</label>
-            <input
-              type="number"
-              min="0"
-              step="1"
-              value={threshold}
-              onChange={(e) => saveThreshold(e.target.value)}
-              placeholder="Seuil"
-              className="w-16 bg-ink border border-orange/20 rounded-lg px-2 py-1 text-center text-cream focus:outline-none focus:border-orange"
-            />
-          </div>
+        {isAdmin && (
+          <div className="pt-4 border-t border-orange/15 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <label className="text-muted">Alerte stock bas :</label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={threshold}
+                onChange={(e) => saveThreshold(e.target.value)}
+                placeholder="Seuil"
+                className="w-16 bg-ink border border-orange/20 rounded-lg px-2 py-1 text-center text-cream focus:outline-none focus:border-orange"
+              />
+            </div>
 
-          <button
-            onClick={() => setConfirmDeleteOpen(true)}
-            className="text-red-400 hover:text-red-300 font-medium px-3 py-1.5 rounded-lg hover:bg-red-950/20 transition-colors cursor-pointer"
-          >
-            Supprimer la fiche
-          </button>
-        </div>
+            <button
+              onClick={() => setConfirmDeleteOpen(true)}
+              className="text-red-400 hover:text-red-300 font-medium px-3 py-1.5 rounded-lg hover:bg-red-950/20 transition-colors cursor-pointer"
+            >
+              Supprimer la fiche
+            </button>
+          </div>
+        )}
 
         <ConfirmDeleteModal
           isOpen={confirmDeleteOpen}

@@ -113,13 +113,15 @@
       "id": "seed11",
       "name": "Hibiki 17 ans",
       "type": "whisky",
-      "quantity": 1,
+      "quantity": 0,
       "tags": [
         "whisky"
       ],
       "vip": true,
       "notes": "Cadeau, on n'ouvre pas n'importe quand",
-      "createdAt": "2026-06-01T00:00:00.000Z"
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "volumes": [],
+      "imageUrl": "/uploads/bottle-1783556402420-0j9o45.jpg"
     },
     {
       "id": "seed12",

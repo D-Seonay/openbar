@@ -11,9 +11,10 @@ interface StockTabsProps {
   normalBottles: Bottle[];
   vipBottles: Bottle[];
   addBottleForm: React.ReactNode;
+  isAdmin?: boolean;
 }
 
-export default function StockTabs({ normalBottles, vipBottles, addBottleForm }: StockTabsProps) {
+export default function StockTabs({ normalBottles, vipBottles, addBottleForm, isAdmin = false }: StockTabsProps) {
   const [activeTab, setActiveTab] = useState<"stock" | "shopping" | "add">("stock");
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
   const [isPending, startTransition] = useTransition();
@@ -107,24 +108,10 @@ export default function StockTabs({ normalBottles, vipBottles, addBottleForm }: 
             <div className="space-y-8">
               <BottleTable
                 title="Stock en cave"
-                bottles={normalBottles}
+                bottles={[...normalBottles, ...vipBottles]}
                 empty="Votre cave est vide. Ajoutez votre première bouteille !"
+                isAdmin={isAdmin}
               />
-
-              {vipBottles.length > 0 && (
-                <div className="rounded-2xl border border-gold/30 bg-brick-dark/25 p-6 space-y-4 shadow-lg">
-                  <div className="flex items-center gap-3 border-b border-gold/20 pb-3">
-                    <span className="w-8 h-8 rounded-lg bg-gold/15 border border-gold/30 flex items-center justify-center text-base">🔒</span>
-                    <div>
-                      <h2 className="font-display text-xl text-gold font-bold">Réserve Privée VIP</h2>
-                      <p className="text-xs text-muted">
-                        Visible uniquement par les convives VIP lors des soirées exclusives.
-                      </p>
-                    </div>
-                  </div>
-                  <BottleTable bottles={vipBottles} empty="Aucune bouteille VIP." bare />
-                </div>
-              )}
             </div>
           )}
 
@@ -134,7 +121,23 @@ export default function StockTabs({ normalBottles, vipBottles, addBottleForm }: 
                 <h2 className="font-display text-2xl font-bold text-cream">Nouvel Ingrédient en Cave</h2>
                 <p className="text-muted text-xs mt-1">Ajoutez un spiritueux, une liqueur, un vin ou un soft à votre collection.</p>
               </div>
-              {addBottleForm}
+              {isAdmin ? (
+                addBottleForm
+              ) : (
+                <div className="text-center py-8 space-y-4">
+                  <span className="text-4xl block">🔒</span>
+                  <p className="text-cream font-bold text-base">Connexion Administrateur requise</p>
+                  <p className="text-muted text-xs max-w-sm mx-auto">
+                    Pour ajouter, modifier ou supprimer des bouteilles dans le stock de Noa, veuillez vous connecter en administrateur.
+                  </p>
+                  <a
+                    href="/login"
+                    className="inline-block px-5 py-2.5 rounded-xl bg-orange text-ink font-bold text-xs hover:bg-orange-hover transition-colors shadow-lg"
+                  >
+                    Se connecter
+                  </a>
+                </div>
+              )}
             </div>
           )}
 

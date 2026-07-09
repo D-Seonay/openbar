@@ -1,11 +1,13 @@
 import { listBottles } from "@/lib/db";
 import { calculateBottleTotalLiters, calculateTotalBottlesCount, formatLiters } from "@/lib/volumeUtils";
+import { isAdminLoggedIn } from "@/lib/auth";
 import StockTabs from "./StockTabs";
 import AddBottleForm from "./AddBottleForm";
 import PageTransition from "@/components/PageTransition";
 import AlertsManagerTrigger from "./AlertsManagerTrigger";
 
 export default async function StockPage() {
+  const isAdmin = await isAdminLoggedIn();
   const bottles = await listBottles();
   const normal = bottles.filter((b) => !b.vip);
   const vip = bottles.filter((b) => b.vip);
@@ -73,7 +75,7 @@ export default async function StockPage() {
       </div>
 
       {/* Interactive Tabs & Fresh Market Shelves */}
-      <StockTabs normalBottles={normal} vipBottles={vip} addBottleForm={addBottleForm} />
+      <StockTabs normalBottles={normal} vipBottles={vip} addBottleForm={addBottleForm} isAdmin={isAdmin} />
     </PageTransition>
   );
 }

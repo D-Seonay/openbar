@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Bottle } from "@/lib/types";
 import BottleListRow from "./BottleListRow";
 import BottleGridCard from "./BottleGridCard";
+import VipSecretSection from "./VipSecretSection";
 import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
 
 const GROCERY_AISLES = [
@@ -27,25 +28,30 @@ export default function BottleTable({
   bottles,
   empty,
   bare,
+  isAdmin = false,
 }: {
   title?: string;
   bottles: Bottle[];
   empty: string;
   bare?: boolean;
+  isAdmin?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [selectedAisle, setSelectedAisle] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
+  const regularBottles = useMemo(() => bottles.filter((b) => !b.vip), [bottles]);
+  const vipBottles = useMemo(() => bottles.filter((b) => b.vip), [bottles]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return bottles.filter((b) => {
+    return regularBottles.filter((b) => {
       const matchesQuery =
         !q || b.name.toLowerCase().includes(q) || b.tags.some((t) => t.includes(q));
       const matchesType = !selectedAisle || b.type === selectedAisle;
       return matchesQuery && matchesType;
     });
-  }, [bottles, query, selectedAisle]);
+  }, [regularBottles, query, selectedAisle]);
 
   const totalFilteredLiters = useMemo(() => {
     return filtered.reduce((acc, b) => acc + calculateBottleTotalLiters(b), 0);
@@ -206,6 +212,13 @@ export default function BottleTable({
         </div>
       )}
       {content}
+
+      {/* Secret VIP Prestige Section protected by extra password */}
+      <VipSecretSection
+        vipBottles={vipBottles}
+        isAdmin={isAdmin}
+        viewMode={viewMode}
+      />
     </div>
   );
 

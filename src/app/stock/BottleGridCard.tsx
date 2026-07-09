@@ -7,7 +7,13 @@ import { updateBottleQuantity } from "@/app/actions";
 import BottlePreview from "./BottlePreview";
 import BottleDetailModal from "./BottleDetailModal";
 
-export default function BottleGridCard({ bottle }: { bottle: Bottle }) {
+export default function BottleGridCard({
+  bottle,
+  isAdmin = false,
+}: {
+  bottle: Bottle;
+  isAdmin?: boolean;
+}) {
   const [modalOpen, setModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -91,40 +97,49 @@ export default function BottleGridCard({ bottle }: { bottle: Bottle }) {
           </div>
         </div>
 
-        {/* Bottom Grocery Cart Stepper */}
-        <div
-          onClick={(e) => e.stopPropagation()}
-          className="mt-3.5 flex items-center justify-between bg-ink/90 border border-white/[0.1] rounded-xl p-1.5 shadow-inner"
-        >
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleQuickAdjust(-1);
-            }}
-            disabled={isPending || totalBottles === 0}
-            className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-orange/20 hover:text-orange text-cream font-bold transition-colors flex items-center justify-center text-sm disabled:opacity-30 cursor-pointer"
-            title="Retirer 1 bouteille"
+        {/* Bottom Grocery Cart Stepper or Read-Only Stock */}
+        {isAdmin ? (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="mt-3.5 flex items-center justify-between bg-ink/90 border border-white/[0.1] rounded-xl p-1.5 shadow-inner"
           >
-            −
-          </button>
-          <div className="text-center">
-            <span className="font-mono text-xs font-bold text-cream block leading-none">
-              {totalBottles} btl
-            </span>
-            <span className="text-[9px] text-muted uppercase tracking-wider">En rayon</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleQuickAdjust(-1);
+              }}
+              disabled={isPending || totalBottles === 0}
+              className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-orange/20 hover:text-orange text-cream font-bold transition-colors flex items-center justify-center text-sm disabled:opacity-30 cursor-pointer"
+              title="Retirer 1 bouteille"
+            >
+              −
+            </button>
+            <div className="text-center">
+              <span className="font-mono text-xs font-bold text-cream block leading-none">
+                {totalBottles} btl
+              </span>
+              <span className="text-[9px] text-muted uppercase tracking-wider">En rayon</span>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleQuickAdjust(1);
+              }}
+              disabled={isPending}
+              className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-orange/20 hover:text-orange text-cream font-bold transition-colors flex items-center justify-center text-sm cursor-pointer"
+              title="Ajouter 1 bouteille"
+            >
+              +
+            </button>
           </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleQuickAdjust(1);
-            }}
-            disabled={isPending}
-            className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-orange/20 hover:text-orange text-cream font-bold transition-colors flex items-center justify-center text-sm cursor-pointer"
-            title="Ajouter 1 bouteille"
-          >
-            +
-          </button>
-        </div>
+        ) : (
+          <div className="mt-3.5 flex items-center justify-between bg-ink/80 border border-white/[0.07] rounded-xl px-3 py-2">
+            <span className="text-[10px] uppercase font-bold text-muted tracking-wider">Stock dispo</span>
+            <span className="font-mono text-xs font-bold text-cream">
+              {totalBottles} bouteille{totalBottles > 1 ? "s" : ""}
+            </span>
+          </div>
+        )}
       </div>
 
       {modalOpen && (

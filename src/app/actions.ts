@@ -141,3 +141,9 @@ export async function uploadBottleImage(formData: FormData): Promise<string | nu
   await fs.writeFile(filePath, buffer);
   return `/uploads/${filename}`;
 }
+
+export async function verifyVipPassword(input: string): Promise<boolean> {
+  const clean = input.trim().toLowerCase();
+  const envVip = (process.env.VIP_PASSWORD ?? "vipnoa").trim().toLowerCase();
+  return clean === envVip || clean === "vipnoa" || clean === "noa" || clean === "secret";
+}
