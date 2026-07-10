@@ -1,0 +1,93 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum BottleType {
+  whisky
+  rhum
+  vodka
+  gin
+  tequila
+  liqueur
+  vin
+  champagne
+  biere
+  mixer
+  autre
+}
+
+model User {
+  id            String         @id @default(cuid())
+  username      String         @unique
+  passwordHash  String
+  role          Role           @default(USER)
+  vip           Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  contributions Contribution[]
+}
+
+model Bottle {
+  id                String            @id @default(cuid())
+  name              String
+  type              BottleType
+  quantity          Float
+  tags              String[]
+  vip               Boolean           @default(false)
+  notes             String?
+  lowStockThreshold Float?
+  imageUrl          String?
+  createdAt         DateTime          @default(now())
+  volumes           BottleVolume[]
+  stockAdjustments  StockAdjustment[]
+}
+
+model BottleVolume {
+  id       String @id @default(cuid())
+  bottleId String
+  bottle   Bottle @relation(fields: [bottleId], references: [id], onDelete: Cascade)
+  size     String
+  quantity Float
+}
+
+model Event {
+  id               String            @id @default(cuid())
+  slug             String            @unique
+  name             String
+  date             String
+  createdAt        DateTime          @default(now())
+  contributions    Contribution[]
+  stockAdjustments StockAdjustment[]
+}
+
+model Contribution {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  item      String
+  quantity  String?
+  createdAt DateTime @default(now())
+}
+
+model StockAdjustment {
+  id             String   @id @default(cuid())
+  eventId        String
+  event          Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  bottleId       String
+  bottle         Bottle   @relation(fields: [bottleId], references: [id])
+  bottleName     String
+  quantityBefore Float
+  quantityAfter  Float
+  createdAt      DateTime @default(now())
+}
