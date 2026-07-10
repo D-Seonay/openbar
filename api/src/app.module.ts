@@ -4,8 +4,9 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { BottlesModule } from './bottles/bottles.module';
 import { CocktailsModule } from './cocktails/cocktails.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, BottlesModule, CocktailsModule],
+  imports: [PrismaModule, UsersModule, AuthModule, BottlesModule, CocktailsModule, EventsModule],
 })
 export class AppModule {}
