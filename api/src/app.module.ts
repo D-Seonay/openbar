@@ -6,8 +6,18 @@ import { BottlesModule } from './bottles/bottles.module';
 import { CocktailsModule } from './cocktails/cocktails.module';
 import { EventsModule } from './events/events.module';
 import { ContributionsModule } from './contributions/contributions.module';
+import { StockAdjustmentsModule } from './stock-adjustments/stock-adjustments.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, BottlesModule, CocktailsModule, EventsModule, ContributionsModule],
+  imports: [
+    PrismaModule,
+    UsersModule,
+    AuthModule,
+    BottlesModule,
+    CocktailsModule,
+    EventsModule,
+    ContributionsModule,
+    StockAdjustmentsModule,
+  ],
 })
 export class AppModule {}
