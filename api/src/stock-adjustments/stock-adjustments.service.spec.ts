@@ -9,6 +9,7 @@ describe('StockAdjustmentsService', () => {
     bottle: { findUnique: jest.Mock; update: jest.Mock };
     bottleVolume: { update: jest.Mock; deleteMany: jest.Mock };
     stockAdjustment: { create: jest.Mock };
+    $transaction: jest.Mock;
   };
   let eventsService: { findBySlug: jest.Mock };
 
@@ -23,7 +24,9 @@ describe('StockAdjustmentsService', () => {
             Promise.resolve({ id: 'adj-1', ...data }),
           ),
       },
+      $transaction: jest.fn(),
     };
+    prisma.$transaction.mockImplementation((callback) => callback(prisma));
     eventsService = {
       findBySlug: jest.fn().mockResolvedValue({ id: 'event-1', slug: 'apero' }),
     };

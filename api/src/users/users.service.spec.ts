@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { ConflictException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -44,5 +45,17 @@ describe('UsersService', () => {
     await expect(service.create({ username: 'noa', password: 'secret123' })).rejects.toThrow(
       ConflictException,
     );
+  });
+
+  it('throws a ConflictException when deleting a user with associated contributions', async () => {
+    prisma.user.findUnique.mockResolvedValue({ id: 'existing' });
+    prisma.user.delete.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('Foreign key constraint failed', {
+        code: 'P2003',
+        clientVersion: '5.0.0',
+      }),
+    );
+
+    await expect(service.remove('existing')).rejects.toThrow(ConflictException);
   });
 });

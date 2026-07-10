@@ -37,46 +37,48 @@ export class StockAdjustmentsService {
 
       const diff = quantityBefore - quantityAfter;
 
-      if (bottle.volumes.length > 0) {
-        if (diff > 0) {
-          let toRemove = diff;
-          for (let i = bottle.volumes.length - 1; i >= 0 && toRemove > 0; i--) {
-            const vol = bottle.volumes[i];
-            const removeHere = Math.min(vol.quantity, toRemove);
-            if (removeHere > 0) {
-              await this.prisma.bottleVolume.update({
-                where: { id: vol.id },
-                data: { quantity: vol.quantity - removeHere },
-              });
+      const adjustment = await this.prisma.$transaction(async (tx) => {
+        if (bottle.volumes.length > 0) {
+          if (diff > 0) {
+            let toRemove = diff;
+            for (let i = bottle.volumes.length - 1; i >= 0 && toRemove > 0; i--) {
+              const vol = bottle.volumes[i];
+              const removeHere = Math.min(vol.quantity, toRemove);
+              if (removeHere > 0) {
+                await tx.bottleVolume.update({
+                  where: { id: vol.id },
+                  data: { quantity: vol.quantity - removeHere },
+                });
+              }
+              toRemove -= removeHere;
             }
-            toRemove -= removeHere;
+            await tx.bottleVolume.deleteMany({
+              where: { bottleId: bottle.id, quantity: { lte: 0 } },
+            });
+          } else if (diff < 0) {
+            const added = Math.abs(diff);
+            const firstVolume = bottle.volumes[0];
+            await tx.bottleVolume.update({
+              where: { id: firstVolume.id },
+              data: { quantity: firstVolume.quantity + added },
+            });
           }
-          await this.prisma.bottleVolume.deleteMany({
-            where: { bottleId: bottle.id, quantity: { lte: 0 } },
-          });
-        } else if (diff < 0) {
-          const added = Math.abs(diff);
-          const firstVolume = bottle.volumes[0];
-          await this.prisma.bottleVolume.update({
-            where: { id: firstVolume.id },
-            data: { quantity: firstVolume.quantity + added },
-          });
         }
-      }
 
-      await this.prisma.bottle.update({
-        where: { id: bottle.id },
-        data: { quantity: quantityAfter },
-      });
+        await tx.bottle.update({
+          where: { id: bottle.id },
+          data: { quantity: quantityAfter },
+        });
 
-      const adjustment = await this.prisma.stockAdjustment.create({
-        data: {
-          eventId: event.id,
-          bottleId: bottle.id,
-          bottleName: bottle.name,
-          quantityBefore,
-          quantityAfter,
-        },
+        return tx.stockAdjustment.create({
+          data: {
+            eventId: event.id,
+            bottleId: bottle.id,
+            bottleName: bottle.name,
+            quantityBefore,
+            quantityAfter,
+          },
+        });
       });
       created.push(adjustment);
     }

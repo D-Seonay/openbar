@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBottleDto } from './dto/create-bottle.dto';
 import { UpdateBottleDto } from './dto/update-bottle.dto';
@@ -40,7 +41,16 @@ export class BottlesService {
 
   async remove(id: string) {
     await this.findOne(id);
-    await this.prisma.bottle.delete({ where: { id } });
+    try {
+      await this.prisma.bottle.delete({ where: { id } });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
+        throw new ConflictException(
+          "Impossible de supprimer cette bouteille : elle est référencée dans des ajustements de stock",
+        );
+      }
+      throw error;
+    }
     return { success: true };
   }
 }
