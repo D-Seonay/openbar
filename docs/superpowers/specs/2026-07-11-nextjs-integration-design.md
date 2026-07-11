@@ -22,7 +22,7 @@ Un guard qui ne rejette jamais la requête : s'il y a un cookie `bardenoa_sessio
 
 ### 2.2 `BottlesController`
 
-- `GET /bottles` passe de `JwtAuthGuard + RolesGuard('ADMIN')` à `OptionalJwtAuthGuard` seul. `BottlesService.findAll()` reçoit un paramètre `includeVip: boolean` (déterminé par `request.user?.vip === true`) ; si `false`, les bouteilles `vip: true` sont exclues de la réponse (filtrage serveur, pas client — corrige au passage la fuite de données du vault actuel).
+- `GET /bottles` passe de `JwtAuthGuard + RolesGuard('ADMIN')` à `OptionalJwtAuthGuard` seul. `BottlesService.findAll()` reçoit un paramètre `includeVip: boolean` (déterminé par `request.user?.role === 'ADMIN' || request.user?.vip === true` — un admin voit toujours tout le stock, y compris pour gérer les bouteilles VIP depuis `/stock` ou faire le bilan, indépendamment de son propre attribut `vip`) ; si `false`, les bouteilles `vip: true` sont exclues de la réponse (filtrage serveur, pas client — corrige au passage la fuite de données du vault actuel).
 - `GET /bottles/:id`, `POST /bottles`, `PATCH /bottles/:id`, `DELETE /bottles/:id` restent `JwtAuthGuard + RolesGuard('ADMIN')` (gestion du stock reste une action admin).
 
 ### 2.3 `EventsController`
@@ -32,7 +32,7 @@ Un guard qui ne rejette jamais la requête : s'il y a un cookie `bardenoa_sessio
 
 ### 2.4 `CocktailsController`
 
-- `GET /cocktails` passe à `OptionalJwtAuthGuard`. `CocktailsService.evaluate()` reçoit le même paramètre `includeVip` ; si `false`, les bouteilles `vip: true` sont exclues du tableau passé à `evaluateRecipes()` avant le calcul (même principe que pour `BottlesController`, pas un post-traitement sur le résultat). Une recette qui ne serait réalisable qu'avec une bouteille VIP redevient donc naturellement "non réalisable, il manque tel ingrédient" pour un appelant non-VIP — `missingTags` reste cohérent avec `makeable`, pas de champ forcé artificiellement.
+- `GET /cocktails` passe à `OptionalJwtAuthGuard`. `CocktailsService.evaluate()` reçoit le même paramètre `includeVip` (même règle qu'en 2.2 : vrai pour un ADMIN ou un compte `vip: true`) ; si `false`, les bouteilles `vip: true` sont exclues du tableau passé à `evaluateRecipes()` avant le calcul (même principe que pour `BottlesController`, pas un post-traitement sur le résultat). Une recette qui ne serait réalisable qu'avec une bouteille VIP redevient donc naturellement "non réalisable, il manque tel ingrédient" pour un appelant non-VIP — `missingTags` reste cohérent avec `makeable`, pas de champ forcé artificiellement.
 
 ### 2.5 `ContributionsController`
 
