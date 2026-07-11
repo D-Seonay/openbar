@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getEvent, listContributions, listBottles, listStockAdjustments } from "@/lib/db";
-import { evaluateRecipes } from "@/lib/cocktails";
+import { getEvent, listContributions, listBottles, listStockAdjustments, evaluateCocktails } from "@/lib/api-client";
+import { getSession } from "@/lib/session";
 import GuestPanel from "./GuestPanel";
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -9,10 +9,12 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const event = await getEvent(slug);
   if (!event) notFound();
 
-  const [contributions, bottles, adjustments] = await Promise.all([
+  const [contributions, bottles, adjustments, availability, session] = await Promise.all([
     listContributions(slug),
     listBottles(),
     listStockAdjustments(slug),
+    evaluateCocktails(),
+    getSession(),
   ]);
 
   const stock = bottles
@@ -23,7 +25,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     .filter((b) => b.vip && b.quantity > 0)
     .map((b) => ({ name: b.name, type: b.type, quantity: b.quantity }));
 
-  const availability = evaluateRecipes(bottles);
   const readyCocktails = availability.filter((a) => a.makeable && !a.usesVip);
   const vipCocktails = availability.filter((a) => a.makeable && a.usesVip);
 
@@ -52,7 +53,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </Link>
       </div>
 
-      {/* Recap Banner if Bilan was performed */}
       {adjustments.length > 0 && (
         <div className="rounded-2xl border border-orange/30 bg-ink-2/90 p-5 shadow-xl box-orange-glow space-y-3">
           <div className="flex items-center justify-between">
@@ -105,7 +105,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
       <GuestPanel
         slug={slug}
-        vipNames={event.vipNames}
+        session={session}
         contributions={contributions}
         stock={stock}
         vipStock={vipStock}

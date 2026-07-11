@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
 import { addContribution, deleteContributionAction } from "@/app/actions";
+import { login } from "@/app/login/actions";
 import type { Contribution } from "@/lib/types";
-import type { RecipeAvailability } from "@/lib/cocktails";
+import type { SessionUser } from "@/lib/session";
+import type { RecipeAvailability } from "@/lib/cocktail-types";
+import { useTransition } from "react";
 
 interface StockLine {
   name: string;
@@ -13,7 +15,7 @@ interface StockLine {
 
 export default function GuestPanel({
   slug,
-  vipNames,
+  session,
   contributions,
   stock,
   vipStock,
@@ -21,91 +23,69 @@ export default function GuestPanel({
   vipCocktails,
 }: {
   slug: string;
-  vipNames: string[];
+  session: SessionUser | null;
   contributions: Contribution[];
   stock: StockLine[];
   vipStock: StockLine[];
   readyCocktails: RecipeAvailability[];
   vipCocktails: RecipeAvailability[];
 }) {
-  const [name, setName] = useState<string | null>(null);
-  const [draft, setDraft] = useState("");
   const [, startTransition] = useTransition();
-  const storageKey = `bardenoa:${slug}:name`;
 
-  useEffect(() => {
-    const saved = window.localStorage.getItem(storageKey);
-    if (saved) setName(saved);
-  }, [storageKey]);
-
-  function identify() {
-    const trimmed = draft.trim();
-    if (!trimmed) return;
-    window.localStorage.setItem(storageKey, trimmed);
-    setName(trimmed);
-  }
-
-  const isVip = !!name && vipNames.some((v) => v.toLowerCase() === name.trim().toLowerCase());
-
-  if (!name) {
+  if (!session) {
     return (
       <section className="rounded-xl border border-orange/10 bg-ink-2/40 p-6 max-w-md mx-auto box-orange-glow text-center space-y-4 my-8">
         <div className="text-3xl">🔑</div>
         <div>
           <h2 className="font-display text-2xl text-cream">Qui es-tu ?</h2>
           <p className="text-xs text-muted mt-1 leading-relaxed">
-            Entrez votre prénom pour consulter le stock disponible, voir ce qu&apos;il reste à ramener, et débloquer les boissons secrètes.
+            Connecte-toi pour consulter le stock disponible, voir ce qu&apos;il reste à ramener, et débloquer les boissons secrètes.
           </p>
         </div>
-        <div className="flex gap-2">
+        <form action={login} className="flex flex-col gap-2">
+          <input type="hidden" name="redirectTo" value={`/soirees/${slug}`} />
           <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && identify()}
-            placeholder="Votre prénom..."
-            className="bg-ink border border-orange/15 rounded-xl px-3 py-2 text-xs flex-1 placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream text-center"
+            name="username"
+            required
+            placeholder="Identifiant"
+            className="bg-ink border border-orange/15 rounded-xl px-3 py-2 text-xs placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream text-center"
+          />
+          <input
+            name="password"
+            type="password"
+            required
+            placeholder="Mot de passe"
+            className="bg-ink border border-orange/15 rounded-xl px-3 py-2 text-xs placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream text-center"
           />
           <button
-            onClick={identify}
+            type="submit"
             className="bg-orange text-white font-medium rounded-xl px-4 py-2 text-xs hover:bg-orange-hover box-orange-glow transition-all"
           >
-            Entrer
+            Se connecter
           </button>
-        </div>
+        </form>
       </section>
     );
   }
 
   return (
     <div className="space-y-8">
-      {/* User profile header */}
       <div className="flex items-center justify-between rounded-xl border border-orange/15 bg-ink-2/50 p-4 box-orange-glow">
         <p className="text-xs text-cream flex items-center gap-2">
           <span>👋</span>
           <span>
-            Ravi de vous voir, <strong className="text-orange">{name}</strong>
+            Ravi de vous voir, <strong className="text-orange">{session.username}</strong>
           </span>
-          {isVip && (
+          {session.vip && (
             <span className="ml-2 text-gold font-bold bg-gold/10 px-2.5 py-0.5 rounded-full border border-gold/20 text-[9px] uppercase tracking-wider animate-pulse">
               👑 Privilèges VIP Activés
             </span>
           )}
         </p>
-        <button
-          onClick={() => {
-            window.localStorage.removeItem(storageKey);
-            setName(null);
-          }}
-          className="text-[10px] text-muted hover:text-orange uppercase tracking-wider font-semibold transition-colors"
-        >
-          Se déconnecter
-        </button>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Left Column: Contributions and Inputs */}
         <div className="space-y-8">
-          {/* Who brings what section */}
           <section className="bg-ink-2/20 border border-orange/10 p-5 rounded-xl space-y-4">
             <div className="flex items-center justify-between border-b border-orange/5 pb-2">
               <h2 className="font-display text-lg text-cream">Qui apporte quoi</h2>
@@ -124,7 +104,7 @@ export default function GuestPanel({
                     className="rounded-lg border border-orange/5 bg-ink-2/60 px-3 py-2 flex items-center justify-between text-xs text-cream hover:border-orange/20 transition-all"
                   >
                     <span className="flex items-center gap-2">
-                      <span className="font-semibold text-orange-dim">{c.guestName}</span>
+                      <span className="font-semibold text-orange-dim">{c.user.username}</span>
                       <span className="text-muted/65">apporte</span>
                       <span className="font-medium text-cream">{c.item}</span>
                       {c.quantity && (
@@ -133,7 +113,7 @@ export default function GuestPanel({
                         </span>
                       )}
                     </span>
-                    {c.guestName.toLowerCase() === name.toLowerCase() && (
+                    {c.user.id === session.sub && (
                       <button
                         onClick={() => startTransition(() => deleteContributionAction(slug, c.id))}
                         className="text-[10px] text-muted/50 hover:text-red-400 font-semibold uppercase tracking-wider transition-colors"
@@ -148,7 +128,6 @@ export default function GuestPanel({
 
             <form
               action={async (formData: FormData) => {
-                formData.set("guestName", name);
                 await addContribution(slug, formData);
               }}
               className="mt-4 grid sm:grid-cols-[1fr_auto_auto] gap-2 pt-3 border-t border-orange/5"
@@ -173,7 +152,6 @@ export default function GuestPanel({
             </form>
           </section>
 
-          {/* Already on location section */}
           <section className="space-y-3">
             <h2 className="font-display text-lg text-cream border-b border-orange/5 pb-2">Déjà disponible sur place</h2>
             {stock.length === 0 ? (
@@ -196,7 +174,6 @@ export default function GuestPanel({
           </section>
         </div>
 
-        {/* Right Column: Cocktail Offerings & VIP Reserve */}
         <div className="space-y-8">
           <section className="space-y-4">
             <h2 className="font-display text-lg text-cream border-b border-orange/5 pb-2">Cocktails réalisables ce soir</h2>
@@ -217,8 +194,7 @@ export default function GuestPanel({
             )}
           </section>
 
-          {/* VIP Section */}
-          {isVip && (
+          {session.vip && (
             <section className="rounded-xl border border-gold/25 bg-brick-dark/10 p-5 space-y-4 box-orange-glow">
               <div className="flex items-center gap-2 border-b border-gold/15 pb-2">
                 <span className="text-lg">🔒</span>
@@ -269,4 +245,3 @@ export default function GuestPanel({
     </div>
   );
 }
-

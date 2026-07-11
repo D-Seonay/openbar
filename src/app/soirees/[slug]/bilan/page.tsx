@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getEvent, listBottles } from "@/lib/db";
+import { getEvent, listBottles } from "@/lib/api-client";
 import BilanClientForm from "./BilanClientForm";
 
 export default async function BilanPage({ params }: { params: Promise<{ slug: string }> }) {
