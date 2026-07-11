@@ -1,15 +1,16 @@
 import Link from "next/link";
-import { listBottles, listEvents } from "@/lib/db";
-import { evaluateRecipes } from "@/lib/cocktails";
+import { listBottles, listEvents, evaluateCocktails } from "@/lib/api-client";
 import PageTransition from "@/components/PageTransition";
 
 export default async function HomePage() {
-  const bottles = await listBottles();
-  const events = await listEvents();
+  const [bottles, events, availability] = await Promise.all([
+    listBottles(),
+    listEvents(),
+    evaluateCocktails(),
+  ]);
 
   const stockCount = bottles.filter((b) => b.type !== "mixer" && b.quantity > 0).length;
   const vipCount = bottles.filter((b) => b.vip).length;
-  const availability = evaluateRecipes(bottles);
   const lowStock = bottles
     .filter((b) => b.lowStockThreshold != null && b.quantity <= b.lowStockThreshold)
     .sort((a, b) => (a.quantity - a.lowStockThreshold!) - (b.quantity - b.lowStockThreshold!));

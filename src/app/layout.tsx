@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
-import { isAdminLoggedIn } from "@/lib/auth";
+import { isAdminLoggedIn } from "@/lib/session";
 import AdminBadge from "@/components/AdminBadge";
 
 const outfit = Outfit({
@@ -28,6 +28,8 @@ const NAV = [
   { href: "/soirees", label: "Soirées" },
 ];
 
+const ADMIN_NAV = [{ href: "/comptes", label: "Comptes" }];
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -51,14 +53,24 @@ export default async function RootLayout({
             </Link>
             <nav className="flex items-center gap-1.5 sm:gap-4 flex-wrap">
               {NAV.map((item) => (
-                <Link 
-                  key={item.href} 
-                  href={item.href} 
+                <Link
+                  key={item.href}
+                  href={item.href}
                   className="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider text-muted hover:text-cream hover:bg-white/[0.04] transition-all duration-200"
                 >
                   {item.label}
                 </Link>
               ))}
+              {isAdmin &&
+                ADMIN_NAV.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider text-muted hover:text-cream hover:bg-white/[0.04] transition-all duration-200"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
               <div className="pl-1 sm:pl-2 border-l border-white/[0.08]">
                 <AdminBadge isAdmin={isAdmin} />
               </div>
