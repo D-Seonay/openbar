@@ -1,11 +1,9 @@
-import { listBottles } from "@/lib/db";
-import { evaluateRecipes } from "@/lib/cocktails";
+import { evaluateCocktails } from "@/lib/api-client";
 import CocktailGrid from "./CocktailGrid";
 import PageTransition from "@/components/PageTransition";
 
 export default async function CocktailsPage() {
-  const bottles = await listBottles();
-  const results = evaluateRecipes(bottles);
+  const results = await evaluateCocktails();
 
   return (
     <PageTransition className="space-y-8">

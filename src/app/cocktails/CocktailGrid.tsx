@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { RecipeAvailability } from "@/lib/cocktails";
+import type { RecipeAvailability } from "@/lib/cocktail-types";
 import ShoppingList from "./ShoppingList";
 
 interface CocktailGridProps {
