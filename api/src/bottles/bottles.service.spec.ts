@@ -37,4 +37,24 @@ describe('BottlesService', () => {
 
     await expect(service.remove('bottle-1')).rejects.toThrow(ConflictException);
   });
+
+  it('excludes VIP bottles from the query when includeVip is false', async () => {
+    await service.findAll(false);
+
+    expect(prisma.bottle.findMany).toHaveBeenCalledWith({
+      where: { vip: false },
+      include: { volumes: true },
+      orderBy: { name: 'asc' },
+    });
+  });
+
+  it('does not filter by vip when includeVip is true', async () => {
+    await service.findAll(true);
+
+    expect(prisma.bottle.findMany).toHaveBeenCalledWith({
+      where: undefined,
+      include: { volumes: true },
+      orderBy: { name: 'asc' },
+    });
+  });
 });

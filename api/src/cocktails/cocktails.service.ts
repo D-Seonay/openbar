@@ -48,7 +48,7 @@ export class CocktailsService {
   constructor(private readonly bottlesService: BottlesService) {}
 
   async evaluate(): Promise<RecipeAvailability[]> {
-    const bottles = await this.bottlesService.findAll();
+    const bottles = await this.bottlesService.findAll(true);
     return evaluateRecipes(bottles);
   }
 }

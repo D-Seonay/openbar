@@ -8,8 +8,12 @@ import { UpdateBottleDto } from './dto/update-bottle.dto';
 export class BottlesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
-    return this.prisma.bottle.findMany({ include: { volumes: true }, orderBy: { name: 'asc' } });
+  findAll(includeVip: boolean) {
+    return this.prisma.bottle.findMany({
+      where: includeVip ? undefined : { vip: false },
+      include: { volumes: true },
+      orderBy: { name: 'asc' },
+    });
   }
 
   async findOne(id: string) {
