@@ -1,3 +1,14 @@
+import { cookies } from "next/headers";
+import { SESSION_COOKIE } from "./session";
+import type {
+  Bottle,
+  EventItem,
+  Contribution,
+  StockAdjustment,
+  AccountUser,
+} from "./types";
+import type { RecipeAvailability } from "./cocktail-types";
+
 const API_URL = process.env.NEST_API_URL ?? "http://localhost:3001";
 
 export async function apiLogin(
@@ -18,4 +29,146 @@ export async function apiLogin(
   if (!match) return null;
 
   return { token: match[1] };
+}
+
+class ApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+
+  const res = await fetch(`${API_URL}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Cookie: `${SESSION_COOKIE}=${token}` } : {}),
+      ...init?.headers,
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    throw new ApiError(res.status, body.message ?? `Erreur API (${res.status})`);
+  }
+
+  if (res.status === 204) return undefined as T;
+  return res.json() as Promise<T>;
+}
+
+export { ApiError };
+
+// Bottles
+export function listBottles(): Promise<Bottle[]> {
+  return request<Bottle[]>("/bottles");
+}
+
+export function addBottle(
+  input: Omit<Bottle, "id" | "createdAt">,
+): Promise<Bottle> {
+  return request<Bottle>("/bottles", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function updateBottle(
+  id: string,
+  input: Partial<Omit<Bottle, "id" | "createdAt">>,
+): Promise<Bottle> {
+  return request<Bottle>(`/bottles/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+}
+
+export function deleteBottle(id: string): Promise<{ success: boolean }> {
+  return request(`/bottles/${id}`, { method: "DELETE" });
+}
+
+// Events
+export function listEvents(): Promise<EventItem[]> {
+  return request<EventItem[]>("/events");
+}
+
+export async function getEvent(slug: string): Promise<EventItem | null> {
+  try {
+    return await request<EventItem>(`/events/${slug}`);
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
+  }
+}
+
+export function createEvent(input: { name: string; date: string }): Promise<EventItem> {
+  return request<EventItem>("/events", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function deleteEvent(slug: string): Promise<{ success: boolean }> {
+  return request(`/events/${slug}`, { method: "DELETE" });
+}
+
+// Contributions
+export function listContributions(slug: string): Promise<Contribution[]> {
+  return request<Contribution[]>(`/events/${slug}/contributions`);
+}
+
+export function addContribution(
+  slug: string,
+  input: { item: string; quantity?: string },
+): Promise<Contribution> {
+  return request<Contribution>(`/events/${slug}/contributions`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteContribution(slug: string, id: string): Promise<{ success: boolean }> {
+  return request(`/events/${slug}/contributions/${id}`, { method: "DELETE" });
+}
+
+// Stock Adjustments
+export function listStockAdjustments(slug: string): Promise<StockAdjustment[]> {
+  return request<StockAdjustment[]>(`/events/${slug}/stock-adjustments`);
+}
+
+export function applyStockAdjustments(
+  slug: string,
+  changes: { bottleId: string; quantityAfter: number }[],
+): Promise<StockAdjustment[]> {
+  return request<StockAdjustment[]>(`/events/${slug}/stock-adjustments`, {
+    method: "POST",
+    body: JSON.stringify({ changes }),
+  });
+}
+
+// Cocktails
+export function evaluateCocktails(): Promise<RecipeAvailability[]> {
+  return request<RecipeAvailability[]>("/cocktails");
+}
+
+// Users
+export function listUsers(): Promise<AccountUser[]> {
+  return request<AccountUser[]>("/users");
+}
+
+export function createUser(input: {
+  username: string;
+  password: string;
+  role?: "ADMIN" | "USER";
+  vip?: boolean;
+}): Promise<AccountUser> {
+  return request<AccountUser>("/users", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function updateUser(
+  id: string,
+  input: { role?: "ADMIN" | "USER"; vip?: boolean; password?: string },
+): Promise<AccountUser> {
+  return request<AccountUser>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+}
+
+export function deleteUser(id: string): Promise<{ success: boolean }> {
+  return request(`/users/${id}`, { method: "DELETE" });
 }
