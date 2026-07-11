@@ -1,19 +1,11 @@
 import { promises as fs } from "fs";
 import path from "path";
-import type { Bottle, EventItem, Contribution, StockAdjustment } from "./types";
-
-// Internal store type for JSON persistence (separate from exported types)
-interface StoreData {
-  bottles: Bottle[];
-  events: (EventItem & { vipNames?: string[] })[];
-  contributions: (Contribution & { eventSlug?: string; guestName?: string })[];
-  stockAdjustments: (StockAdjustment & { eventSlug?: string })[];
-}
+import type { Bottle, EventItem, Contribution, StockAdjustment, Store } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "store.json");
 
-const empty: StoreData = { bottles: [], events: [], contributions: [], stockAdjustments: [] };
+const empty: Store = { bottles: [], events: [], contributions: [], stockAdjustments: [] };
 
 // Simple write queue so concurrent server actions don't corrupt the file.
 let queue: Promise<unknown> = Promise.resolve();
@@ -27,11 +19,11 @@ async function ensureFile() {
   }
 }
 
-async function readStore(): Promise<StoreData> {
+export async function readStore(): Promise<Store> {
   await ensureFile();
   const raw = await fs.readFile(DATA_FILE, "utf-8");
   try {
-    const parsed = JSON.parse(raw) as StoreData;
+    const parsed = JSON.parse(raw) as Store;
     return {
       bottles: parsed.bottles ?? [],
       events: parsed.events ?? [],
@@ -43,12 +35,12 @@ async function readStore(): Promise<StoreData> {
   }
 }
 
-async function writeStore(store: StoreData) {
+async function writeStore(store: Store) {
   await fs.mkdir(DATA_DIR, { recursive: true });
   await fs.writeFile(DATA_FILE, JSON.stringify(store, null, 2), "utf-8");
 }
 
-function mutate<T>(fn: (store: StoreData) => Promise<T> | T): Promise<T> {
+function mutate<T>(fn: (store: Store) => Promise<T> | T): Promise<T> {
   const run = queue.then(async () => {
     const store = await readStore();
     const result = await fn(store);
@@ -122,7 +114,7 @@ export async function getEvent(slug: string): Promise<EventItem | null> {
   return store.events.find((e) => e.slug === slug) ?? null;
 }
 
-export async function createEvent(input: { name: string; date: string; vipNames?: string[] }) {
+export async function createEvent(input: { name: string; date: string; vipNames: string[] }) {
   return mutate((store) => {
     const base = slugify(input.name);
     let slug = base;
@@ -131,24 +123,23 @@ export async function createEvent(input: { name: string; date: string; vipNames?
       n += 1;
       slug = `${base}-${n}`;
     }
-    const event: EventItem & { vipNames?: string[] } = {
-      id: makeId(),
+    const event: EventItem = {
       slug,
       name: input.name,
       date: input.date,
-      vipNames: input.vipNames?.map((v) => v.trim()).filter(Boolean),
+      vipNames: input.vipNames.map((v) => v.trim()).filter(Boolean),
       createdAt: new Date().toISOString(),
     };
     store.events.push(event);
-    return { id: event.id, slug: event.slug, name: event.name, date: event.date, createdAt: event.createdAt };
+    return event;
   });
 }
 
 export async function deleteEvent(slug: string) {
   return mutate((store) => {
     store.events = store.events.filter((e) => e.slug !== slug);
-    store.contributions = store.contributions.filter((c) => (c as any).eventSlug !== slug && (c as any).eventId !== slug);
-    store.stockAdjustments = store.stockAdjustments.filter((a) => (a as any).eventSlug !== slug && (a as any).eventId !== slug);
+    store.contributions = store.contributions.filter((c) => c.eventSlug !== slug);
+    store.stockAdjustments = store.stockAdjustments.filter((a) => a.eventSlug !== slug);
     return true;
   });
 }
@@ -158,38 +149,19 @@ export async function deleteEvent(slug: string) {
 export async function listContributions(slug: string): Promise<Contribution[]> {
   const store = await readStore();
   return store.contributions
-    .filter((c) => (c as any).eventSlug === slug || (c as any).eventId === slug)
-    .map((c) => {
-      const { eventSlug, guestName, ...rest } = c as any;
-      return rest as Contribution;
-    })
+    .filter((c) => c.eventSlug === slug)
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
-export async function addContribution(
-  input: Omit<Contribution, "id" | "createdAt"> | { eventSlug: string; guestName: string; item: string; quantity?: string }
-) {
+export async function addContribution(input: Omit<Contribution, "id" | "createdAt">) {
   return mutate((store) => {
-    // Handle both new format (eventId/user) and legacy format (eventSlug/guestName)
-    const isLegacy = "eventSlug" in input;
-    const eventId = isLegacy ? (input as any).eventSlug : (input as any).eventId;
-    const user = isLegacy
-      ? { id: "legacy", username: (input as any).guestName }
-      : (input as any).user;
-
-    const contribution: Contribution & { eventSlug?: string; guestName?: string } = {
+    const contribution: Contribution = {
+      ...input,
       id: makeId(),
-      eventId,
-      eventSlug: eventId, // For backwards compat in JSON
-      user,
-      guestName: user.username, // For backwards compat in JSON
-      item: (input as any).item,
-      quantity: (input as any).quantity,
       createdAt: new Date().toISOString(),
     };
     store.contributions.push(contribution);
-    const { eventSlug, guestName, ...result } = contribution;
-    return result as Contribution;
+    return contribution;
   });
 }
 
@@ -200,26 +172,22 @@ export async function deleteContribution(id: string) {
   });
 }
 
-export function isVipGuest(event: EventItem & { vipNames?: string[] }, guestName: string) {
+export function isVipGuest(event: EventItem, guestName: string) {
   const normalized = guestName.trim().toLowerCase();
-  return (event.vipNames ?? []).some((v) => v.toLowerCase() === normalized);
+  return event.vipNames.some((v) => v.toLowerCase() === normalized);
 }
 
 // ---------- Stock adjustments ----------
 
-export async function listStockAdjustments(eventId: string): Promise<StockAdjustment[]> {
+export async function listStockAdjustments(eventSlug: string): Promise<StockAdjustment[]> {
   const store = await readStore();
   return store.stockAdjustments
-    .filter((a) => (a as any).eventSlug === eventId || (a as any).eventId === eventId)
-    .map((a) => {
-      const { eventSlug, ...rest } = a as any;
-      return rest as StockAdjustment;
-    })
+    .filter((a) => a.eventSlug === eventSlug)
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
 export async function applyStockAdjustments(
-  eventId: string,
+  eventSlug: string,
   changes: { bottleId: string; quantityAfter: number }[]
 ): Promise<StockAdjustment[]> {
   return mutate((store) => {
@@ -251,10 +219,9 @@ export async function applyStockAdjustments(
         }
       }
 
-      const adjustment: StockAdjustment & { eventSlug?: string } = {
+      const adjustment: StockAdjustment = {
         id: makeId(),
-        eventId,
-        eventSlug: eventId, // For backwards compat in JSON
+        eventSlug,
         bottleId: bottle.id,
         bottleName: bottle.name,
         quantityBefore,
@@ -262,8 +229,7 @@ export async function applyStockAdjustments(
         createdAt: new Date().toISOString(),
       };
       store.stockAdjustments.push(adjustment);
-      const { eventSlug, ...result } = adjustment;
-      created.push(result as StockAdjustment);
+      created.push(adjustment);
     }
     return created;
   });

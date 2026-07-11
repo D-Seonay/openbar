@@ -21,7 +21,7 @@ export default function GuestPanel({
   vipCocktails,
 }: {
   slug: string;
-  vipNames?: string[];
+  vipNames: string[];
   contributions: Contribution[];
   stock: StockLine[];
   vipStock: StockLine[];
@@ -45,7 +45,7 @@ export default function GuestPanel({
     setName(trimmed);
   }
 
-  const isVip = !!name && vipNames?.some((v) => v.toLowerCase() === name.trim().toLowerCase());
+  const isVip = !!name && vipNames.some((v) => v.toLowerCase() === name.trim().toLowerCase());
 
   if (!name) {
     return (
@@ -124,7 +124,7 @@ export default function GuestPanel({
                     className="rounded-lg border border-orange/5 bg-ink-2/60 px-3 py-2 flex items-center justify-between text-xs text-cream hover:border-orange/20 transition-all"
                   >
                     <span className="flex items-center gap-2">
-                      <span className="font-semibold text-orange-dim">{c.user.username}</span>
+                      <span className="font-semibold text-orange-dim">{c.guestName}</span>
                       <span className="text-muted/65">apporte</span>
                       <span className="font-medium text-cream">{c.item}</span>
                       {c.quantity && (
@@ -133,7 +133,7 @@ export default function GuestPanel({
                         </span>
                       )}
                     </span>
-                    {c.user.username.toLowerCase() === name.toLowerCase() && (
+                    {c.guestName.toLowerCase() === name.toLowerCase() && (
                       <button
                         onClick={() => startTransition(() => deleteContributionAction(slug, c.id))}
                         className="text-[10px] text-muted/50 hover:text-red-400 font-semibold uppercase tracking-wider transition-colors"
