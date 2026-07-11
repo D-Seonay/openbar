@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listEvents } from "@/lib/db";
+import { listEvents } from "@/lib/api-client";
 import { createEvent } from "@/app/actions";
 import CopyLink from "./CopyLink";
 import DeleteEventButton from "./DeleteEventButton";
@@ -45,14 +45,6 @@ export default async function SoireesPage() {
                 className="w-full bg-ink border border-orange/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
               />
             </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted mb-1 block">Convives VIP (Séparés par virgules)</label>
-              <input
-                name="vipNames"
-                placeholder="Ex: Noa, Sarah, Thomas"
-                className="w-full bg-ink border border-orange/10 rounded-xl px-3 py-2 text-xs placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-              />
-            </div>
             <button
               type="submit"
               className="w-full bg-orange text-white font-medium rounded-xl py-2.5 hover:bg-orange-hover box-orange-glow transition-all text-xs uppercase tracking-wider font-semibold"
@@ -94,14 +86,6 @@ export default async function SoireesPage() {
                           year: "numeric",
                         })}
                       </span>
-                      {event.vipNames.length > 0 && (
-                        <>
-                          <span className="text-muted/40">•</span>
-                          <span className="text-gold font-medium bg-brick-dark/30 px-2 py-0.5 rounded border border-gold/15 text-[9px] uppercase tracking-wider">
-                            🔒 {event.vipNames.length} VIP
-                          </span>
-                        </>
-                      )}
                     </p>
                   </div>
                   <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-0 border-orange/5 pt-2 sm:pt-0 shrink-0">
