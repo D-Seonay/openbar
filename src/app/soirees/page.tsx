@@ -94,14 +94,6 @@ export default async function SoireesPage() {
                           year: "numeric",
                         })}
                       </span>
-                      {event.vipNames.length > 0 && (
-                        <>
-                          <span className="text-muted/40">•</span>
-                          <span className="text-gold font-medium bg-brick-dark/30 px-2 py-0.5 rounded border border-gold/15 text-[9px] uppercase tracking-wider">
-                            🔒 {event.vipNames.length} VIP
-                          </span>
-                        </>
-                      )}
                     </p>
                   </div>
                   <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-0 border-orange/5 pt-2 sm:pt-0 shrink-0">

@@ -31,17 +31,22 @@ export interface Bottle {
 }
 
 export interface EventItem {
+  id: string;
   slug: string;
   name: string;
   date: string;
-  vipNames: string[];
   createdAt: string;
+}
+
+export interface ContributionUser {
+  id: string;
+  username: string;
 }
 
 export interface Contribution {
   id: string;
-  eventSlug: string;
-  guestName: string;
+  eventId: string;
+  user: ContributionUser;
   item: string;
   quantity?: string;
   createdAt: string;
@@ -49,7 +54,7 @@ export interface Contribution {
 
 export interface StockAdjustment {
   id: string;
-  eventSlug: string;
+  eventId: string;
   bottleId: string;
   bottleName: string;
   quantityBefore: number;
@@ -57,9 +62,10 @@ export interface StockAdjustment {
   createdAt: string;
 }
 
-export interface Store {
-  bottles: Bottle[];
-  events: EventItem[];
-  contributions: Contribution[];
-  stockAdjustments: StockAdjustment[];
+export interface AccountUser {
+  id: string;
+  username: string;
+  role: "ADMIN" | "USER";
+  vip: boolean;
+  createdAt: string;
 }

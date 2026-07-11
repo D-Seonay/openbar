@@ -105,7 +105,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
       <GuestPanel
         slug={slug}
-        vipNames={event.vipNames}
         contributions={contributions}
         stock={stock}
         vipStock={vipStock}
