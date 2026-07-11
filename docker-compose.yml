@@ -6,10 +6,29 @@ services:
       POSTGRES_USER: bardenoa
       POSTGRES_PASSWORD: bardenoa
       POSTGRES_DB: bardenoa
-    ports:
-      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build: ./api
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://bardenoa:bardenoa@postgres:5432/bardenoa
+      JWT_SECRET: ${JWT_SECRET}
+      WEB_ORIGIN: http://web:3000
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      NEST_API_URL: http://api:3001
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "8080:3000"
 
 volumes:
   postgres_data:

@@ -1,0 +1,6 @@
+node_modules
+.next
+api
+.env.local
+*.md
+data
