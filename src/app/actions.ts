@@ -4,15 +4,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import * as db from "@/lib/db";
-import { isAdminLoggedIn } from "@/lib/auth";
+import * as api from "@/lib/api-client";
+import { isAdminLoggedIn } from "@/lib/session";
 import type { BottleType, BottleVolume } from "@/lib/types";
 
-// Guards ADMIN-ONLY mutating actions. The proxy (src/proxy.ts) only protects
-// routes by path, and Server Actions are dispatched by action ID over POST —
-// not by path — so an admin action's ID could otherwise be invoked directly
-// from a public route. Reuses the same session-cookie comparison as
-// src/proxy.ts and the other isAdminLoggedIn() call sites.
 async function requireAdmin() {
   if (!(await isAdminLoggedIn())) {
     redirect("/login");
@@ -39,7 +34,6 @@ export async function createBottle(formData: FormData) {
   const lowStockThreshold = thresholdRaw ? Number(thresholdRaw) : undefined;
   const imageUrl = String(formData.get("imageUrl") ?? "").trim() || undefined;
 
-  // Parse volumes list from hidden input
   const volumesRaw = String(formData.get("volumes") ?? "").trim();
   let volumes: BottleVolume[] = [];
   let quantity = Number(formData.get("quantity") ?? 0) || 0;
@@ -47,14 +41,13 @@ export async function createBottle(formData: FormData) {
   if (volumesRaw) {
     try {
       volumes = JSON.parse(volumesRaw) as BottleVolume[];
-      // If volumes are specified, set quantity as the sum of bottle quantities
       quantity = volumes.reduce((sum, v) => sum + v.quantity, 0);
     } catch {
       // fallback to basic quantity
     }
   }
 
-  await db.addBottle({ name, type, quantity, vip, tags, notes, lowStockThreshold, volumes, imageUrl });
+  await api.addBottle({ name, type, quantity, vip, tags, notes, lowStockThreshold, volumes, imageUrl });
   revalidatePath("/stock");
   revalidatePath("/cocktails");
   revalidatePath("/");
@@ -62,7 +55,7 @@ export async function createBottle(formData: FormData) {
 
 export async function updateBottleQuantity(id: string, quantity: number) {
   await requireAdmin();
-  await db.updateBottle(id, { quantity: Math.max(0, quantity) });
+  await api.updateBottle(id, { quantity: Math.max(0, quantity) });
   revalidatePath("/stock");
   revalidatePath("/cocktails");
   revalidatePath("/");
@@ -71,21 +64,21 @@ export async function updateBottleQuantity(id: string, quantity: number) {
 export async function updateBottleVolumes(id: string, volumes: BottleVolume[], imageUrl?: string) {
   await requireAdmin();
   const quantity = volumes.reduce((sum, v) => sum + v.quantity, 0);
-  await db.updateBottle(id, { volumes, quantity, imageUrl });
+  await api.updateBottle(id, { volumes, quantity, imageUrl });
   revalidatePath("/stock");
   revalidatePath("/cocktails");
 }
 
 export async function updateBottleThreshold(id: string, threshold: number | null) {
   await requireAdmin();
-  await db.updateBottle(id, { lowStockThreshold: threshold ?? undefined });
+  await api.updateBottle(id, { lowStockThreshold: threshold ?? undefined });
   revalidatePath("/stock");
   revalidatePath("/");
 }
 
 export async function deleteBottleAction(id: string) {
   await requireAdmin();
-  await db.deleteBottle(id);
+  await api.deleteBottle(id);
   revalidatePath("/stock");
   revalidatePath("/cocktails");
   revalidatePath("/");
@@ -95,37 +88,30 @@ export async function createEvent(formData: FormData) {
   await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
   const date = String(formData.get("date") ?? "");
-  const vipNamesRaw = String(formData.get("vipNames") ?? "");
-  const vipNames = vipNamesRaw
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
-
   if (!name || !date) return;
 
-  const event = await db.createEvent({ name, date, vipNames });
+  const event = await api.createEvent({ name, date });
   revalidatePath("/soirees");
   redirect(`/soirees/${event.slug}`);
 }
 
 export async function deleteEventAction(slug: string) {
   await requireAdmin();
-  await db.deleteEvent(slug);
+  await api.deleteEvent(slug);
   revalidatePath("/soirees");
 }
 
 export async function addContribution(slug: string, formData: FormData) {
-  const guestName = String(formData.get("guestName") ?? "").trim();
   const item = String(formData.get("item") ?? "").trim();
   const quantity = String(formData.get("quantity") ?? "").trim() || undefined;
-  if (!guestName || !item) return;
+  if (!item) return;
 
-  await db.addContribution({ eventSlug: slug, guestName, item, quantity });
+  await api.addContribution(slug, { item, quantity });
   revalidatePath(`/soirees/${slug}`);
 }
 
 export async function deleteContributionAction(slug: string, id: string) {
-  await db.deleteContribution(id);
+  await api.deleteContribution(slug, id);
   revalidatePath(`/soirees/${slug}`);
 }
 
@@ -140,7 +126,7 @@ export async function submitBilan(slug: string, formData: FormData) {
     changes.push({ bottleId, quantityAfter });
   }
 
-  await db.applyStockAdjustments(slug, changes);
+  await api.applyStockAdjustments(slug, changes);
   revalidatePath("/stock");
   revalidatePath("/cocktails");
   revalidatePath(`/soirees/${slug}`);
@@ -165,10 +151,4 @@ export async function uploadBottleImage(formData: FormData): Promise<string | nu
 
   await fs.writeFile(filePath, buffer);
   return `/uploads/${filename}`;
-}
-
-export async function verifyVipPassword(input: string): Promise<boolean> {
-  const clean = input.trim().toLowerCase();
-  const envVip = (process.env.VIP_PASSWORD ?? "vipnoa").trim().toLowerCase();
-  return clean === envVip || clean === "vipnoa" || clean === "noa" || clean === "secret";
 }
