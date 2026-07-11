@@ -15,6 +15,14 @@ export default async function LoginPage({
       </div>
       <form action={login} className="space-y-3">
         <input
+          name="username"
+          type="text"
+          placeholder="Identifiant"
+          required
+          autoFocus
+          className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-2.5 text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+        />
+        <input
           name="password"
           type="password"
           placeholder="Mot de passe d'administration"

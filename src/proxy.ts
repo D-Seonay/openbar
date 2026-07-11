@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { hashPassword, SESSION_COOKIE } from "@/lib/auth";
+import { SESSION_COOKIE, verifySessionToken } from "@/lib/session";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protect sensitive admin-only pages like /soirees/<slug>/bilan
   if (pathname.endsWith("/bilan")) {
-    const expected = process.env.ADMIN_PASSWORD ?? "";
-    const expectedHash = expected ? await hashPassword(expected) : null;
-    const sessionCookie = request.cookies.get(SESSION_COOKIE)?.value;
+    const token = request.cookies.get(SESSION_COOKIE)?.value;
+    const session = token ? await verifySessionToken(token) : null;
 
-    if (!expectedHash || sessionCookie !== expectedHash) {
+    if (session?.role !== "ADMIN") {
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }
