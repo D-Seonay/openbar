@@ -47,8 +47,8 @@ export function evaluateRecipes(bottles: StockLike[]): RecipeAvailability[] {
 export class CocktailsService {
   constructor(private readonly bottlesService: BottlesService) {}
 
-  async evaluate(): Promise<RecipeAvailability[]> {
-    const bottles = await this.bottlesService.findAll(true);
+  async evaluate(includeVip: boolean): Promise<RecipeAvailability[]> {
+    const bottles = await this.bottlesService.findAll(includeVip);
     return evaluateRecipes(bottles);
   }
 }

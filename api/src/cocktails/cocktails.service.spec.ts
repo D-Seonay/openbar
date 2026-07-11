@@ -66,4 +66,17 @@ describe('evaluateRecipes', () => {
     const results = evaluateRecipes([]);
     expect(results).toHaveLength(COCKTAILS.length);
   });
+
+  it('excludes VIP bottles entirely when includeVip is false, so missingTags stays consistent with makeable', () => {
+    const bottles = [
+      bottle({ tags: ['whisky'], vip: true }),
+      bottle({ tags: ['cola'] }),
+    ];
+    const nonVipOnly = bottles.filter((b) => !b.vip);
+    const results = evaluateRecipes(nonVipOnly);
+    const whiskyCoca = results.find((r) => r.recipe.id === 'whisky-coca')!;
+    expect(whiskyCoca.makeable).toBe(false);
+    expect(whiskyCoca.usesVip).toBe(false);
+    expect(whiskyCoca.missingTags).toEqual(['whisky']);
+  });
 });
