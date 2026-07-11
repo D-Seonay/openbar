@@ -1336,10 +1336,9 @@ git commit -m "feat: rewire Server Actions to call api-client instead of the JSO
 **Files:**
 - Modify: `src/app/layout.tsx`
 - Modify: `src/app/page.tsx`
-- Create: `src/lib/evaluate-summary.ts` (tiny helper — the dashboard needs an unauthenticated, non-VIP cocktail/bottle count; rather than duplicating that call inline, factor it once since Task 10 and Task 11 also need "the public view" of the same data)
 
 **Interfaces:**
-- Consumes: `isAdminLoggedIn` from `src/lib/session.ts` (Task 5), `listBottles`, `listEvents`, `evaluateCocktails` from `src/lib/api-client.ts` (Task 7).
+- Consumes: `isAdminLoggedIn` from `src/lib/session.ts` (Task 5), `listBottles`, `listEvents`, `evaluateCocktails` from `src/lib/api-client.ts` (Task 7) — called directly, no intermediate wrapper: `/cocktails` (Task 11) and `/stock` (Task 10) each call these same `api-client` functions independently for their own needs, so a shared "summary" helper would have exactly one caller and isn't warranted.
 
 - [ ] **Step 1: Update `src/app/layout.tsx`**
 
@@ -1401,20 +1400,7 @@ Replace the `<nav>` block's `{NAV.map(...)}` line with (adding the admin-only it
                 ))}
 ```
 
-- [ ] **Step 2: Create `src/lib/evaluate-summary.ts`**
-
-This helper exists purely to avoid every public page re-deriving "counts as seen by an anonymous/non-VIP visitor" independently — the dashboard, and later `/cocktails`/`/stock`, all call `api-client` functions that already self-filter VIP content server-side based on the caller's own session, so no extra parameter is needed here; this file just re-exports the two calls together for the dashboard's convenience:
-
-```ts
-import { listBottles, evaluateCocktails } from "./api-client";
-
-export async function getDashboardSummary() {
-  const [bottles, cocktails] = await Promise.all([listBottles(), evaluateCocktails()]);
-  return { bottles, cocktails };
-}
-```
-
-- [ ] **Step 3: Update `src/app/page.tsx`**
+- [ ] **Step 2: Update `src/app/page.tsx`**
 
 Replace:
 
@@ -1426,8 +1412,7 @@ import { evaluateRecipes } from "@/lib/cocktails";
 with:
 
 ```ts
-import { listEvents } from "@/lib/api-client";
-import { getDashboardSummary } from "@/lib/evaluate-summary";
+import { listBottles, listEvents, evaluateCocktails } from "@/lib/api-client";
 ```
 
 Replace:
@@ -1444,9 +1429,10 @@ Replace:
 with:
 
 ```ts
-  const [{ bottles, cocktails: availability }, events] = await Promise.all([
-    getDashboardSummary(),
+  const [bottles, events, availability] = await Promise.all([
+    listBottles(),
     listEvents(),
+    evaluateCocktails(),
   ]);
 
   const stockCount = bottles.filter((b) => b.type !== "mixer" && b.quantity > 0).length;
@@ -1455,18 +1441,18 @@ with:
 
 Everything below this in the file (`lowStock`, `makeableNow`, `today`, `upcoming`, `nextEvent`, and the entire JSX) is unchanged — `availability` is used identically to before.
 
-- [ ] **Step 4: Verify the dashboard compiles and boots**
+- [ ] **Step 3: Verify the dashboard compiles and boots**
 
 ```bash
 npx tsc --noEmit
 ```
 
-Expected: no new errors from `src/app/page.tsx`, `src/app/layout.tsx`, `src/lib/evaluate-summary.ts` (other files may still error until later tasks land).
+Expected: no new errors from `src/app/page.tsx`, `src/app/layout.tsx` (other files may still error until later tasks land).
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add src/app/layout.tsx src/app/page.tsx src/lib/evaluate-summary.ts
+git add src/app/layout.tsx src/app/page.tsx
 git commit -m "feat: wire dashboard and layout onto api-client and session"
 ```
 
