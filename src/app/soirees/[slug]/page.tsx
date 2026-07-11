@@ -9,13 +9,14 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const event = await getEvent(slug);
   if (!event) notFound();
 
-  const [contributions, bottles, adjustments, availability, session] = await Promise.all([
-    listContributions(slug),
+  const [bottles, adjustments, availability, session] = await Promise.all([
     listBottles(),
     listStockAdjustments(slug),
     evaluateCocktails(),
     getSession(),
   ]);
+
+  const contributions = session ? await listContributions(slug) : [];
 
   const stock = bottles
     .filter((b) => !b.vip && b.type !== "mixer" && b.quantity > 0)
