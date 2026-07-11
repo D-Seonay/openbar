@@ -58,4 +58,18 @@ describe('UsersService', () => {
 
     await expect(service.remove('existing')).rejects.toThrow(ConflictException);
   });
+
+  it('hashes a new password when updating a user with one', async () => {
+    prisma.user.findUnique.mockResolvedValue({ id: '1', username: 'noa' });
+    prisma.user.update.mockImplementation(({ data }) =>
+      Promise.resolve({ id: '1', username: 'noa', role: 'USER', vip: false, createdAt: new Date(), ...data }),
+    );
+
+    await service.update('1', { password: 'newsecret123' });
+
+    const updateArgs = prisma.user.update.mock.calls[0][0];
+    expect(updateArgs.data.password).toBeUndefined();
+    expect(updateArgs.data.passwordHash).toBeDefined();
+    expect(updateArgs.data.passwordHash).not.toBe('newsecret123');
+  });
 });

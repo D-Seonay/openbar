@@ -36,10 +36,17 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { username } });
   }
 
-  async update(id: string, input: { role?: Role; vip?: boolean }) {
+  async update(id: string, input: { role?: Role; vip?: boolean; password?: string }) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('Utilisateur introuvable');
-    return this.prisma.user.update({ where: { id }, data: input, select: PUBLIC_SELECT });
+
+    const { password, ...rest } = input;
+    const data: { role?: Role; vip?: boolean; passwordHash?: string } = { ...rest };
+    if (password) {
+      data.passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+    }
+
+    return this.prisma.user.update({ where: { id }, data, select: PUBLIC_SELECT });
   }
 
   async remove(id: string) {

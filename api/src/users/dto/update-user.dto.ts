@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsOptional } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, MinLength } from 'class-validator';
 import { Role } from '@prisma/client';
 
 export class UpdateUserDto {
@@ -9,4 +9,8 @@ export class UpdateUserDto {
   @IsOptional()
   @IsBoolean()
   vip?: boolean;
+
+  @IsOptional()
+  @MinLength(6)
+  password?: string;
 }
