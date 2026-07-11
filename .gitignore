@@ -52,3 +52,6 @@ next-env.d.ts
 # api/ (NestJS)
 api/node_modules
 api/dist
+
+# legacy file-based data store (replaced by Postgres, see api/)
+/data
