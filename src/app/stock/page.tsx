@@ -1,6 +1,6 @@
-import { listBottles } from "@/lib/db";
+import { listBottles } from "@/lib/api-client";
 import { calculateBottleTotalLiters, calculateTotalBottlesCount, formatLiters } from "@/lib/volumeUtils";
-import { isAdminLoggedIn } from "@/lib/auth";
+import { isAdminLoggedIn } from "@/lib/session";
 import StockTabs from "./StockTabs";
 import AddBottleForm from "./AddBottleForm";
 import PageTransition from "@/components/PageTransition";
