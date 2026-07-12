@@ -23,11 +23,11 @@ export default function AdminBadge({ isAdmin }: AdminBadgeProps) {
     return (
       <Link
         href="/login"
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-orange/15 border border-white/[0.08] hover:border-orange/40 text-xs font-semibold text-muted hover:text-orange transition-all duration-200"
-        title="Se connecter en tant qu'administrateur"
+        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-[11px] font-mono font-medium text-zinc-400 hover:text-zinc-100 transition-all duration-200"
+        title="Accès système administrateur"
       >
-        <span>🔒</span>
-        <span className="hidden sm:inline">Connexion Admin</span>
+        <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
+        <span className="hidden sm:inline tracking-wider">LOGIN_SYS</span>
       </Link>
     );
   }
@@ -37,71 +37,54 @@ export default function AdminBadge({ isAdmin }: AdminBadgeProps) {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="group flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/40 hover:bg-emerald-900/40 border border-emerald-500/40 hover:border-emerald-400 text-xs font-bold text-emerald-300 shadow-sm shadow-emerald-950/50 transition-all duration-200 cursor-pointer"
+        className="group flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 text-[11px] font-mono font-bold text-zinc-200 transition-all duration-200 cursor-pointer"
         title="Session Administrateur active"
       >
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400"></span>
         </span>
-        <span className="text-sm">👑</span>
-        <span className="tracking-wide">Mode Admin</span>
+        <span className="tracking-wider">SYS_ADMIN</span>
       </button>
 
       <AnimatePresence>
         {open && (
           <>
-            {/* Backdrop for closing */}
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setOpen(false)}
-            />
+            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
 
-            {/* Floating popover */}
             <motion.div
-              initial={{ opacity: 0, y: 8, scale: 0.95 }}
+              initial={{ opacity: 0, y: 6, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="absolute right-0 mt-2.5 w-72 z-50 bg-ink-2/95 backdrop-blur-2xl border border-emerald-500/30 rounded-2xl p-4 shadow-2xl space-y-3.5"
+              exit={{ opacity: 0, y: 4, scale: 0.98 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="absolute right-0 mt-2 w-56 rounded-xl bg-zinc-900/95 backdrop-blur-xl border border-zinc-800 p-3 shadow-2xl z-50 text-left font-sans"
             >
-              <div className="flex items-start gap-3 border-b border-white/[0.08] pb-3">
-                <span className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-lg shrink-0">
-                  👑
+              <div className="px-2 py-1.5 border-b border-zinc-800/80 mb-2">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 block">
+                  SYSTEM STATUS
                 </span>
-                <div>
-                  <h4 className="font-display text-sm font-bold text-cream">
-                    Administrateur Connecté
-                  </h4>
-                  <p className="text-[11px] text-emerald-300/90 mt-0.5 font-medium">
-                    Accès complet & édition déverrouillés
-                  </p>
-                </div>
+                <span className="text-xs font-semibold text-zinc-100 mt-0.5 block">
+                  Session Privilégiée Active
+                </span>
               </div>
 
-              <div className="space-y-1.5 text-xs text-muted">
-                <div className="flex items-center gap-2">
-                  <span className="text-emerald-400">✓</span>
-                  <span>Modification des stocks & rayons</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-emerald-400">✓</span>
-                  <span>Création de cocktails & soirées</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-emerald-400">✓</span>
-                  <span>Gestion des seuils d&apos;alerte</span>
-                </div>
-              </div>
+              <Link
+                href="/comptes"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800/60 transition-colors w-full"
+              >
+                <span>Gestion des comptes</span>
+                <span className="font-mono text-[10px] text-zinc-500">→</span>
+              </Link>
 
               <button
                 type="button"
-                onClick={handleLogout}
                 disabled={isPending}
-                className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-red-500/15 hover:bg-red-500/30 text-red-400 hover:text-red-300 border border-red-500/30 text-xs font-bold transition-all cursor-pointer"
+                onClick={handleLogout}
+                className="mt-1 flex items-center justify-between w-full px-2.5 py-2 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
               >
-                <span>🔒</span>
-                <span>{isPending ? "Déconnexion..." : "Verrouiller le bar (Déconnexion)"}</span>
+                <span>{isPending ? "Déconnexion..." : "Fermer session"}</span>
+                <span className="font-mono text-[10px]">ESC</span>
               </button>
             </motion.div>
           </>

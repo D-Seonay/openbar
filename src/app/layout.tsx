@@ -6,7 +6,7 @@ import { isAdminLoggedIn } from "@/lib/session";
 import Navigation from "@/components/Navigation";
 
 const outfit = Outfit({
-  weight: ["500", "600", "700"],
+  weight: ["500", "600", "700", "800"],
   subsets: ["latin"],
   variable: "--font-outfit",
 });
@@ -31,38 +31,44 @@ export default async function RootLayout({
 
   return (
     <html lang="fr" className={`h-full ${outfit.variable} ${jakarta.variable}`}>
-      <body className="min-h-full flex flex-col bg-ink text-cream selection:bg-orange/30 selection:text-white font-sans antialiased relative overflow-x-hidden">
-        {/* Subtle Ambient Background Lighting */}
+      <body className="min-h-full flex flex-col bg-[#050505] text-zinc-100 selection:bg-amber-500/20 selection:text-amber-300 font-sans antialiased relative overflow-x-hidden">
+        {/* Architectural Ambient Lighting */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-orange/5 blur-3xl opacity-70" />
-          <div className="absolute top-1/3 -right-32 w-96 h-96 rounded-full bg-gold/5 blur-3xl opacity-60" />
+          <div className="absolute top-0 left-1/4 w-[600px] h-[300px] rounded-full bg-amber-500/[0.025] blur-[140px]" />
+          <div className="absolute bottom-1/3 right-10 w-[400px] h-[400px] rounded-full bg-zinc-800/[0.08] blur-[160px]" />
         </div>
 
-        <header className="border-b border-white/[0.08] bg-ink/85 backdrop-blur-xl sticky top-0 z-50 transition-all duration-300">
-          <div className="max-w-5xl mx-auto px-6 py-3.5 flex items-center justify-between gap-4">
-            <Link 
-              href="/" 
-              className="group font-display text-xl sm:text-2xl font-bold tracking-tight text-cream hover:text-orange transition-colors flex items-center gap-2.5"
+        <header className="border-b border-zinc-800/70 bg-[#050505]/90 backdrop-blur-2xl sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+            <Link
+              href="/"
+              className="group flex items-center gap-3"
             >
-              <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange via-orange-dim to-brick-dark border border-orange/40 flex items-center justify-center text-ink text-lg font-black shadow-[0_0_15px_rgba(255,107,53,0.3)] group-hover:scale-105 transition-transform duration-200">
-                N
-              </span>
-              <span>Le Bar <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange to-gold">de Noa</span></span>
+              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-700/80 flex items-center justify-center font-mono text-xs font-black text-amber-400 group-hover:border-amber-400/50 transition-colors">
+                BN
+              </div>
+              <div>
+                <span className="font-display text-base font-bold tracking-tight text-zinc-100 block leading-none">
+                  Le Bar de Noa
+                </span>
+                <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500 mt-0.5 block">
+                  STUDIO ARCHITECTURE // v2.4
+                </span>
+              </div>
             </Link>
-            
+
             <Navigation isAdmin={isAdmin} />
           </div>
         </header>
 
-        <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10 relative z-10">
+        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-8 py-8 relative z-10">
           {children}
         </main>
 
-        <footer className="border-t border-white/[0.06] text-center text-xs text-muted/60 py-8 bg-ink-2/50 backdrop-blur-sm relative z-10">
-          Le Bar de Noa · Espace privé de mixologie © {new Date().getFullYear()}
+        <footer className="border-t border-zinc-900 text-center text-[11px] font-mono text-zinc-600 py-8 bg-[#050505] relative z-10">
+          BARDENOA SYSTEM // MIXOLOGY & INVENTORY CORE · {new Date().getFullYear()}
         </footer>
       </body>
     </html>
   );
 }
-

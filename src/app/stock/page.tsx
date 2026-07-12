@@ -1,7 +1,7 @@
 import { listBottles } from "@/lib/api-client";
 import { calculateBottleTotalLiters, calculateTotalBottlesCount, formatLiters } from "@/lib/volumeUtils";
 import { isAdminLoggedIn, getSession } from "@/lib/session";
-import StockTabs from "./StockTabs";
+import StockStudio from "./StockStudio";
 import AddBottleForm from "./AddBottleForm";
 import PageTransition from "@/components/PageTransition";
 import AlertsManagerTrigger from "./AlertsManagerTrigger";
@@ -18,7 +18,6 @@ export default async function StockPage() {
   const normal = bottles.filter((b) => !b.vip);
   const vip = bottles.filter((b) => b.vip);
 
-  // For non-VIPs, total bottles and liters should only include accessible bottles
   const accessibleBottles = isVipOrAdmin ? bottles : normal;
 
   const totalBottlesCount = accessibleBottles.reduce((sum, b) => sum + calculateTotalBottlesCount(b), 0);
@@ -31,62 +30,36 @@ export default async function StockPage() {
 
   return (
     <PageTransition className="space-y-8">
-      {/* Fresh Grocery Landing Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-ink-2 border border-white/[0.08] p-6 sm:p-10 shadow-2xl">
-        <div
-          className="absolute inset-0 opacity-80 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle at 85% 20%, rgba(255,107,53,0.18) 0%, rgba(61,35,26,0.08) 45%, rgba(17,13,12,0) 80%), radial-gradient(circle at 15% 85%, rgba(232,165,99,0.07) 0%, rgba(17,13,12,0) 60%)",
-          }}
-        />
+      {/* Studio Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-zinc-800/80">
+        <div>
+          <div className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span>INVENTORY_CORE // BAR PRINCIPAL</span>
+          </div>
+          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-zinc-100 tracking-tight">
+            Cave & Répertoire Spirits
+          </h1>
+        </div>
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-          <div className="space-y-3 max-w-xl">
-            <div className="inline-flex items-center gap-2 text-xs uppercase tracking-caps text-gold font-bold bg-white/[0.04] px-3 py-1 rounded-full border border-white/[0.08]">
-              <span className="w-2 h-2 rounded-full bg-orange animate-pulse" />
-              <span>Marché & Épicerie Fine de Spiritueux</span>
-            </div>
-            <h1 className="font-display text-4xl sm:text-6xl font-bold text-cream tracking-tight leading-none">
-              Le Marché <span className="text-orange">& La Cave</span>
-            </h1>
-            <p className="text-muted text-xs sm:text-sm leading-relaxed">
-              Explorez vos rayons comme dans un marché artisanal d&apos;exception. Consultez ou ajustez vos bouteilles en un clic, surveillez vos volumes en litres et préparez vos courses.
-            </p>
+        {/* Technical Telemetry Pills */}
+        <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+          <div className="px-3.5 py-2 rounded-lg bg-zinc-900 border border-zinc-800">
+            <span className="text-zinc-500 block text-[10px]">EN RAYON</span>
+            <span className="text-zinc-100 font-bold">{totalBottlesCount} BTL</span>
           </div>
 
-          {/* Fresh Grocery Live KPIs Pills */}
-          <div className={`grid gap-2.5 shrink-0 ${isVipOrAdmin ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
-            <div className="bg-ink/80 border border-white/[0.08] rounded-2xl p-3.5 text-center min-w-[110px]">
-              <span className="text-[10px] uppercase tracking-caps text-muted block font-semibold">En Rayon</span>
-              <span className="font-display text-2xl font-bold text-cream mt-1 block">
-                {totalBottlesCount} <span className="text-xs font-normal text-muted">btl</span>
-              </span>
-            </div>
-
-            <div className="bg-ink/80 border border-white/[0.08] rounded-2xl p-3.5 text-center min-w-[110px]">
-              <span className="text-[10px] uppercase tracking-caps text-muted block font-semibold">Volume Total</span>
-              <span className="font-display text-2xl font-bold text-orange mt-1 block">
-                {formatLiters(totalLitersCount)}
-              </span>
-            </div>
-
-            <AlertsManagerTrigger bottles={accessibleBottles} lowStockCount={lowStockCount} />
-
-            {isVipOrAdmin && (
-              <div className="bg-ink/80 border border-white/[0.08] rounded-2xl p-3.5 text-center min-w-[110px]">
-                <span className="text-[10px] uppercase tracking-caps text-gold block font-semibold">Réserve VIP</span>
-                <span className="font-display text-2xl font-bold text-gold mt-1 block">
-                  {vip.length} <span className="text-xs font-normal text-gold-dim">réf.</span>
-                </span>
-              </div>
-            )}
+          <div className="px-3.5 py-2 rounded-lg bg-zinc-900 border border-zinc-800">
+            <span className="text-zinc-500 block text-[10px]">VOLUME TOTAL</span>
+            <span className="text-amber-400 font-bold">{formatLiters(totalLitersCount)}</span>
           </div>
+
+          <AlertsManagerTrigger bottles={accessibleBottles} lowStockCount={lowStockCount} />
         </div>
       </div>
 
-      {/* Interactive Tabs & Fresh Market Shelves */}
-      <StockTabs
+      {/* Master-Detail Technical Studio */}
+      <StockStudio
         normalBottles={normal}
         vipBottles={vip}
         addBottleForm={addBottleForm}

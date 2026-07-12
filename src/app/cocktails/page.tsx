@@ -1,6 +1,6 @@
 import { evaluateCocktails } from "@/lib/api-client";
 import { getSession } from "@/lib/session";
-import CocktailGrid from "./CocktailGrid";
+import CocktailStudio from "./CocktailStudio";
 import PageTransition from "@/components/PageTransition";
 
 export default async function CocktailsPage() {
@@ -13,17 +13,19 @@ export default async function CocktailsPage() {
 
   return (
     <PageTransition className="space-y-8">
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-zinc-800/80">
         <div>
-          <span className="text-xs uppercase tracking-caps text-orange font-semibold">Mixologie & Recettes</span>
-          <h1 className="font-display text-4xl sm:text-5xl font-bold text-cream mt-1 tracking-tight">La Carte des Cocktails</h1>
-          <p className="text-muted text-xs mt-2 max-w-lg leading-relaxed">
-            Consultez le menu de cocktails calculé en temps réel selon les ingrédients actuellement disponibles à votre bar.
-          </p>
+          <div className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span>RECIPES_CORE // STUDIO DE MIXOLOGIE</span>
+          </div>
+          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-zinc-100 tracking-tight">
+            La Carte & Répertoire
+          </h1>
         </div>
       </div>
 
-      <CocktailGrid initialResults={results} isVip={isVip} />
+      <CocktailStudio initialResults={results} isVip={isVip} />
     </PageTransition>
   );
 }
