@@ -19,7 +19,7 @@ const TYPES = [
   ["autre", "Autre"],
 ] as const;
 
-export default function AddBottleForm() {
+export default function AddBottleForm({ isVip = false }: { isVip?: boolean }) {
   const [volumes, setVolumes] = useState<BottleVolume[]>([{ size: "70cl", quantity: 1 }]);
   const [imageUrl, setImageUrl] = useState("");
 
@@ -159,16 +159,18 @@ export default function AddBottleForm() {
         />
       </div>
 
-      <div className="flex items-end pb-2">
-        <label className="flex items-center gap-2.5 text-sm text-gold cursor-pointer select-none">
-          <input 
-            type="checkbox" 
-            name="vip" 
-            className="w-5 h-5 rounded border-orange/30 text-orange focus:ring-orange bg-ink accent-gold cursor-pointer" 
-          />
-          <span className="font-medium">Réserver à la section VIP</span>
-        </label>
-      </div>
+      {isVip && (
+        <div className="flex items-end pb-2">
+          <label className="flex items-center gap-2.5 text-sm text-gold cursor-pointer select-none">
+            <input 
+              type="checkbox" 
+              name="vip" 
+              className="w-5 h-5 rounded border-orange/30 text-orange focus:ring-orange bg-ink accent-gold cursor-pointer" 
+            />
+            <span className="font-medium">Réserver à la section VIP</span>
+          </label>
+        </div>
+      )}
 
       <button
         type="submit"

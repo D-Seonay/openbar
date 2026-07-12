@@ -6,15 +6,21 @@ import type { RecipeAvailability } from "@/lib/cocktail-types";
 
 interface CocktailGridProps {
   initialResults: RecipeAvailability[];
+  isVip?: boolean;
 }
 
-export default function CocktailGrid({ initialResults }: CocktailGridProps) {
+export default function CocktailGrid({ initialResults, isVip = false }: CocktailGridProps) {
   const [activeFilter, setActiveFilter] = useState<"ready" | "vip" | "locked">("ready");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  // If not VIP, completely strip out any VIP-dependent recipes
+  const accessibleResults = useMemo(() => {
+    return isVip ? initialResults : initialResults.filter((r) => !r.usesVip);
+  }, [initialResults, isVip]);
+
   const filteredResults = useMemo(() => {
-    return initialResults.filter((r) => {
+    return accessibleResults.filter((r) => {
       const matchesSearch =
         r.recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         r.recipe.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -23,13 +29,13 @@ export default function CocktailGrid({ initialResults }: CocktailGridProps) {
 
       if (activeFilter === "ready") {
         return r.makeable && !r.usesVip;
-      } else if (activeFilter === "vip") {
+      } else if (activeFilter === "vip" && isVip) {
         return r.makeable && r.usesVip;
       } else {
         return !r.makeable;
       }
     });
-  }, [initialResults, activeFilter, searchQuery]);
+  }, [accessibleResults, activeFilter, searchQuery, isVip]);
 
   const sortedResults = useMemo(() => {
     if (activeFilter === "locked") {
@@ -54,11 +60,11 @@ export default function CocktailGrid({ initialResults }: CocktailGridProps) {
 
   const counts = useMemo(() => {
     return {
-      ready: initialResults.filter((r) => r.makeable && !r.usesVip).length,
-      vip: initialResults.filter((r) => r.makeable && r.usesVip).length,
-      locked: initialResults.filter((r) => !r.makeable).length,
+      ready: accessibleResults.filter((r) => r.makeable && !r.usesVip).length,
+      vip: isVip ? accessibleResults.filter((r) => r.makeable && r.usesVip).length : 0,
+      locked: accessibleResults.filter((r) => !r.makeable).length,
     };
-  }, [initialResults]);
+  }, [accessibleResults, isVip]);
 
   return (
     <div className="space-y-8">
@@ -83,23 +89,25 @@ export default function CocktailGrid({ initialResults }: CocktailGridProps) {
             </span>
           </button>
 
-          <button
-            onClick={() => setActiveFilter("vip")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
-              activeFilter === "vip"
-                ? "bg-gradient-to-r from-gold to-amber-300 text-ink font-extrabold shadow-md gold-glow"
-                : "text-gold-dim hover:text-gold hover:bg-gold/10 border border-gold/20"
-            }`}
-          >
-            <span>🔒 Avec Cave VIP</span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                activeFilter === "vip" ? "bg-ink/20 text-ink" : "bg-gold/20 text-gold"
+          {isVip && (
+            <button
+              onClick={() => setActiveFilter("vip")}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                activeFilter === "vip"
+                  ? "bg-gradient-to-r from-gold to-amber-300 text-ink font-extrabold shadow-md gold-glow"
+                  : "text-gold-dim hover:text-gold hover:bg-gold/10 border border-gold/20"
               }`}
             >
-              {counts.vip}
-            </span>
-          </button>
+              <span>🔒 Avec Cave VIP</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                  activeFilter === "vip" ? "bg-ink/20 text-ink" : "bg-gold/20 text-gold"
+                }`}
+              >
+                {counts.vip}
+              </span>
+            </button>
+          )}
 
           <button
             onClick={() => setActiveFilter("locked")}
@@ -152,12 +160,12 @@ export default function CocktailGrid({ initialResults }: CocktailGridProps) {
                 key={item.recipe.id}
                 className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
                   isExpanded
-                    ? item.usesVip
+                    ? item.usesVip && isVip
                       ? "bg-brick-dark/40 border-gold/40 shadow-xl"
                       : item.makeable
                       ? "bg-ink-2 border-orange/40 shadow-xl"
                       : "bg-ink-2 border-white/[0.15] shadow-lg"
-                    : item.usesVip
+                    : item.usesVip && isVip
                     ? "bg-brick-dark/25 border-gold/25 hover:border-gold/50"
                     : item.makeable
                     ? "bg-ink-2/70 border-white/[0.08] hover:border-orange/40"
@@ -172,7 +180,7 @@ export default function CocktailGrid({ initialResults }: CocktailGridProps) {
                   <div className="flex items-center gap-4">
                     <div
                       className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 transition-transform group-hover:scale-105 ${
-                        item.usesVip
+                        item.usesVip && isVip
                           ? "bg-gold/20 border border-gold/40 text-gold"
                           : item.makeable
                           ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400"
@@ -186,7 +194,7 @@ export default function CocktailGrid({ initialResults }: CocktailGridProps) {
                         <h3 className="font-display text-lg sm:text-xl font-bold text-cream group-hover:text-orange transition-colors">
                           {item.recipe.name}
                         </h3>
-                        {item.usesVip && (
+                        {item.usesVip && isVip && (
                           <span className="text-[10px] uppercase font-bold bg-gold text-ink px-2 py-0.5 rounded shadow-sm">
                             VIP Secret
                           </span>
@@ -207,7 +215,7 @@ export default function CocktailGrid({ initialResults }: CocktailGridProps) {
                   <div className="flex items-center gap-3">
                     <span
                       className={`text-xs uppercase tracking-wider font-bold hidden sm:inline-block ${
-                        item.usesVip
+                        item.usesVip && isVip
                           ? "text-gold"
                           : item.makeable
                           ? "text-emerald-400"

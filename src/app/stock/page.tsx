@@ -1,24 +1,33 @@
 import { listBottles } from "@/lib/api-client";
 import { calculateBottleTotalLiters, calculateTotalBottlesCount, formatLiters } from "@/lib/volumeUtils";
-import { isAdminLoggedIn } from "@/lib/session";
+import { isAdminLoggedIn, getSession } from "@/lib/session";
 import StockTabs from "./StockTabs";
 import AddBottleForm from "./AddBottleForm";
 import PageTransition from "@/components/PageTransition";
 import AlertsManagerTrigger from "./AlertsManagerTrigger";
 
 export default async function StockPage() {
-  const isAdmin = await isAdminLoggedIn();
-  const bottles = await listBottles();
+  const [isAdmin, session, bottles] = await Promise.all([
+    isAdminLoggedIn(),
+    getSession(),
+    listBottles(),
+  ]);
+
+  const isVipOrAdmin = Boolean(session?.vip || session?.role === "ADMIN");
+
   const normal = bottles.filter((b) => !b.vip);
   const vip = bottles.filter((b) => b.vip);
 
-  const totalBottlesCount = bottles.reduce((sum, b) => sum + calculateTotalBottlesCount(b), 0);
-  const totalLitersCount = bottles.reduce((sum, b) => sum + calculateBottleTotalLiters(b), 0);
-  const lowStockCount = bottles.filter(
+  // For non-VIPs, total bottles and liters should only include accessible bottles
+  const accessibleBottles = isVipOrAdmin ? bottles : normal;
+
+  const totalBottlesCount = accessibleBottles.reduce((sum, b) => sum + calculateTotalBottlesCount(b), 0);
+  const totalLitersCount = accessibleBottles.reduce((sum, b) => sum + calculateBottleTotalLiters(b), 0);
+  const lowStockCount = accessibleBottles.filter(
     (b) => b.lowStockThreshold != null && b.quantity <= b.lowStockThreshold
   ).length;
 
-  const addBottleForm = <AddBottleForm />;
+  const addBottleForm = <AddBottleForm isVip={isVipOrAdmin} />;
 
   return (
     <PageTransition className="space-y-8">
@@ -42,12 +51,12 @@ export default async function StockPage() {
               Le Marché <span className="text-orange">& La Cave</span>
             </h1>
             <p className="text-muted text-xs sm:text-sm leading-relaxed">
-              Explorez vos rayons comme dans un marché artisanal d&apos;exception. Ajoutez ou retirez des bouteilles en un clic, surveillez vos volumes en litres et préparez vos courses.
+              Explorez vos rayons comme dans un marché artisanal d&apos;exception. Consultez ou ajustez vos bouteilles en un clic, surveillez vos volumes en litres et préparez vos courses.
             </p>
           </div>
 
           {/* Fresh Grocery Live KPIs Pills */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 shrink-0">
+          <div className={`grid gap-2.5 shrink-0 ${isVipOrAdmin ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
             <div className="bg-ink/80 border border-white/[0.08] rounded-2xl p-3.5 text-center min-w-[110px]">
               <span className="text-[10px] uppercase tracking-caps text-muted block font-semibold">En Rayon</span>
               <span className="font-display text-2xl font-bold text-cream mt-1 block">
@@ -62,20 +71,28 @@ export default async function StockPage() {
               </span>
             </div>
 
-            <AlertsManagerTrigger bottles={bottles} lowStockCount={lowStockCount} />
+            <AlertsManagerTrigger bottles={accessibleBottles} lowStockCount={lowStockCount} />
 
-            <div className="bg-ink/80 border border-white/[0.08] rounded-2xl p-3.5 text-center min-w-[110px]">
-              <span className="text-[10px] uppercase tracking-caps text-gold block font-semibold">Réserve VIP</span>
-              <span className="font-display text-2xl font-bold text-gold mt-1 block">
-                {vip.length} <span className="text-xs font-normal text-gold-dim">réf.</span>
-              </span>
-            </div>
+            {isVipOrAdmin && (
+              <div className="bg-ink/80 border border-white/[0.08] rounded-2xl p-3.5 text-center min-w-[110px]">
+                <span className="text-[10px] uppercase tracking-caps text-gold block font-semibold">Réserve VIP</span>
+                <span className="font-display text-2xl font-bold text-gold mt-1 block">
+                  {vip.length} <span className="text-xs font-normal text-gold-dim">réf.</span>
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Interactive Tabs & Fresh Market Shelves */}
-      <StockTabs normalBottles={normal} vipBottles={vip} addBottleForm={addBottleForm} isAdmin={isAdmin} />
+      <StockTabs
+        normalBottles={normal}
+        vipBottles={vip}
+        addBottleForm={addBottleForm}
+        isAdmin={isAdmin}
+        isVip={isVipOrAdmin}
+      />
     </PageTransition>
   );
 }

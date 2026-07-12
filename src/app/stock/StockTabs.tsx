@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Bottle, BottleType } from "@/lib/types";
 import BottleTable from "./BottleTable";
 import BottleGridCard from "./BottleGridCard";
-import BottlePreview from "./BottlePreview";
 import { getCategoryStyle } from "@/lib/categoryStyles";
 import { updateBottleQuantity } from "@/app/actions";
 
@@ -14,6 +13,7 @@ interface StockTabsProps {
   vipBottles: Bottle[];
   addBottleForm: React.ReactNode;
   isAdmin?: boolean;
+  isVip?: boolean;
 }
 
 export default function StockTabs({
@@ -21,6 +21,7 @@ export default function StockTabs({
   vipBottles,
   addBottleForm,
   isAdmin = false,
+  isVip = false,
 }: StockTabsProps) {
   const [activeTab, setActiveTab] = useState<"bar" | "vip" | "shopping" | "add">("bar");
   const [selectedCategory, setSelectedCategory] = useState<BottleType | "all">("all");
@@ -29,13 +30,14 @@ export default function StockTabs({
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
   const [, startTransition] = useTransition();
 
-  // Find all bottles that need restocking
+  // Find all bottles that need restocking (only accessible bottles)
   const shoppingList = useMemo(() => {
-    return [...normalBottles, ...vipBottles].filter((b) => {
+    const listToScan = isVip ? [...normalBottles, ...vipBottles] : normalBottles;
+    return listToScan.filter((b) => {
       const threshold = b.lowStockThreshold ?? 0.5;
       return b.quantity <= threshold;
     });
-  }, [normalBottles, vipBottles]);
+  }, [normalBottles, vipBottles, isVip]);
 
   // Filtered lists
   const filterBottles = (list: Bottle[]) => {
@@ -53,7 +55,7 @@ export default function StockTabs({
   const filteredVip = useMemo(() => filterBottles(vipBottles), [vipBottles, selectedCategory, searchQuery]);
 
   // Categories available in current active list
-  const currentList = activeTab === "vip" ? vipBottles : normalBottles;
+  const currentList = activeTab === "vip" && isVip ? vipBottles : normalBottles;
   const availableCategories = useMemo(() => {
     const set = new Set<BottleType>();
     currentList.forEach((b) => set.add(b.type));
@@ -84,7 +86,7 @@ export default function StockTabs({
 
   return (
     <div className="space-y-8">
-      {/* Primary 2-Universe Switcher (Bar Principal vs Réserve VIP + Add & Shopping) */}
+      {/* Primary Switcher */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-2 rounded-2xl bg-ink-2/90 border border-white/[0.08] backdrop-blur-xl">
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -98,7 +100,7 @@ export default function StockTabs({
                 : "text-muted hover:text-cream hover:bg-white/[0.04]"
             }`}
           >
-            <span>🍸 Bar Principal (Invités)</span>
+            <span>🍸 Bar Principal</span>
             <span
               className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                 activeTab === "bar" ? "bg-ink/20 text-ink" : "bg-white/[0.07] text-cream"
@@ -108,39 +110,43 @@ export default function StockTabs({
             </span>
           </button>
 
-          <button
-            onClick={() => {
-              setActiveTab("vip");
-              setSelectedCategory("all");
-            }}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
-              activeTab === "vip"
-                ? "bg-gradient-to-r from-gold to-amber-300 text-ink font-extrabold shadow-md gold-glow"
-                : "text-gold-dim hover:text-gold hover:bg-gold/10 border border-gold/20"
-            }`}
-          >
-            <span>🔒 Réserve Privée VIP</span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                activeTab === "vip" ? "bg-ink/20 text-ink" : "bg-gold/20 text-gold"
+          {isVip && (
+            <button
+              onClick={() => {
+                setActiveTab("vip");
+                setSelectedCategory("all");
+              }}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                activeTab === "vip"
+                  ? "bg-gradient-to-r from-gold to-amber-300 text-ink font-extrabold shadow-md gold-glow"
+                  : "text-gold-dim hover:text-gold hover:bg-gold/10 border border-gold/20"
               }`}
             >
-              {vipBottles.length}
-            </span>
-          </button>
+              <span>🔒 Réserve Privée VIP</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                  activeTab === "vip" ? "bg-ink/20 text-ink" : "bg-gold/20 text-gold"
+                }`}
+              >
+                {vipBottles.length}
+              </span>
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setActiveTab("add")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
-              activeTab === "add"
-                ? "bg-cream text-ink font-extrabold"
-                : "text-muted hover:text-cream hover:bg-white/[0.04]"
-            }`}
-          >
-            <span>➕ Ajouter au Stock</span>
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setActiveTab("add")}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                activeTab === "add"
+                  ? "bg-cream text-ink font-extrabold"
+                  : "text-muted hover:text-cream hover:bg-white/[0.04]"
+              }`}
+            >
+              <span>➕ Ajouter au Stock</span>
+            </button>
+          )}
 
           <button
             onClick={() => setActiveTab("shopping")}
@@ -164,8 +170,8 @@ export default function StockTabs({
         </div>
       </div>
 
-      {/* Filter & Search Bar for Bar Principal or VIP Universe */}
-      {(activeTab === "bar" || activeTab === "vip") && (
+      {/* Filter & Search Bar */}
+      {(activeTab === "bar" || (activeTab === "vip" && isVip)) && (
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             {/* Search Input */}
@@ -271,7 +277,7 @@ export default function StockTabs({
           </motion.div>
         )}
 
-        {activeTab === "vip" && (
+        {activeTab === "vip" && isVip && (
           <motion.div
             key="vip"
             initial={{ opacity: 0, y: 10 }}
@@ -311,7 +317,7 @@ export default function StockTabs({
           </motion.div>
         )}
 
-        {activeTab === "add" && (
+        {activeTab === "add" && isAdmin && (
           <motion.div
             key="add"
             initial={{ opacity: 0, scale: 0.98 }}
@@ -370,7 +376,7 @@ export default function StockTabs({
                       className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
                         isChecked
                           ? "bg-ink/40 border-white/[0.05] opacity-50"
-                          : b.vip
+                          : b.vip && isVip
                           ? "bg-brick-dark/30 border-gold/30"
                           : "bg-ink border-white/[0.08]"
                       }`}
@@ -396,7 +402,7 @@ export default function StockTabs({
                             >
                               {style.icon} {style.label}
                             </span>
-                            {b.vip && (
+                            {b.vip && isVip && (
                               <span className="text-[10px] bg-gold text-ink px-1.5 py-0.5 rounded font-bold">VIP</span>
                             )}
                           </div>

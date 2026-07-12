@@ -1,9 +1,15 @@
 import { evaluateCocktails } from "@/lib/api-client";
+import { getSession } from "@/lib/session";
 import CocktailGrid from "./CocktailGrid";
 import PageTransition from "@/components/PageTransition";
 
 export default async function CocktailsPage() {
-  const results = await evaluateCocktails();
+  const [results, session] = await Promise.all([
+    evaluateCocktails(),
+    getSession(),
+  ]);
+
+  const isVip = Boolean(session?.vip || session?.role === "ADMIN");
 
   return (
     <PageTransition className="space-y-8">
@@ -17,7 +23,7 @@ export default async function CocktailsPage() {
         </div>
       </div>
 
-      <CocktailGrid initialResults={results} />
+      <CocktailGrid initialResults={results} isVip={isVip} />
     </PageTransition>
   );
 }

@@ -1,19 +1,26 @@
 import Link from "next/link";
 import { listBottles, listEvents, evaluateCocktails } from "@/lib/api-client";
+import { getSession } from "@/lib/session";
 import PageTransition from "@/components/PageTransition";
 import { getCategoryStyle } from "@/lib/categoryStyles";
 import type { BottleType } from "@/lib/types";
 
 export default async function HomePage() {
-  const [bottles, events, availability] = await Promise.all([
+  const [bottles, events, availability, session] = await Promise.all([
     listBottles(),
     listEvents(),
     evaluateCocktails(),
+    getSession(),
   ]);
 
-  const stockCount = bottles.filter((b) => b.type !== "mixer" && b.quantity > 0).length;
+  const isVipOrAdmin = Boolean(session?.vip || session?.role === "ADMIN");
+
+  // Only consider accessible bottles for non-VIPs
+  const accessibleBottles = isVipOrAdmin ? bottles : bottles.filter((b) => !b.vip);
+
+  const stockCount = bottles.filter((b) => !b.vip && b.type !== "mixer" && b.quantity > 0).length;
   const vipCount = bottles.filter((b) => b.vip).length;
-  const lowStock = bottles
+  const lowStock = accessibleBottles
     .filter((b) => b.lowStockThreshold != null && b.quantity <= b.lowStockThreshold)
     .sort((a, b) => (a.quantity - a.lowStockThreshold!) - (b.quantity - b.lowStockThreshold!));
   const makeableNow = availability.filter((a) => a.makeable && !a.usesVip).length;
@@ -25,7 +32,7 @@ export default async function HomePage() {
   // Category counts
   const categories: BottleType[] = ["whisky", "rhum", "gin", "vodka", "tequila", "vin", "champagne", "liqueur"];
   const categoryCounts = categories.map((cat) => {
-    const count = bottles.filter((b) => b.type === cat && b.quantity > 0).length;
+    const count = accessibleBottles.filter((b) => b.type === cat && b.quantity > 0).length;
     return { type: cat, count, style: getCategoryStyle(cat) };
   }).filter((c) => c.count > 0);
 
@@ -43,14 +50,15 @@ export default async function HomePage() {
         <div className="relative z-10 grid lg:grid-cols-12 gap-8 p-8 sm:p-12 items-center">
           <div className="lg:col-span-7 space-y-5">
             <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-caps text-gold px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.1]">
-              <span className="w-2 h-2 rounded-full bg-orange animate-pulse" /> Cave Privée & Salon Lounge
+              <span className="w-2 h-2 rounded-full bg-orange animate-pulse" />
+              {isVipOrAdmin ? "Cave Privée & Salon Lounge" : "Salon de Mixologie & Bar Lounge"}
             </div>
             <h1 className="font-display text-4xl sm:text-6xl font-extrabold text-cream leading-[1.08] tracking-tight">
               L&apos;art du <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange via-gold to-amber-300">Cocktail Privé</span>
             </h1>
             <p className="text-muted text-sm sm:text-base max-w-xl leading-relaxed font-normal">
-              Bienvenue dans votre salon feutré. Gérez vos réserves d&apos;alcools rares, calculez instantanément vos cocktails réalisables et organisez des soirées d&apos;exception.
+              Bienvenue dans votre salon feutré. Explorez la cave, calculez instantanément vos cocktails réalisables et organisez des soirées d&apos;exception.
             </p>
 
             {/* Quick Category Badges */}
@@ -118,13 +126,13 @@ export default async function HomePage() {
       {/* Primary Dashboard Stat Cards */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xs uppercase tracking-caps text-muted font-bold">Indicateurs de Cave</h2>
+          <h2 className="text-xs uppercase tracking-caps text-muted font-bold">Indicateurs du Bar</h2>
           <Link href="/stock" className="text-xs text-gold hover:underline font-semibold">
-            Gérer le stock →
+            Consulter le stock →
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className={`grid gap-4 ${isVipOrAdmin ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-3"}`}>
           <StatCard
             label="Bouteilles en stock"
             value={stockCount}
@@ -133,14 +141,16 @@ export default async function HomePage() {
             accent="border-orange/30 hover:border-orange/60"
             subLabel="Hors mixers"
           />
-          <StatCard
-            label="Réserve Privée VIP"
-            value={vipCount}
-            href="/stock?tab=vip"
-            icon="🔒"
-            accent="border-gold/40 hover:border-gold/70 bg-gradient-to-br from-brick-dark/60 to-ink-2"
-            subLabel="Écrin secret"
-          />
+          {isVipOrAdmin && (
+            <StatCard
+              label="Réserve Privée VIP"
+              value={vipCount}
+              href="/stock?tab=vip"
+              icon="🔒"
+              accent="border-gold/40 hover:border-gold/70 bg-gradient-to-br from-brick-dark/60 to-ink-2"
+              subLabel="Écrin secret"
+            />
+          )}
           <StatCard
             label="Cocktails prêts"
             value={makeableNow}
