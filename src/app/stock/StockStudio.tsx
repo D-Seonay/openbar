@@ -4,7 +4,7 @@ import { useState, useTransition, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Bottle, BottleType } from "@/lib/types";
 import { updateBottleQuantity } from "@/app/actions";
-import { calculateTotalBottlesCount, calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
+import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
 
 interface StockStudioProps {
   normalBottles: Bottle[];
@@ -28,7 +28,6 @@ export default function StockStudio({
   const [drawerMode, setDrawerMode] = useState<"inspect" | "add" | null>(null);
   const [, startTransition] = useTransition();
 
-  // Find accessible bottles needing restock
   const shoppingList = useMemo(() => {
     const listToScan = isVip ? [...normalBottles, ...vipBottles] : normalBottles;
     return listToScan.filter((b) => {
@@ -108,21 +107,21 @@ export default function StockStudio({
 
   return (
     <div className="space-y-6 relative">
-      {/* Top OS Command & Filter Switcher */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
-        <div className="flex flex-wrap items-center gap-1.5">
+      {/* Top Lounge Filter Switcher */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-2.5 rounded-2xl bg-ink-2/90 border border-white/[0.08] backdrop-blur-xl">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => {
               setActiveUniverse("bar");
               setSelectedCategory("all");
             }}
-            className={`px-3 py-1.5 rounded-lg font-mono text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
               activeUniverse === "bar"
-                ? "bg-zinc-800 text-zinc-100 border border-zinc-700"
-                : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900"
+                ? "bg-gradient-to-r from-orange to-orange-hover text-ink font-extrabold shadow-md box-orange-glow"
+                : "text-muted hover:text-cream hover:bg-white/[0.04]"
             }`}
           >
-            [01] BAR PRINCIPAL <span className="text-zinc-500">({normalBottles.length})</span>
+            Bar Principal <span className="opacity-80">({normalBottles.length})</span>
           </button>
 
           {isVip && (
@@ -131,13 +130,13 @@ export default function StockStudio({
                 setActiveUniverse("vip");
                 setSelectedCategory("all");
               }}
-              className={`px-3 py-1.5 rounded-lg font-mono text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
                 activeUniverse === "vip"
-                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                  : "text-zinc-500 hover:text-amber-400 hover:bg-zinc-900"
+                  ? "bg-gradient-to-r from-gold to-amber-300 text-ink font-extrabold shadow-md gold-glow"
+                  : "text-gold-dim hover:text-gold hover:bg-gold/10 border border-gold/20"
               }`}
             >
-              [02] CAVE VIP <span className="text-amber-500/70">({vipBottles.length})</span>
+              🔒 Réserve Privée VIP <span className="opacity-80">({vipBottles.length})</span>
             </button>
           )}
 
@@ -146,14 +145,14 @@ export default function StockStudio({
               setActiveUniverse("shopping");
               setSelectedCategory("all");
             }}
-            className={`px-3 py-1.5 rounded-lg font-mono text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
               activeUniverse === "shopping"
-                ? "bg-red-500/20 text-red-300 border border-red-500/40"
-                : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900"
+                ? "bg-red-500 text-white font-extrabold shadow-md"
+                : "text-muted hover:text-cream hover:bg-white/[0.04]"
             }`}
           >
-            [03] COURSES & ALERTES{" "}
-            {shoppingList.length > 0 && <span className="text-red-400 font-bold">({shoppingList.length})</span>}
+            🛒 Liste & Courses{" "}
+            {shoppingList.length > 0 && <span className="font-bold">({shoppingList.length})</span>}
           </button>
         </div>
 
@@ -161,56 +160,56 @@ export default function StockStudio({
           {isAdmin && (
             <button
               onClick={handleOpenAdd}
-              className="px-3.5 py-1.5 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 font-mono text-xs font-extrabold uppercase transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-cream hover:bg-white text-ink text-xs font-extrabold uppercase transition-colors cursor-pointer shadow-sm"
             >
-              + NOUVELLE RÉFÉRENCE
+              + Ajouter au Stock
             </button>
           )}
           {activeUniverse === "shopping" && shoppingList.length > 0 && (
             <button
               onClick={copyShoppingList}
-              className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-mono text-xs transition-colors cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-orange text-ink font-bold text-xs transition-colors cursor-pointer"
             >
-              📋 COPIER
+              📋 Copier la liste
             </button>
           )}
         </div>
       </div>
 
-      {/* Search Input & Technical Category Switches */}
+      {/* Search Input & Category Pills */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="relative flex-1 max-w-sm">
-          <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none font-mono text-xs text-zinc-500">
-            //
+          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted text-sm">
+            🔍
           </span>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Recherche instantanée (nom, tag)..."
-            className="w-full pl-8 pr-4 py-2 rounded-lg bg-zinc-900/80 border border-zinc-800 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-600"
+            placeholder="Rechercher une bouteille, tag (rhum, citron)..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-ink-2 border border-white/[0.1] text-sm text-cream placeholder:text-muted/60 focus:outline-none focus:border-orange/60"
           />
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
           <button
             onClick={() => setSelectedCategory("all")}
-            className={`px-2.5 py-1 rounded font-mono text-[11px] uppercase transition-colors shrink-0 cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors shrink-0 cursor-pointer ${
               selectedCategory === "all"
-                ? "bg-zinc-800 text-zinc-100 border border-zinc-700"
-                : "text-zinc-500 hover:text-zinc-300"
+                ? "bg-cream text-ink font-bold"
+                : "bg-ink-2 text-muted border border-white/[0.08] hover:text-cream"
             }`}
           >
-            TOUTES
+            Toutes ({currentList.length})
           </button>
           {availableCategories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-2.5 py-1 rounded font-mono text-[11px] uppercase transition-colors shrink-0 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-colors shrink-0 cursor-pointer ${
                 selectedCategory === cat
-                  ? "bg-zinc-800 text-zinc-100 border border-zinc-700"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? "bg-orange text-ink font-bold shadow-sm"
+                  : "bg-ink-2 text-muted border border-white/[0.08] hover:text-cream"
               }`}
             >
               {cat}
@@ -219,14 +218,14 @@ export default function StockStudio({
         </div>
       </div>
 
-      {/* Master High-Density Technical Inventory Table */}
-      <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 overflow-hidden">
+      {/* Master High-Density Inventory List */}
+      <div className="rounded-2xl border border-white/[0.08] bg-ink-2/60 overflow-hidden shadow-xl">
         {filteredBottles.length === 0 ? (
-          <div className="py-16 text-center">
-            <p className="font-mono text-xs text-zinc-500">// AUCUNE RÉFÉRENCE DANS CETTE VUE</p>
+          <div className="py-16 text-center text-sm text-muted">
+            Aucune bouteille trouvée dans cette sélection.
           </div>
         ) : (
-          <div className="divide-y divide-zinc-800/60">
+          <div className="divide-y divide-white/[0.06]">
             {filteredBottles.map((bottle) => {
               const isLow =
                 bottle.lowStockThreshold != null && bottle.quantity <= bottle.lowStockThreshold;
@@ -236,70 +235,72 @@ export default function StockStudio({
                 <div
                   key={bottle.id}
                   onClick={() => handleInspect(bottle)}
-                  className={`group flex flex-col sm:flex-row sm:items-center justify-between p-4 transition-colors cursor-pointer ${
+                  className={`group flex flex-col sm:flex-row sm:items-center justify-between p-4.5 transition-all duration-200 cursor-pointer ${
                     selectedBottleId === bottle.id
-                      ? "bg-zinc-800/60"
-                      : "hover:bg-zinc-900/80"
+                      ? "bg-orange/15 border-l-4 border-l-orange"
+                      : "hover:bg-ink-2"
                   }`}
                 >
                   <div className="flex items-start sm:items-center gap-4">
-                    <div className="w-16 shrink-0 font-mono text-[10px] uppercase text-zinc-500">
-                      [{bottle.type.slice(0, 4)}]
+                    <div className="w-16 shrink-0 text-[10px] font-bold uppercase tracking-caps text-gold-dim">
+                      {bottle.type}
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm text-zinc-100 group-hover:text-amber-300 transition-colors">
+                      <div className="flex items-center gap-2.5">
+                        <span className="font-display font-bold text-base text-cream group-hover:text-orange transition-colors">
                           {bottle.name}
                         </span>
                         {bottle.vip && isVip && (
-                          <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-gold text-ink shadow-sm">
                             VIP
                           </span>
                         )}
                         {isLow && (
-                          <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
-                            LOW
+                          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
+                            Alerte stock
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 mt-1 font-mono text-[11px] text-zinc-500">
-                        <span>{formatLiters(totalLiters)}</span>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-muted">
+                        <span>{formatLiters(totalLiters)} en cave</span>
                         <span>·</span>
                         <span className="truncate max-w-xs sm:max-w-md">
-                          {bottle.tags.join(" ")}
+                          {bottle.tags.map((t) => `#${t}`).join(" ")}
                         </span>
                       </div>
                     </div>
                   </div>
 
                   <div
-                    className="flex items-center justify-between sm:justify-end gap-6 mt-3 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-0 border-zinc-800/50"
+                    className="flex items-center justify-between sm:justify-end gap-6 mt-3 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-0 border-white/[0.06]"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex items-center gap-2 font-mono text-xs">
-                      <span className="text-zinc-500">EN CAVE:</span>
-                      <span className="text-zinc-100 font-bold">{bottle.quantity} btl</span>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-muted">En stock :</span>
+                      <span className="text-cream font-bold text-sm bg-ink px-2.5 py-1 rounded-lg border border-white/[0.08]">
+                        {bottle.quantity} btl
+                      </span>
                     </div>
 
                     {isAdmin && (
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => quickAdjust(bottle.id, -1)}
                           disabled={bottle.quantity <= 0}
-                          className="w-7 h-7 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-mono text-xs flex items-center justify-center disabled:opacity-30 transition-colors"
+                          className="w-8 h-8 rounded-lg bg-ink hover:bg-white/[0.1] text-cream text-sm font-bold flex items-center justify-center disabled:opacity-30 border border-white/[0.08] transition-colors cursor-pointer"
                         >
                           -
                         </button>
                         <button
                           onClick={() => quickAdjust(bottle.id, 1)}
-                          className="w-7 h-7 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-mono text-xs flex items-center justify-center transition-colors"
+                          className="w-8 h-8 rounded-lg bg-ink hover:bg-orange hover:text-ink text-cream text-sm font-bold flex items-center justify-center border border-white/[0.08] transition-colors cursor-pointer"
                         >
                           +
                         </button>
                       </div>
                     )}
 
-                    <span className="font-mono text-xs text-zinc-600 group-hover:text-zinc-400 transition-colors">
+                    <span className="text-muted group-hover:text-orange transition-colors text-sm">
                       →
                     </span>
                   </div>
@@ -310,7 +311,7 @@ export default function StockStudio({
         )}
       </div>
 
-      {/* Slide-Over Right-Hand Technical Inspector Pane */}
+      {/* Slide-Over Warm Orange / Cream Inspector Pane */}
       <AnimatePresence>
         {drawerMode !== null && (
           <>
@@ -318,7 +319,7 @@ export default function StockStudio({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
               onClick={handleCloseDrawer}
             />
 
@@ -327,21 +328,21 @@ export default function StockStudio({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.22, ease: "easeOut" }}
-              className="fixed top-0 right-0 h-full w-full max-w-lg bg-[#0a0a0c] border-l border-zinc-800 z-50 p-6 overflow-y-auto flex flex-col justify-between"
+              className="fixed top-0 right-0 h-full w-full max-w-lg bg-ink-2 border-l border-white/[0.1] z-50 p-6 sm:p-8 overflow-y-auto flex flex-col justify-between shadow-2xl"
             >
               <div className="space-y-6">
-                <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+                <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
                   <div>
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 block">
-                      {drawerMode === "add" ? "// ENREGISTREMENT SYSTÈME" : "// INSPECTEUR TECHNQIUE"}
+                    <span className="text-[10px] uppercase tracking-caps text-gold font-bold block">
+                      {drawerMode === "add" ? "Enregistrer un arrivage" : "Fiche de cave"}
                     </span>
-                    <h2 className="font-display text-xl font-bold text-zinc-100 mt-1">
-                      {drawerMode === "add" ? "Nouvelle Référence" : selectedBottle?.name}
+                    <h2 className="font-display text-2xl font-bold text-cream mt-1">
+                      {drawerMode === "add" ? "Nouvelle Bouteille" : selectedBottle?.name}
                     </h2>
                   </div>
                   <button
                     onClick={handleCloseDrawer}
-                    className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-100 font-mono text-sm flex items-center justify-center cursor-pointer"
+                    className="w-9 h-9 rounded-xl bg-ink border border-white/[0.1] text-muted hover:text-cream text-lg flex items-center justify-center cursor-pointer"
                   >
                     ×
                   </button>
@@ -354,47 +355,49 @@ export default function StockStudio({
                 )}
 
                 {drawerMode === "inspect" && selectedBottle && (
-                  <div className="space-y-6 font-mono text-xs">
+                  <div className="space-y-6 text-sm">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="p-3 rounded-lg bg-zinc-900/80 border border-zinc-800">
-                        <span className="text-[10px] text-zinc-500 block">CATÉGORIE</span>
-                        <span className="text-zinc-100 font-bold uppercase mt-1 block">
+                      <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
+                        <span className="text-[10px] uppercase tracking-caps text-muted block">Catégorie</span>
+                        <span className="text-cream font-bold capitalize mt-1 block text-base">
                           {selectedBottle.type}
                         </span>
                       </div>
-                      <div className="p-3 rounded-lg bg-zinc-900/80 border border-zinc-800">
-                        <span className="text-[10px] text-zinc-500 block">QUANTITÉ TOTALE</span>
-                        <span className="text-zinc-100 font-bold mt-1 block">
-                          {selectedBottle.quantity} BOUTEILLES
+                      <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
+                        <span className="text-[10px] uppercase tracking-caps text-muted block">Quantité</span>
+                        <span className="text-orange font-bold mt-1 block text-base">
+                          {selectedBottle.quantity} bouteille{selectedBottle.quantity > 1 ? "s" : ""}
                         </span>
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-lg bg-zinc-900/80 border border-zinc-800 space-y-3">
-                      <span className="text-[10px] text-zinc-500 block uppercase">
-                        Détail des formats & volumes
+                    <div className="p-5 rounded-xl bg-ink border border-white/[0.08] space-y-3">
+                      <span className="text-xs uppercase tracking-caps text-gold font-bold block">
+                        Formats & Volumes enregistrés
                       </span>
                       {selectedBottle.volumes && selectedBottle.volumes.length > 0 ? (
                         <div className="space-y-2">
                           {selectedBottle.volumes.map((v, idx) => (
-                            <div key={idx} className="flex justify-between text-zinc-300">
-                              <span>Format : {v.size}</span>
-                              <span className="text-amber-400 font-bold">× {v.quantity}</span>
+                            <div key={idx} className="flex justify-between text-cream">
+                              <span>Format {v.size}</span>
+                              <span className="text-orange font-bold">× {v.quantity} en stock</span>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-zinc-400">Format standard 70cl</p>
+                        <p className="text-muted text-xs">Format standard 70cl</p>
                       )}
                     </div>
 
-                    <div className="p-4 rounded-lg bg-zinc-900/80 border border-zinc-800 space-y-2">
-                      <span className="text-[10px] text-zinc-500 block uppercase">Tags & Attributs</span>
-                      <div className="flex flex-wrap gap-1.5">
+                    <div className="p-5 rounded-xl bg-ink border border-white/[0.08] space-y-3">
+                      <span className="text-xs uppercase tracking-caps text-gold font-bold block">
+                        Tags & Arômes associés
+                      </span>
+                      <div className="flex flex-wrap gap-2">
                         {selectedBottle.tags.map((t) => (
                           <span
                             key={t}
-                            className="px-2 py-1 rounded bg-zinc-800 text-zinc-300 text-[11px]"
+                            className="px-2.5 py-1 rounded-lg bg-ink-2 border border-white/[0.08] text-cream text-xs font-medium"
                           >
                             #{t}
                           </span>
@@ -403,9 +406,11 @@ export default function StockStudio({
                     </div>
 
                     {selectedBottle.notes && (
-                      <div className="p-4 rounded-lg bg-zinc-900/80 border border-zinc-800 space-y-1">
-                        <span className="text-[10px] text-zinc-500 block uppercase">Notes / Emplacement</span>
-                        <p className="text-zinc-300 font-sans text-xs leading-relaxed">
+                      <div className="p-5 rounded-xl bg-ink border border-white/[0.08] space-y-2">
+                        <span className="text-xs uppercase tracking-caps text-gold font-bold block">
+                          Notes / Emplacement en cave
+                        </span>
+                        <p className="text-cream text-xs leading-relaxed">
                           {selectedBottle.notes}
                         </p>
                       </div>
@@ -414,13 +419,13 @@ export default function StockStudio({
                 )}
               </div>
 
-              <div className="pt-4 border-t border-zinc-800 flex items-center justify-between font-mono text-xs">
-                <span className="text-zinc-500">// BARDENOA ARCHITECTURE</span>
+              <div className="pt-6 mt-6 border-t border-white/[0.08] flex items-center justify-between text-xs">
+                <span className="text-muted">Le Bar de Noa · Studio Cave</span>
                 <button
                   onClick={handleCloseDrawer}
-                  className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition-colors cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-orange text-ink font-bold uppercase tracking-wider hover:bg-orange-hover transition-colors cursor-pointer"
                 >
-                  FERMER [ESC]
+                  Fermer
                 </button>
               </div>
             </motion.aside>

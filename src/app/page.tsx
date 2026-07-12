@@ -30,91 +30,96 @@ export default async function HomePage() {
 
   return (
     <PageTransition className="space-y-8">
-      {/* OS Telemetry & Studio Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-zinc-800/80">
+      {/* Warm Lounge Welcome Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-orange/15">
         <div>
-          <div className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>SYSTEM_TELEMETRY // MIXOLOGY WORKBENCH</span>
+          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-caps text-gold mb-2">
+            <span className="w-2 h-2 rounded-full bg-orange animate-pulse" />
+            <span>Salon de Mixologie & Bar Lounge</span>
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-zinc-100 tracking-tight">
-            Tableau de Bord Architectural
+          <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-cream tracking-tight">
+            L&apos;Art du Cocktail Privé
           </h1>
         </div>
         <div className="flex items-center gap-3">
           <Link
             href="/stock"
-            className="px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 font-mono text-xs font-semibold text-zinc-300 transition-colors"
+            className="px-4 py-2.5 rounded-xl bg-ink-2 hover:bg-ink-2/80 border border-white/[0.08] text-xs font-semibold uppercase tracking-wider text-cream hover:border-orange/50 transition-all"
           >
-            [01] CAVE & STOCK →
+            Consulter la Cave →
           </Link>
           <Link
             href="/cocktails"
-            className="px-4 py-2 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 font-mono text-xs font-bold transition-colors"
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange to-orange-hover text-ink font-extrabold text-xs uppercase tracking-wider box-orange-glow transition-all hover:brightness-110"
           >
-            [02] CARTE MIXOLOGIE →
+            Carte des Cocktails →
           </Link>
         </div>
       </div>
 
-      {/* Primary Technical Modules Grid */}
+      {/* Primary Lounge Indicators Grid */}
       <div className={`grid gap-4 ${isVipOrAdmin ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-3"}`}>
-        <StudioMetricCard
-          code="INV-01"
-          title="CAVE DU BAR"
+        <LoungeMetricCard
+          sub="RAYON SPIRITUEUX"
+          title="Cave du Bar"
           value={stockCount}
-          unit="RÉFÉRENCES"
-          detail={`Volume total : ${formatLiters(totalLiters)}`}
+          unit="bouteilles"
+          detail={`Volume en réserve : ${formatLiters(totalLiters)}`}
           href="/stock"
+          accent="border-orange/30 hover:border-orange/60"
         />
 
         {isVipOrAdmin && (
-          <StudioMetricCard
-            code="VLT-VIP"
-            title="RÉSERVE PRIVÉE"
+          <LoungeMetricCard
+            sub="SECTION CONFIDENTIELLE"
+            title="Réserve Privée VIP"
             value={vipCount}
-            unit="RÉF. VIP"
-            detail="Section confidentielle"
+            unit="références"
+            detail="Écrin secret réservé aux initiés"
             href="/stock"
-            highlight
+            accent="border-gold/40 hover:border-gold/70 bg-gradient-to-br from-brick-dark/60 to-ink-2"
           />
         )}
 
-        <StudioMetricCard
-          code="MIX-02"
-          title="COCKTAILS SERVIABLES"
+        <LoungeMetricCard
+          sub="CARTE INSTANTANÉE"
+          title="Cocktails Prêts"
           value={makeableNow}
-          unit="RECETTES"
-          detail="Prêts avec le stock actuel"
+          unit="recettes"
+          detail="Servibles ce soir avec la cave"
           href="/cocktails"
+          accent="border-emerald-500/30 hover:border-emerald-500/60"
         />
 
-        <StudioMetricCard
-          code="EVT-03"
-          title="SOIRÉES AU CALENDRIER"
+        <LoungeMetricCard
+          sub="ÉVÉNEMENTS À VENIR"
+          title="Soirées au Bar"
           value={upcoming.length}
-          unit="ÉVÉNEMENTS"
-          detail={nextEvent ? `Prochain : ${nextEvent.name}` : "Aucune soirée programmée"}
+          unit="soirées"
+          detail={nextEvent ? `Prochainement : ${nextEvent.name}` : "Aucune soirée au calendrier"}
           href="/soirees"
+          accent="border-rose-500/30 hover:border-rose-500/60"
         />
       </div>
 
-      {/* Split Architectural Section: Prochain Événement + Diagnostic Cave */}
+      {/* Architectural Split Section: Prochain Événement + Diagnostic Cave */}
       <div className="grid lg:grid-cols-12 gap-6">
-        {/* Next Event Terminal Panel */}
-        <div className="lg:col-span-5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 p-6 flex flex-col justify-between">
+        {/* Next Party Board Lounge Card */}
+        <div className="lg:col-span-5 rounded-2xl bg-ink-2/80 border border-white/[0.08] p-6 flex flex-col justify-between shadow-xl">
           <div>
-            <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3 mb-4">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-400">
-                // PROCHAIN PARTY BOARD
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 mb-4">
+              <span className="text-xs uppercase tracking-caps text-gold font-bold">
+                Prochain Party Board
               </span>
-              <span className="font-mono text-[10px] text-zinc-500">SYS_EVENT</span>
+              <span className="text-[11px] text-muted bg-white/[0.05] px-2.5 py-0.5 rounded-full">
+                Événement
+              </span>
             </div>
 
             {nextEvent ? (
               <div className="space-y-3">
-                <h3 className="font-display text-xl font-bold text-zinc-100">{nextEvent.name}</h3>
-                <p className="font-mono text-xs text-amber-400">
+                <h3 className="font-display text-2xl font-bold text-cream">{nextEvent.name}</h3>
+                <p className="text-orange text-xs font-semibold capitalize">
                   {new Date(nextEvent.date).toLocaleDateString("fr-FR", {
                     weekday: "long",
                     day: "numeric",
@@ -122,83 +127,81 @@ export default async function HomePage() {
                     year: "numeric",
                   })}
                 </p>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Le Party Board interactif permet aux invités d&apos;annoncer leurs apports et de consulter la carte en direct.
+                <p className="text-xs text-muted leading-relaxed">
+                  Le Party Board interactif permet aux invités d&apos;annoncer leurs apports et de promener leurs verres dans le salon.
                 </p>
               </div>
             ) : (
               <div className="py-8 text-center">
-                <p className="text-xs font-mono text-zinc-500">// AUCUNE SOIRÉE ACTIVE</p>
+                <p className="text-sm text-muted/70 italic">Aucune soirée planifiée pour le moment</p>
               </div>
             )}
           </div>
 
-          <div className="pt-6 mt-6 border-t border-zinc-800/80">
+          <div className="pt-6 mt-6 border-t border-white/[0.08]">
             {nextEvent ? (
               <Link
                 href={`/soirees/${nextEvent.slug}`}
-                className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700/80 text-zinc-100 font-mono text-xs font-semibold transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-orange to-orange-hover text-ink font-extrabold text-xs uppercase tracking-wider box-orange-glow transition-all hover:brightness-110"
               >
-                <span>ACCÉDER AU PARTY BOARD</span>
+                <span>Ouvrir le Party Board</span>
                 <span>→</span>
               </Link>
             ) : (
               <Link
                 href="/soirees"
-                className="inline-flex items-center gap-2 font-mono text-xs text-zinc-400 hover:text-zinc-100 transition-colors"
+                className="inline-flex items-center gap-2 text-xs uppercase tracking-wider text-orange hover:underline font-semibold"
               >
-                <span>+ PLANIFIER UNE SOIRÉE</span>
+                <span>+ Planifier une soirée</span>
               </Link>
             )}
           </div>
         </div>
 
-        {/* System Diagnostics: Low Stock Alerts */}
-        <div className="lg:col-span-7 rounded-xl bg-zinc-900/60 border border-zinc-800/80 p-6">
-          <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3 mb-4">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-400">
-                // DIAGNOSTIC DE STOCK
-              </span>
-            </div>
+        {/* Low Stock Alerts Warm Lounge Card */}
+        <div className="lg:col-span-7 rounded-2xl bg-ink-2/80 border border-white/[0.08] p-6 shadow-xl">
+          <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 mb-4">
+            <span className="text-xs uppercase tracking-caps text-orange font-bold">
+              Surveillance du Stock & Alertes
+            </span>
             <span
-              className={`font-mono text-[10px] px-2 py-0.5 rounded ${
+              className={`text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full ${
                 lowStock.length > 0
-                  ? "bg-amber-400/10 text-amber-400 border border-amber-400/20"
-                  : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                  ? "bg-orange/15 text-orange border border-orange/30"
+                  : "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
               }`}
             >
-              {lowStock.length > 0 ? `${lowStock.length} ALERTE(S)` : "STOCK OPTIMAL"}
+              {lowStock.length > 0 ? `${lowStock.length} à réapprovisionner` : "Stock idéal"}
             </span>
           </div>
 
           {lowStock.length === 0 ? (
             <div className="py-12 text-center space-y-2">
-              <p className="font-mono text-xs text-emerald-400">STATUS: TOUS LES SEUILS SONT RESPECTÉS</p>
-              <p className="text-xs text-zinc-500">Aucune référence ne nécessite un réapprovisionnement immédiat.</p>
+              <p className="text-sm font-semibold text-cream">Votre cave est parfaitement approvisionnée</p>
+              <p className="text-xs text-muted">Aucune bouteille sous son seuil d&apos;alerte n&apos;a été détectée.</p>
             </div>
           ) : (
-            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+            <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
               {lowStock.map((b) => (
                 <div
                   key={b.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/80 hover:border-zinc-700 transition-colors"
+                  className="flex items-center justify-between p-3.5 rounded-xl bg-ink/70 border border-white/[0.06] hover:border-orange/30 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-[10px] uppercase text-zinc-500 px-2 py-0.5 rounded bg-zinc-900">
+                    <span className="text-[10px] uppercase font-bold text-muted px-2 py-0.5 rounded bg-white/[0.05]">
                       {b.type}
                     </span>
-                    <span className="font-semibold text-sm text-zinc-100">{b.name}</span>
+                    <span className="font-semibold text-sm text-cream">{b.name}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-xs text-amber-400 font-bold">
-                      {b.quantity} btl
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs font-mono font-bold text-orange">
+                      {b.quantity} restant{b.quantity > 1 ? "s" : ""}
                     </span>
                     <Link
                       href="/stock"
-                      className="text-[11px] font-mono text-zinc-400 hover:text-zinc-100 underline"
+                      className="text-xs text-gold hover:underline font-semibold"
                     >
-                      Ajuster
+                      Ajuster →
                     </Link>
                   </div>
                 </div>
@@ -211,46 +214,42 @@ export default async function HomePage() {
   );
 }
 
-function StudioMetricCard({
-  code,
+function LoungeMetricCard({
+  sub,
   title,
   value,
   unit,
   detail,
   href,
-  highlight = false,
+  accent = "border-white/[0.08]",
 }: {
-  code: string;
+  sub: string;
   title: string;
   value: number;
   unit: string;
   detail: string;
   href: string;
-  highlight?: boolean;
+  accent?: string;
 }) {
   return (
     <Link
       href={href}
-      className={`group rounded-xl border p-5 flex flex-col justify-between transition-all duration-200 ${
-        highlight
-          ? "bg-zinc-900/90 border-amber-500/30 hover:border-amber-400/60"
-          : "bg-zinc-900/60 border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900"
-      }`}
+      className={`group relative rounded-2xl border ${accent} bg-ink-2/80 p-5 hover:bg-ink-2 transition-all duration-300 flex flex-col justify-between shadow-lg`}
     >
-      <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-zinc-500">
-        <span>[{code}]</span>
-        <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] uppercase tracking-caps text-muted font-semibold">{sub}</span>
+        <span className="text-orange opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-sm font-bold">
+          →
+        </span>
       </div>
       <div className="my-3">
         <div className="flex items-baseline gap-2">
-          <span className="font-mono text-3xl font-extrabold text-zinc-100">{value}</span>
-          <span className="font-mono text-[11px] text-zinc-400">{unit}</span>
+          <span className="font-display text-4xl font-bold text-cream">{value}</span>
+          <span className="text-xs text-muted">{unit}</span>
         </div>
-        <p className="font-display text-xs font-bold text-zinc-300 uppercase tracking-wide mt-1">
-          {title}
-        </p>
+        <p className="font-display text-base font-bold text-cream mt-1">{title}</p>
       </div>
-      <p className="font-mono text-[11px] text-zinc-500 truncate">{detail}</p>
+      <p className="text-xs text-muted/80 truncate">{detail}</p>
     </Link>
   );
 }

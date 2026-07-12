@@ -30,35 +30,35 @@ export default async function StockPage() {
 
   return (
     <PageTransition className="space-y-8">
-      {/* Studio Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-zinc-800/80">
+      {/* Warm Lounge Stock Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-orange/15">
         <div>
-          <div className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-            <span>INVENTORY_CORE // BAR PRINCIPAL</span>
+          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-caps text-gold mb-2">
+            <span className="w-2 h-2 rounded-full bg-orange animate-pulse" />
+            <span>Rayons & Inventaire</span>
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-zinc-100 tracking-tight">
-            Cave & Répertoire Spirits
+          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-cream tracking-tight">
+            La Cave & Répertoire
           </h1>
         </div>
 
-        {/* Technical Telemetry Pills */}
-        <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-          <div className="px-3.5 py-2 rounded-lg bg-zinc-900 border border-zinc-800">
-            <span className="text-zinc-500 block text-[10px]">EN RAYON</span>
-            <span className="text-zinc-100 font-bold">{totalBottlesCount} BTL</span>
+        {/* Warm Orange / Cream KPIs Pills */}
+        <div className="flex flex-wrap items-center gap-2.5 text-xs">
+          <div className="px-4 py-2 rounded-xl bg-ink-2 border border-white/[0.08]">
+            <span className="text-muted block text-[10px] uppercase font-semibold">En Rayon</span>
+            <span className="text-cream font-bold text-sm">{totalBottlesCount} btl</span>
           </div>
 
-          <div className="px-3.5 py-2 rounded-lg bg-zinc-900 border border-zinc-800">
-            <span className="text-zinc-500 block text-[10px]">VOLUME TOTAL</span>
-            <span className="text-amber-400 font-bold">{formatLiters(totalLitersCount)}</span>
+          <div className="px-4 py-2 rounded-xl bg-ink-2 border border-white/[0.08]">
+            <span className="text-muted block text-[10px] uppercase font-semibold">Volume Total</span>
+            <span className="text-orange font-bold text-sm">{formatLiters(totalLitersCount)}</span>
           </div>
 
           <AlertsManagerTrigger bottles={accessibleBottles} lowStockCount={lowStockCount} />
         </div>
       </div>
 
-      {/* Master-Detail Technical Studio */}
+      {/* Master-Detail Warm Lounge Inventory Studio */}
       <StockStudio
         normalBottles={normal}
         vipBottles={vip}
