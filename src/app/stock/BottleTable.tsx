@@ -26,13 +26,13 @@ const GROCERY_AISLES = [
 export default function BottleTable({
   title,
   bottles,
-  empty,
+  empty = "Aucune bouteille trouvée.",
   bare,
   isAdmin = false,
 }: {
   title?: string;
   bottles: Bottle[];
-  empty: string;
+  empty?: string;
   bare?: boolean;
   isAdmin?: boolean;
 }) {

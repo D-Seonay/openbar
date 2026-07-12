@@ -3,7 +3,7 @@ import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { isAdminLoggedIn } from "@/lib/session";
-import AdminBadge from "@/components/AdminBadge";
+import Navigation from "@/components/Navigation";
 
 const outfit = Outfit({
   weight: ["500", "600", "700"],
@@ -22,14 +22,6 @@ export const metadata: Metadata = {
   description: "Stock d'exception, recettes de cocktails et organisation de soirées",
 };
 
-const NAV = [
-  { href: "/stock", label: "Cave & Stock" },
-  { href: "/cocktails", label: "Cocktails" },
-  { href: "/soirees", label: "Soirées" },
-];
-
-const ADMIN_NAV = [{ href: "/comptes", label: "Comptes" }];
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -39,49 +31,38 @@ export default async function RootLayout({
 
   return (
     <html lang="fr" className={`h-full ${outfit.variable} ${jakarta.variable}`}>
-      <body className="min-h-full flex flex-col bg-ink text-cream selection:bg-orange/30 selection:text-white font-sans antialiased">
-        <header className="border-b border-white/[0.07] bg-ink/80 backdrop-blur-xl sticky top-0 z-50 transition-all duration-300">
-          <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+      <body className="min-h-full flex flex-col bg-ink text-cream selection:bg-orange/30 selection:text-white font-sans antialiased relative overflow-x-hidden">
+        {/* Subtle Ambient Background Lighting */}
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-orange/5 blur-3xl opacity-70" />
+          <div className="absolute top-1/3 -right-32 w-96 h-96 rounded-full bg-gold/5 blur-3xl opacity-60" />
+        </div>
+
+        <header className="border-b border-white/[0.08] bg-ink/85 backdrop-blur-xl sticky top-0 z-50 transition-all duration-300">
+          <div className="max-w-5xl mx-auto px-6 py-3.5 flex items-center justify-between gap-4">
             <Link 
               href="/" 
-              className="font-display text-xl sm:text-2xl font-bold tracking-tight text-cream hover:text-orange transition-colors flex items-center gap-2.5"
+              className="group font-display text-xl sm:text-2xl font-bold tracking-tight text-cream hover:text-orange transition-colors flex items-center gap-2.5"
             >
-              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange to-copper flex items-center justify-center text-ink text-base font-bold shadow-sm">
+              <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange via-orange-dim to-brick-dark border border-orange/40 flex items-center justify-center text-ink text-lg font-black shadow-[0_0_15px_rgba(255,107,53,0.3)] group-hover:scale-105 transition-transform duration-200">
                 N
               </span>
-              <span>Le Bar <span className="text-orange font-semibold">de Noa</span></span>
+              <span>Le Bar <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange to-gold">de Noa</span></span>
             </Link>
-            <nav className="flex items-center gap-1.5 sm:gap-4 flex-wrap">
-              {NAV.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider text-muted hover:text-cream hover:bg-white/[0.04] transition-all duration-200"
-                >
-                  {item.label}
-                </Link>
-              ))}
-              {isAdmin &&
-                ADMIN_NAV.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider text-muted hover:text-cream hover:bg-white/[0.04] transition-all duration-200"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              <div className="pl-1 sm:pl-2 border-l border-white/[0.08]">
-                <AdminBadge isAdmin={isAdmin} />
-              </div>
-            </nav>
+            
+            <Navigation isAdmin={isAdmin} />
           </div>
         </header>
-        <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10">{children}</main>
-        <footer className="border-t border-white/[0.05] text-center text-xs text-muted/60 py-8 bg-ink-2/40">
+
+        <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10 relative z-10">
+          {children}
+        </main>
+
+        <footer className="border-t border-white/[0.06] text-center text-xs text-muted/60 py-8 bg-ink-2/50 backdrop-blur-sm relative z-10">
           Le Bar de Noa · Espace privé de mixologie © {new Date().getFullYear()}
         </footer>
       </body>
     </html>
   );
 }
+

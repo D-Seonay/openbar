@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { RecipeAvailability } from "@/lib/cocktail-types";
-import ShoppingList from "./ShoppingList";
 
 interface CocktailGridProps {
   initialResults: RecipeAvailability[];
@@ -31,21 +31,12 @@ export default function CocktailGrid({ initialResults }: CocktailGridProps) {
     });
   }, [initialResults, activeFilter, searchQuery]);
 
-  // Sort locked recipes by how many ingredients are missing (closer to completion first)
   const sortedResults = useMemo(() => {
     if (activeFilter === "locked") {
       return [...filteredResults].sort((a, b) => a.missingTags.length - b.missingTags.length);
     }
     return filteredResults;
   }, [filteredResults, activeFilter]);
-
-  // All missing tags across locked recipes for shopping list helper
-  const allMissingTags = useMemo(() => {
-    const missing = initialResults
-      .filter((r) => !r.makeable)
-      .flatMap((r) => r.missingTags);
-    return Array.from(new Set(missing)).sort();
-  }, [initialResults]);
 
   const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
@@ -56,208 +47,239 @@ export default function CocktailGrid({ initialResults }: CocktailGridProps) {
     if (glass.includes("coupe") || glass.includes("martini")) return "🍸";
     if (glass.includes("flûte") || glass.includes("bulles")) return "🥂";
     if (glass.includes("ballon")) return "🍷";
-    if (glass.includes("cuivre")) return "🍺";
+    if (glass.includes("cuivre") || glass.includes("mug")) return "🍺";
     if (glass.includes("tumbler") || glass.includes("old fashioned")) return "🥃";
     return "🍹";
   };
 
+  const counts = useMemo(() => {
+    return {
+      ready: initialResults.filter((r) => r.makeable && !r.usesVip).length,
+      vip: initialResults.filter((r) => r.makeable && r.usesVip).length,
+      locked: initialResults.filter((r) => !r.makeable).length,
+    };
+  }, [initialResults]);
+
   return (
-    <div className="space-y-6">
-      {/* Search & Filters */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-ink-2/30 p-4 rounded-xl border border-orange/10">
-        {/* Filter buttons */}
-        <div className="flex gap-1.5 w-full md:w-auto">
+    <div className="space-y-8">
+      {/* Search & Luxury Bar Filter Bar */}
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-center p-3 rounded-2xl bg-ink-2/90 border border-white/[0.08] backdrop-blur-xl">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <button
-            onClick={() => {
-              setActiveFilter("ready");
-              setExpandedId(null);
-            }}
-            className={`flex-1 md:flex-initial px-3.5 py-2 text-xs font-semibold uppercase tracking-wider rounded-lg transition-all duration-200 ${
+            onClick={() => setActiveFilter("ready")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
               activeFilter === "ready"
-                ? "bg-orange text-white box-orange-glow"
-                : "bg-ink/50 text-muted hover:text-cream border border-orange/5"
+                ? "bg-gradient-to-r from-emerald-400 to-emerald-500 text-ink font-extrabold shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                : "text-muted hover:text-cream hover:bg-white/[0.04]"
             }`}
           >
-            🍹 Prêts à servir ({initialResults.filter((r) => r.makeable && !r.usesVip).length})
+            <span>🟢 Prêts au Bar</span>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                activeFilter === "ready" ? "bg-ink/20 text-ink" : "bg-white/[0.07] text-cream"
+              }`}
+            >
+              {counts.ready}
+            </span>
           </button>
+
           <button
-            onClick={() => {
-              setActiveFilter("vip");
-              setExpandedId(null);
-            }}
-            className={`flex-1 md:flex-initial px-3.5 py-2 text-xs font-semibold uppercase tracking-wider rounded-lg transition-all duration-200 ${
+            onClick={() => setActiveFilter("vip")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
               activeFilter === "vip"
-                ? "bg-gold text-ink font-bold box-orange-glow"
-                : "bg-ink/50 text-muted hover:text-cream border border-orange/5"
+                ? "bg-gradient-to-r from-gold to-amber-300 text-ink font-extrabold shadow-md gold-glow"
+                : "text-gold-dim hover:text-gold hover:bg-gold/10 border border-gold/20"
             }`}
           >
-            🔒 VIP ({initialResults.filter((r) => r.makeable && r.usesVip).length})
+            <span>🔒 Avec Cave VIP</span>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                activeFilter === "vip" ? "bg-ink/20 text-ink" : "bg-gold/20 text-gold"
+              }`}
+            >
+              {counts.vip}
+            </span>
           </button>
+
           <button
-            onClick={() => {
-              setActiveFilter("locked");
-              setExpandedId(null);
-            }}
-            className={`flex-1 md:flex-initial px-3.5 py-2 text-xs font-semibold uppercase tracking-wider rounded-lg transition-all duration-200 ${
+            onClick={() => setActiveFilter("locked")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
               activeFilter === "locked"
-                ? "bg-brick text-cream hover:bg-brick-light"
-                : "bg-ink/50 text-muted hover:text-cream border border-orange/5"
+                ? "bg-orange text-ink font-extrabold shadow-md box-orange-glow"
+                : "text-muted hover:text-cream hover:bg-white/[0.04]"
             }`}
           >
-            🛒 Courses ({initialResults.filter((r) => !r.makeable).length})
+            <span>🔴 À Compléter</span>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                activeFilter === "locked" ? "bg-ink/20 text-ink" : "bg-white/[0.07] text-cream"
+              }`}
+            >
+              {counts.locked}
+            </span>
           </button>
         </div>
 
-        {/* Search */}
-        <input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Rechercher par nom ou ingrédient..."
-          className="w-full md:w-64 bg-ink/75 border border-orange/10 rounded-lg px-3 py-2 text-xs placeholder:text-muted/40 focus:outline-none focus:border-orange transition-all text-cream"
-        />
+        <div className="relative w-full md:w-72">
+          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted text-sm">
+            🔍
+          </span>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Chercher un cocktail, ingrédient..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-ink border border-white/[0.1] text-sm text-cream placeholder:text-muted/60 focus:outline-none focus:border-orange/60"
+          />
+        </div>
       </div>
 
-      {/* Shopping List helper in course mode */}
-      {activeFilter === "locked" && allMissingTags.length > 0 && (
-        <div className="flex justify-between items-center bg-brick-dark/15 border border-orange/10 p-4 rounded-xl">
-          <div>
-            <p className="text-sm font-medium text-cream">Besoin de réapprovisionner ?</p>
-            <p className="text-xs text-muted">Copiez tous les ingrédients manquants pour faire vos courses.</p>
+      {/* Luxury Bar Menu Accordion List */}
+      <div className="space-y-3">
+        {sortedResults.length === 0 ? (
+          <div className="text-center py-16 rounded-2xl bg-ink-2/40 border border-white/[0.06]">
+            <p className="text-4xl mb-3">🍸</p>
+            <p className="text-cream font-semibold text-base">Aucun cocktail ne correspond à votre filtre</p>
+            <p className="text-xs text-muted mt-1">Explorez les autres onglets ou ajustez votre recherche.</p>
           </div>
-          <ShoppingList items={allMissingTags} />
-        </div>
-      )}
+        ) : (
+          sortedResults.map((item) => {
+            const isExpanded = expandedId === item.recipe.id;
+            const glassIcon = getGlassIcon(item.recipe.glass);
 
-      {/* Main Grid */}
-      {sortedResults.length === 0 ? (
-        <div className="text-center py-16 rounded-xl border border-dashed border-orange/10 bg-ink-2/10">
-          <span className="text-4xl block mb-2">🍹</span>
-          <p className="text-cream font-medium">Aucun cocktail ne correspond.</p>
-          <p className="text-muted text-xs mt-1">Essayez d&apos;ajuster vos critères de recherche ou de compléter votre stock.</p>
-        </div>
-      ) : (
-        <div className="grid md:grid-cols-2 gap-4">
-          {sortedResults.map(({ recipe, makeable, usesVip, missingTags }) => {
-            const isExpanded = expandedId === recipe.id;
             return (
               <div
-                key={recipe.id}
-                onClick={() => toggleExpand(recipe.id)}
-                className={`group rounded-xl border p-5 cursor-pointer transition-all duration-300 ${
+                key={item.recipe.id}
+                className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
                   isExpanded
-                    ? "border-orange md:col-span-2 bg-ink-2/65"
-                    : usesVip
-                    ? "border-gold/20 bg-brick-dark/10 hover:border-gold/45"
-                    : "border-orange/10 bg-ink-2/40 hover:border-orange/30"
-                } box-orange-glow-hover flex flex-col justify-between`}
+                    ? item.usesVip
+                      ? "bg-brick-dark/40 border-gold/40 shadow-xl"
+                      : item.makeable
+                      ? "bg-ink-2 border-orange/40 shadow-xl"
+                      : "bg-ink-2 border-white/[0.15] shadow-lg"
+                    : item.usesVip
+                    ? "bg-brick-dark/25 border-gold/25 hover:border-gold/50"
+                    : item.makeable
+                    ? "bg-ink-2/70 border-white/[0.08] hover:border-orange/40"
+                    : "bg-ink-2/40 border-white/[0.05] opacity-85 hover:opacity-100"
+                }`}
               >
-                <div>
-                  {/* Top line Info */}
-                  <div className="flex justify-between items-start gap-4">
+                {/* Luxury Menu Header Row */}
+                <button
+                  onClick={() => toggleExpand(item.recipe.id)}
+                  className="w-full px-6 py-4 flex items-center justify-between text-left cursor-pointer group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 transition-transform group-hover:scale-105 ${
+                        item.usesVip
+                          ? "bg-gold/20 border border-gold/40 text-gold"
+                          : item.makeable
+                          ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400"
+                          : "bg-white/[0.04] border border-white/[0.08] text-muted"
+                      }`}
+                    >
+                      {glassIcon}
+                    </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{getGlassIcon(recipe.glass)}</span>
-                        <h3 className="font-display text-xl text-cream font-medium">
-                          {recipe.name}
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <h3 className="font-display text-lg sm:text-xl font-bold text-cream group-hover:text-orange transition-colors">
+                          {item.recipe.name}
                         </h3>
-                        {usesVip && (
-                          <span className="text-[9px] uppercase tracking-wide bg-gold text-ink px-1.5 py-0.5 rounded font-bold">
-                            VIP
+                        {item.usesVip && (
+                          <span className="text-[10px] uppercase font-bold bg-gold text-ink px-2 py-0.5 rounded shadow-sm">
+                            VIP Secret
                           </span>
                         )}
-                        {!makeable && (
-                          <span className="text-[9px] uppercase tracking-wide bg-brick text-cream px-1.5 py-0.5 rounded font-medium">
-                            Il manque {missingTags.length} ingrédient{missingTags.length > 1 ? "s" : ""}
+                        {!item.makeable && (
+                          <span className="text-[10px] font-mono text-orange bg-orange/15 px-2 py-0.5 rounded border border-orange/30">
+                            Manque {item.missingTags.length} ingrédient{item.missingTags.length > 1 ? "s" : ""}
                           </span>
                         )}
                       </div>
-                      <p className="text-[10px] text-orange uppercase tracking-widest mt-1 font-mono">
-                        {recipe.glass ?? "Verre standard"} • {recipe.prepTime} • {recipe.difficulty}
+                      <p className="text-xs text-muted mt-0.5 truncate max-w-md sm:max-w-xl">
+                        {item.recipe.glass ? `${item.recipe.glass} · ` : ""}
+                        {item.recipe.tags.join(" · ")}
                       </p>
                     </div>
-                    <span className="text-orange text-xs opacity-40 group-hover:opacity-100 transition-opacity">
-                      {isExpanded ? "▲ Réduire" : "▼ Recette"}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`text-xs uppercase tracking-wider font-bold hidden sm:inline-block ${
+                        item.usesVip
+                          ? "text-gold"
+                          : item.makeable
+                          ? "text-emerald-400"
+                          : "text-muted"
+                      }`}
+                    >
+                      {item.makeable ? "Prêt à servir" : "À compléter"}
+                    </span>
+                    <span
+                      className={`w-7 h-7 rounded-full flex items-center justify-center border transition-transform duration-300 ${
+                        isExpanded
+                          ? "rotate-180 bg-orange/20 border-orange/50 text-orange"
+                          : "bg-white/[0.05] border-white/[0.1] text-muted group-hover:text-cream"
+                      }`}
+                    >
+                      ▼
                     </span>
                   </div>
+                </button>
 
-                  {/* Quick description */}
-                  <p className="text-muted text-xs mt-3 leading-relaxed">
-                    {recipe.description}
-                  </p>
+                {/* Expanded Menu Recipe Details */}
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: "easeInOut" }}
+                      className="border-t border-white/[0.08] bg-ink/50 px-6 py-6 space-y-5"
+                    >
+                      {/* Ingredients Breakdown */}
+                      <div>
+                        <h4 className="text-xs uppercase tracking-caps text-muted font-bold mb-3">
+                          Ingrédients du Cocktail
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {item.recipe.tags.map((tag) => {
+                            const isMissing = item.missingTags.includes(tag);
+                            return (
+                              <span
+                                key={tag}
+                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border ${
+                                  isMissing
+                                    ? "bg-red-950/50 text-red-300 border-red-500/30"
+                                    : "bg-emerald-950/40 text-emerald-300 border-emerald-500/30"
+                                }`}
+                              >
+                                <span>{isMissing ? "⚠️" : "✓"}</span>
+                                <span>{tag}</span>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
 
-                  {/* Summary tags */}
-                  {!isExpanded && (
-                    <div className="flex flex-wrap gap-1 mt-4">
-                      {recipe.tags.map((t) => {
-                        const isMissing = !makeable && missingTags.includes(t.toLowerCase());
-                        return (
-                          <span
-                            key={t}
-                            className={`text-[9px] px-2 py-0.5 rounded-full border ${
-                              isMissing
-                                ? "border-red-500/20 bg-red-950/15 text-red-400"
-                                : "border-orange/10 bg-ink/40 text-muted"
-                            }`}
-                          >
-                            {t}
-                          </span>
-                        );
-                      })}
-                    </div>
+                      {/* Preparation Step-by-Step */}
+                      <div className="rounded-xl bg-ink-2/80 border border-white/[0.07] p-4">
+                        <h4 className="text-xs uppercase tracking-caps text-gold mb-2 font-bold flex items-center gap-2">
+                          <span>📜 Guide de Mixologie</span>
+                        </h4>
+                        <p className="text-sm text-cream leading-relaxed whitespace-pre-line">
+                          {item.recipe.instructions || "Ajoutez les ingrédients dans le verre avec des glaçons, mélangez doucement et servez."}
+                        </p>
+                      </div>
+                    </motion.div>
                   )}
-                </div>
-
-                {/* Expanded Full Recipe Detail Drawer */}
-                {isExpanded && (
-                  <div className="mt-6 pt-6 border-t border-orange/10 grid md:grid-cols-5 gap-6 animate-fadeIn" onClick={(e) => e.stopPropagation()}>
-                    {/* Left: Ingredients */}
-                    <div className="md:col-span-2 space-y-3">
-                      <h4 className="text-[10px] uppercase tracking-wider text-orange font-bold">
-                        Ingrédients requis
-                      </h4>
-                      <ul className="space-y-1.5">
-                        {recipe.ingredientsList.map((ingredient, idx) => {
-                          // Simple matching to see if user has the ingredient tags
-                          const isMissing = recipe.tags.some(
-                            (tag) =>
-                              ingredient.toLowerCase().includes(tag) &&
-                              missingTags.includes(tag)
-                          );
-
-                          return (
-                            <li key={idx} className="flex gap-2 items-start text-xs">
-                              <span className={isMissing ? "text-red-500" : "text-orange"}>
-                                {isMissing ? "❌" : "✓"}
-                              </span>
-                              <span className={isMissing ? "text-muted line-through" : "text-cream"}>
-                                {ingredient}
-                              </span>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-
-                    {/* Right: Prep Instructions */}
-                    <div className="md:col-span-3 space-y-3">
-                      <h4 className="text-[10px] uppercase tracking-wider text-orange font-bold">
-                        Instructions de préparation
-                      </h4>
-                      <ol className="space-y-2 list-decimal list-inside text-xs leading-relaxed text-muted">
-                        {recipe.instructions.map((step, idx) => (
-                          <li key={idx} className="pl-1">
-                            <span className="text-cream">{step}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  </div>
-                )}
+                </AnimatePresence>
               </div>
             );
-          })}
-        </div>
-      )}
+          })
+        )}
+      </div>
     </div>
   );
 }

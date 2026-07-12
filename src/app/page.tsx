@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { listBottles, listEvents, evaluateCocktails } from "@/lib/api-client";
 import PageTransition from "@/components/PageTransition";
+import { getCategoryStyle } from "@/lib/categoryStyles";
+import type { BottleType } from "@/lib/types";
 
 export default async function HomePage() {
   const [bottles, events, availability] = await Promise.all([
@@ -20,138 +22,208 @@ export default async function HomePage() {
   const upcoming = events.filter((e) => e.date >= today).sort((a, b) => a.date.localeCompare(b.date));
   const nextEvent = upcoming[0];
 
+  // Category counts
+  const categories: BottleType[] = ["whisky", "rhum", "gin", "vodka", "tequila", "vin", "champagne", "liqueur"];
+  const categoryCounts = categories.map((cat) => {
+    const count = bottles.filter((b) => b.type === cat && b.quantity > 0).length;
+    return { type: cat, count, style: getCategoryStyle(cat) };
+  }).filter((c) => c.count > 0);
+
   return (
-    <PageTransition className="-mx-6 -my-10 grid lg:grid-cols-2 min-h-[calc(100vh-8.5rem)]">
-      {/* Left: moody spotlight panel */}
-      <div className="relative overflow-hidden bg-ink-2 border-b lg:border-b-0 lg:border-r border-white/[0.07] flex items-end p-12 min-h-[380px]">
+    <PageTransition className="space-y-10">
+      {/* Hero Cocktail Club Spotlight */}
+      <div className="relative overflow-hidden rounded-3xl bg-ink-2 border border-white/[0.08] shadow-[0_12px_45px_rgba(0,0,0,0.6)]">
         <div
-          className="absolute inset-0 opacity-90 pointer-events-none"
+          className="absolute inset-0 opacity-80 pointer-events-none"
           style={{
             background:
-              "radial-gradient(circle at 50% 85%, rgba(255,107,53,0.18) 0%, rgba(61,35,26,0.1) 45%, rgba(17,13,12,0) 80%), radial-gradient(circle at 15% 15%, rgba(232,165,99,0.06) 0%, rgba(17,13,12,0) 50%)",
+              "radial-gradient(circle at 80% 20%, rgba(232,165,99,0.18) 0%, rgba(255,107,53,0.1) 40%, rgba(17,13,12,0) 75%), radial-gradient(circle at 20% 80%, rgba(61,35,26,0.3) 0%, rgba(17,13,12,0) 60%)",
           }}
         />
-        <div className="relative z-10 max-w-md">
-          <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-caps text-gold px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] mb-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-orange animate-pulse" /> Cave Privée & Salon
-          </span>
-          <h2 className="font-display text-4xl sm:text-5xl font-bold text-cream leading-tight">
-            L&apos;art du <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange to-gold">Cocktail</span>
-          </h2>
-          <p className="text-muted text-sm mt-4 leading-relaxed font-normal">
-            Votre espace personnel de mixologie. Gérez vos réserves au millilitre près, explorez des recettes équilibrées et planifiez vos soirées d&apos;exception.
-          </p>
-        </div>
-      </div>
-
-      {/* Right: content panel with refined background */}
-      <div className="relative bg-ink px-8 sm:px-12 py-12 flex flex-col justify-between border-t lg:border-t-0 border-white/[0.07]">
-        <div className="absolute inset-0 bg-radial-[circle_at_top_right] from-orange/5 via-transparent to-transparent pointer-events-none" />
-        
-        <div className="relative z-10 space-y-8">
-          <div className="flex items-center justify-between">
-            <span className="text-xs uppercase tracking-caps text-orange font-semibold">Vue d&apos;ensemble</span>
-            <span className="text-xs text-muted font-medium bg-ink-2 px-3 py-1 rounded-full border border-white/[0.08]">
-              {String(upcoming.length).padStart(2, "0")} soirée{upcoming.length > 1 ? "s" : ""} à venir
-            </span>
-          </div>
-
-          <div>
-            <h1 className="font-display text-4xl sm:text-5xl font-bold text-cream tracking-tight">
-              Le Bar <span className="text-orange">de Noa</span>
-            </h1>
-            <p className="text-muted text-xs mt-1.5 uppercase tracking-caps">Mixologie sur mesure · Gestion de cave</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 mt-6">
-            <StatCard label="Bouteilles en stock" value={stockCount} href="/stock" icon="🥃" />
-            <StatCard label="Réserve VIP" value={vipCount} href="/stock" icon="🔒" />
-            <StatCard label="Cocktails prêts" value={makeableNow} href="/cocktails" icon="🍹" />
-            <StatCard label="Soirées à venir" value={upcoming.length} href="/soirees" icon="🎉" />
-          </div>
-
-          <div className="mt-8 pt-8 border-t border-orange/10 grid sm:grid-cols-2 gap-8 items-center bg-ink-2/30 p-6 rounded-xl border border-orange/5">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted mb-2 font-medium">Prochaine soirée</p>
-              {nextEvent ? (
-                <>
-                  <p className="font-display text-2xl text-cream">{nextEvent.name}</p>
-                  <p className="text-orange text-xs mt-1 capitalize font-medium">
-                    {new Date(nextEvent.date).toLocaleDateString("fr-FR", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                    })}
-                  </p>
-                </>
-              ) : (
-                <p className="text-muted/60 text-sm italic">Aucun événement planifié</p>
-              )}
+        <div className="relative z-10 grid lg:grid-cols-12 gap-8 p-8 sm:p-12 items-center">
+          <div className="lg:col-span-7 space-y-5">
+            <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-caps text-gold px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.1]">
+              <span className="w-2 h-2 rounded-full bg-orange animate-pulse" /> Cave Privée & Salon Lounge
             </div>
-            <div className="sm:text-right">
-              {nextEvent ? (
+            <h1 className="font-display text-4xl sm:text-6xl font-extrabold text-cream leading-[1.08] tracking-tight">
+              L&apos;art du <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange via-gold to-amber-300">Cocktail Privé</span>
+            </h1>
+            <p className="text-muted text-sm sm:text-base max-w-xl leading-relaxed font-normal">
+              Bienvenue dans votre salon feutré. Gérez vos réserves d&apos;alcools rares, calculez instantanément vos cocktails réalisables et organisez des soirées d&apos;exception.
+            </p>
+
+            {/* Quick Category Badges */}
+            <div className="pt-2 flex flex-wrap gap-2 items-center">
+              <span className="text-[10px] uppercase tracking-caps text-muted mr-1 font-semibold">En cave :</span>
+              {categoryCounts.map(({ type, count, style }) => (
                 <Link
-                  href={`/soirees/${nextEvent.slug}`}
-                  className="inline-block text-xs uppercase tracking-widest px-5 py-3 rounded-full bg-orange text-white font-medium hover:bg-orange-hover box-orange-glow transition-all duration-300 transform hover:-translate-y-0.5"
+                  key={type}
+                  href="/stock"
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${style.badgeBg} ${style.badgeText} border ${style.badgeBorder} hover:scale-105 transition-transform`}
                 >
-                  Rejoindre →
+                  <span>{style.icon}</span>
+                  <span>{style.label}</span>
+                  <span className="opacity-75">({count})</span>
                 </Link>
-              ) : (
+              ))}
+            </div>
+          </div>
+
+          {/* Right Hero Event / Quick Action */}
+          <div className="lg:col-span-5 bg-ink/75 backdrop-blur-xl rounded-2xl border border-white/[0.08] p-6 space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
+              <span className="text-xs font-semibold uppercase tracking-caps text-gold">Prochaine Soirée</span>
+              <span className="text-[11px] text-muted font-mono bg-white/[0.05] px-2.5 py-0.5 rounded-full">
+                {String(upcoming.length).padStart(2, "0")} au calendrier
+              </span>
+            </div>
+
+            {nextEvent ? (
+              <div className="space-y-3">
+                <h3 className="font-display text-2xl font-bold text-cream">{nextEvent.name}</h3>
+                <p className="text-orange text-xs font-medium capitalize flex items-center gap-2">
+                  <span>📅</span>
+                  {new Date(nextEvent.date).toLocaleDateString("fr-FR", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                  })}
+                </p>
+                <div className="pt-2">
+                  <Link
+                    href={`/soirees/${nextEvent.slug}`}
+                    className="w-full flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-5 py-3.5 rounded-xl bg-gradient-to-r from-orange to-orange-hover text-ink font-extrabold hover:brightness-110 box-orange-glow transition-all duration-300"
+                  >
+                    <span>Ouvrir le Party Board</span>
+                    <span>→</span>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="py-4 text-center space-y-3">
+                <p className="text-muted/70 text-sm italic">Aucune soirée planifiée pour l&apos;instant</p>
                 <Link
                   href="/soirees"
-                  className="inline-block text-xs uppercase tracking-widest px-5 py-3 rounded-full bg-orange text-white font-medium hover:bg-orange-hover box-orange-glow transition-all duration-300 transform hover:-translate-y-0.5"
+                  className="inline-flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-5 py-3 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-cream border border-white/[0.1] transition-colors font-semibold"
                 >
-                  Planifier →
+                  <span>🎉 Planifier une soirée</span>
                 </Link>
-              )}
-            </div>
-          </div>
-
-          {lowStock.length > 0 && (
-            <div className="mt-6 pt-6 border-t border-orange/10 bg-brick-dark/10 p-5 rounded-lg border border-red-500/10">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-2 h-2 rounded-full bg-orange animate-ping" />
-                <p className="text-[10px] uppercase tracking-[0.2em] text-orange font-bold">
-                  {lowStock.length} Alerte{lowStock.length > 1 ? "s" : ""} Réapprovisionnement
-                </p>
               </div>
-              <ul className="text-xs space-y-2">
-                {lowStock.slice(0, 4).map((b) => (
-                  <li key={b.id} className="flex justify-between items-center text-muted">
-                    <span className="text-cream font-medium">{b.name}</span>
-                    <span className="text-orange font-mono bg-orange-dark/20 px-2 py-0.5 rounded border border-orange-dark/30">
-                      {b.quantity} restant{b.quantity > 1 ? "s" : ""}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              {lowStock.length > 4 && (
-                <p className="text-[10px] text-muted/50 mt-2 text-right">Et {lowStock.length - 4} autres bouteilles...</p>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Primary Dashboard Stat Cards */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xs uppercase tracking-caps text-muted font-bold">Indicateurs de Cave</h2>
+          <Link href="/stock" className="text-xs text-gold hover:underline font-semibold">
+            Gérer le stock →
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            label="Bouteilles en stock"
+            value={stockCount}
+            href="/stock"
+            icon="🥃"
+            accent="border-orange/30 hover:border-orange/60"
+            subLabel="Hors mixers"
+          />
+          <StatCard
+            label="Réserve Privée VIP"
+            value={vipCount}
+            href="/stock?tab=vip"
+            icon="🔒"
+            accent="border-gold/40 hover:border-gold/70 bg-gradient-to-br from-brick-dark/60 to-ink-2"
+            subLabel="Écrin secret"
+          />
+          <StatCard
+            label="Cocktails prêts"
+            value={makeableNow}
+            href="/cocktails"
+            icon="🍸"
+            accent="border-emerald-500/30 hover:border-emerald-500/60"
+            subLabel="Servibles ce soir"
+          />
+          <StatCard
+            label="Soirées à venir"
+            value={upcoming.length}
+            href="/soirees"
+            icon="🎉"
+            accent="border-rose-500/30 hover:border-rose-500/60"
+            subLabel="Événements"
+          />
+        </div>
+      </div>
+
+      {/* Low Stock Alert Section if any */}
+      {lowStock.length > 0 && (
+        <div className="rounded-2xl bg-gradient-to-r from-brick-dark/60 via-ink-2 to-ink-2 p-6 border border-red-500/25 shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-orange animate-ping" />
+              <h3 className="text-xs uppercase tracking-caps text-orange font-extrabold">
+                {lowStock.length} Alerte{lowStock.length > 1 ? "s" : ""} de Réapprovisionnement
+              </h3>
+            </div>
+            <Link href="/stock" className="text-xs text-muted hover:text-cream">
+              Voir tout le stock →
+            </Link>
+          </div>
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
+            {lowStock.slice(0, 4).map((b) => (
+              <div key={b.id} className="rounded-xl bg-ink/70 border border-white/[0.08] p-3 flex flex-col justify-between">
+                <span className="text-sm font-semibold text-cream truncate">{b.name}</span>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-[10px] uppercase text-muted">{b.type}</span>
+                  <span className="text-xs font-mono font-bold text-orange bg-orange/15 px-2 py-0.5 rounded border border-orange/30">
+                    {b.quantity} restant{b.quantity > 1 ? "s" : ""}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </PageTransition>
   );
 }
 
-function StatCard({ label, value, href, icon }: { label: string; value: number; href: string; icon: string }) {
+function StatCard({
+  label,
+  value,
+  href,
+  icon,
+  accent = "border-white/[0.08]",
+  subLabel,
+}: {
+  label: string;
+  value: number;
+  href: string;
+  icon: string;
+  accent?: string;
+  subLabel?: string;
+}) {
   return (
     <Link
       href={href}
-      className="group relative rounded-xl border border-orange/10 bg-ink-2/40 p-5 hover:border-orange/40 hover:bg-ink-2 transition-all duration-300 box-orange-glow-hover flex flex-col justify-between h-28"
+      className={`group relative rounded-2xl border ${accent} bg-ink-2/70 p-5 hover:bg-ink-2 transition-all duration-300 flex flex-col justify-between h-32 shadow-md`}
     >
       <div className="flex justify-between items-start">
         <span className="text-2xl">{icon}</span>
-        <span className="text-orange opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs">→</span>
+        <span className="text-orange opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs font-bold">→</span>
       </div>
       <div>
-        <p className="font-mono text-3xl text-cream font-semibold tracking-tight">{value}</p>
-        <p className="text-[10px] uppercase tracking-wider text-muted group-hover:text-cream transition-colors duration-300 mt-1">{label}</p>
+        <div className="flex items-baseline gap-2">
+          <p className="font-display text-3xl sm:text-4xl text-cream font-bold tracking-tight">{value}</p>
+          {subLabel && <span className="text-[11px] text-muted">{subLabel}</span>}
+        </div>
+        <p className="text-xs uppercase tracking-wider text-muted group-hover:text-cream transition-colors duration-300 mt-1 font-semibold">{label}</p>
       </div>
     </Link>
   );
 }
-

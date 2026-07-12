@@ -3,6 +3,7 @@
 @theme {
   --color-ink: #110d0c;
   --color-ink-2: #1b1614;
+  --color-ink-3: #231c19;
   --color-brick: #3d231a;
   --color-brick-light: #573023;
   --color-brick-dark: #2a1711;
@@ -14,6 +15,17 @@
   --color-orange-hover: #FF8254;
   --color-orange-dim: #D45524;
   --color-orange-dark: #5E230E;
+
+  /* Cocktail Club Signature Category Colors */
+  --color-cat-whisky: #D97706;
+  --color-cat-gin: #10B981;
+  --color-cat-rhum: #F59E0B;
+  --color-cat-vodka: #94A3B8;
+  --color-cat-tequila: #EAB308;
+  --color-cat-vin: #E11D48;
+  --color-cat-liqueur: #F43F5E;
+  --color-cat-biere: #FBBF24;
+  --color-cat-mixer: #34D399;
 
   --font-display: var(--font-outfit), sans-serif;
   --font-sans: var(--font-jakarta), sans-serif;
@@ -44,9 +56,13 @@ input, select, textarea {
   letter-spacing: 0.14em;
 }
 
-/* Refined Glow effects and subtle glass styling */
+/* Glow effects and subtle glass styling */
 .orange-glow {
   text-shadow: 0 0 16px rgba(255, 107, 53, 0.4);
+}
+
+.gold-glow {
+  text-shadow: 0 0 18px rgba(232, 165, 99, 0.45);
 }
 
 .box-orange-glow {
@@ -55,6 +71,29 @@ input, select, textarea {
 
 .box-orange-glow-hover:hover {
   box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 107, 53, 0.16);
+}
+
+/* Glassmorphism Dark Cards */
+.glass-card {
+  background: rgba(27, 22, 20, 0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(250, 246, 242, 0.08);
+}
+
+.glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card-hover:hover {
+  background: rgba(35, 28, 25, 0.85);
+  border-color: rgba(232, 165, 99, 0.25);
+  transform: translateY(-2px);
+}
+
+/* VIP Vault Card Style */
+.vip-vault-card {
+  background: linear-gradient(135deg, rgba(61, 35, 26, 0.85) 0%, rgba(42, 23, 17, 0.95) 100%);
+  border: 1px solid rgba(232, 165, 99, 0.35);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(232, 165, 99, 0.2);
 }
 
 /* Custom scrollbar for premium menu feel */
@@ -72,4 +111,5 @@ input, select, textarea {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-orange-dark);
 }
+
 
