@@ -1,15 +1,18 @@
-import { evaluateCocktails } from "@/lib/api-client";
+import { evaluateCocktails, listBottles } from "@/lib/api-client";
 import { getSession } from "@/lib/session";
 import CocktailStudio from "./CocktailStudio";
 import PageTransition from "@/components/PageTransition";
 
 export default async function CocktailsPage() {
-  const [results, session] = await Promise.all([
+  const [results, session, bottles] = await Promise.all([
     evaluateCocktails(),
     getSession(),
+    listBottles(),
   ]);
 
   const isVip = Boolean(session?.vip || session?.role === "ADMIN");
+  const isAdmin = session?.role === "ADMIN";
+  const allTags = Array.from(new Set(bottles.flatMap((b) => b.tags))).sort();
 
   return (
     <PageTransition className="space-y-8">
@@ -25,7 +28,13 @@ export default async function CocktailsPage() {
         </div>
       </div>
 
-      <CocktailStudio initialResults={results} isVip={isVip} />
+      <CocktailStudio
+        initialResults={results}
+        isVip={isVip}
+        currentUserId={session?.sub}
+        isAdmin={isAdmin}
+        allTags={allTags}
+      />
     </PageTransition>
   );
 }
