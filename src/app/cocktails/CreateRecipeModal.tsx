@@ -17,6 +17,7 @@ export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClos
   const [selectedTags, setSelectedTags] = useState<string[]>(initialRecipe?.tags ?? []);
   const [ingredientsList, setIngredientsList] = useState<string[]>(initialRecipe?.ingredientsList ?? [""]);
   const [instructions, setInstructions] = useState<string[]>(initialRecipe?.instructions ?? [""]);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
@@ -35,6 +36,23 @@ export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClos
 
   const action = mode === "edit" && initialRecipe ? updateRecipe.bind(null, initialRecipe.id) : createRecipe;
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const hasTag = selectedTags.length > 0;
+    const hasIngredient = ingredientsList.some((line) => line.trim() !== "");
+    const hasInstruction = instructions.some((line) => line.trim() !== "");
+
+    if (!hasTag || !hasIngredient || !hasInstruction) {
+      e.preventDefault();
+      setValidationError(
+        "Sélectionnez au moins un ingrédient de faisabilité, une ligne d'ingrédient détaillé et une étape de préparation."
+      );
+      return;
+    }
+
+    setValidationError(null);
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-ink/90 backdrop-blur-xl overflow-y-auto">
       <div className="relative w-full max-w-2xl bg-ink-2/95 border border-orange/20 rounded-2xl p-6 sm:p-7 shadow-2xl my-8">
@@ -50,7 +68,7 @@ export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClos
           </button>
         </div>
 
-        <form action={action} onSubmit={onClose} className="grid sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto pr-1">
+        <form action={action} onSubmit={handleSubmit} className="grid sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto pr-1">
           <input type="hidden" name="ingredientsList" value={JSON.stringify(ingredientsList.filter(Boolean))} />
           <input type="hidden" name="instructions" value={JSON.stringify(instructions.filter(Boolean))} />
 
@@ -218,6 +236,10 @@ export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClos
               </div>
             ))}
           </div>
+
+          {validationError && (
+            <p className="sm:col-span-2 text-xs text-red-400 font-semibold">{validationError}</p>
+          )}
 
           <button
             type="submit"
