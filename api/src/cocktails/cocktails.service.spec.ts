@@ -79,4 +79,40 @@ describe('evaluateRecipes', () => {
     expect(whiskyCoca.usesVip).toBe(false);
     expect(whiskyCoca.missingTags).toEqual(['whisky']);
   });
+
+  it('evaluates a custom recipe list when provided instead of the default catalog', () => {
+    const customRecipe = {
+      id: 'custom-1',
+      name: 'Custom Punch',
+      tags: ['rhum blanc'],
+      ingredientsList: ['6cl rhum blanc'],
+      instructions: ['Mélanger'],
+      prepTime: '2 min',
+      difficulty: 'Facile' as const,
+      description: 'Une recette maison',
+    };
+    const bottles = [bottle({ tags: ['rhum blanc'] })];
+    const results = evaluateRecipes(bottles, [customRecipe]);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].recipe.id).toBe('custom-1');
+    expect(results[0].makeable).toBe(true);
+  });
+
+  it('merges custom recipes alongside the official catalog when both are passed', () => {
+    const customRecipe = {
+      id: 'custom-2',
+      name: 'Custom Sour',
+      tags: ['whisky'],
+      ingredientsList: ['5cl whisky'],
+      instructions: ['Shaker'],
+      prepTime: '3 min',
+      difficulty: 'Moyen' as const,
+      description: 'Une variante maison',
+    };
+    const results = evaluateRecipes([], [...COCKTAILS, customRecipe]);
+
+    expect(results).toHaveLength(COCKTAILS.length + 1);
+    expect(results.some((r) => r.recipe.id === 'custom-2')).toBe(true);
+  });
 });

@@ -8,6 +8,10 @@ export interface CocktailRecipe {
   prepTime: string; // e.g., "5 min"
   difficulty: "Facile" | "Moyen" | "Expert";
   description: string;
+  isCustom?: boolean;
+  createdById?: string;
+  createdByUsername?: string;
+  vip?: boolean;
 }
 
 // Static recipe book with full real instructions, ingredients and metadata.
