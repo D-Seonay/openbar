@@ -7,7 +7,7 @@ import type {
   StockAdjustment,
   AccountUser,
 } from "./types";
-import type { RecipeAvailability } from "./cocktail-types";
+import type { CocktailRecipe, RecipeAvailability } from "./cocktail-types";
 
 const API_URL = process.env.NEST_API_URL ?? "http://localhost:3001";
 
@@ -146,6 +146,30 @@ export function applyStockAdjustments(
 // Cocktails
 export function evaluateCocktails(): Promise<RecipeAvailability[]> {
   return request<RecipeAvailability[]>("/cocktails");
+}
+
+export interface RecipeInput {
+  name: string;
+  glass: string;
+  tags: string[];
+  ingredientsList: string[];
+  instructions: string[];
+  prepTime: string;
+  difficulty: "Facile" | "Moyen" | "Expert";
+  description: string;
+  vip: boolean;
+}
+
+export function createRecipe(input: RecipeInput): Promise<CocktailRecipe> {
+  return request<CocktailRecipe>("/recipes", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function updateRecipe(id: string, input: Partial<RecipeInput>): Promise<CocktailRecipe> {
+  return request<CocktailRecipe>(`/recipes/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+}
+
+export function deleteRecipe(id: string): Promise<{ success: boolean }> {
+  return request(`/recipes/${id}`, { method: "DELETE" });
 }
 
 // Users

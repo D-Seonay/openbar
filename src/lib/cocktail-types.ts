@@ -8,6 +8,10 @@ export interface CocktailRecipe {
   prepTime: string;
   difficulty: "Facile" | "Moyen" | "Expert";
   description: string;
+  isCustom?: boolean;
+  createdById?: string;
+  createdByUsername?: string;
+  vip?: boolean;
 }
 
 export interface RecipeAvailability {
