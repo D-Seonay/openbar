@@ -5,11 +5,18 @@ import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import * as api from "@/lib/api-client";
-import { isAdminLoggedIn } from "@/lib/session";
+import { isAdminLoggedIn, getSession } from "@/lib/session";
 import type { BottleType, BottleVolume } from "@/lib/types";
 
 async function requireAdmin() {
   if (!(await isAdminLoggedIn())) {
+    redirect("/login");
+  }
+}
+
+async function requireVipOrAdmin() {
+  const session = await getSession();
+  if (!session || !(session.vip || session.role === "ADMIN")) {
     redirect("/login");
   }
 }
@@ -82,6 +89,56 @@ export async function deleteBottleAction(id: string) {
   revalidatePath("/stock");
   revalidatePath("/cocktails");
   revalidatePath("/");
+}
+
+function parseJsonStringArray(raw: FormDataEntryValue | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(String(raw));
+    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === "string" && v.trim() !== "") : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseRecipeFormData(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const glass = String(formData.get("glass") ?? "").trim();
+  const prepTime = String(formData.get("prepTime") ?? "").trim();
+  const difficulty = String(formData.get("difficulty") ?? "Moyen") as "Facile" | "Moyen" | "Expert";
+  const description = String(formData.get("description") ?? "").trim();
+  const vip = formData.get("vip") === "on";
+  const tags = formData.getAll("tags").map((t) => String(t));
+  const ingredientsList = parseJsonStringArray(formData.get("ingredientsList"));
+  const instructions = parseJsonStringArray(formData.get("instructions"));
+
+  return { name, glass, prepTime, difficulty, description, vip, tags, ingredientsList, instructions };
+}
+
+export async function createRecipe(formData: FormData) {
+  await requireVipOrAdmin();
+  const input = parseRecipeFormData(formData);
+  if (!input.name || input.tags.length === 0 || input.ingredientsList.length === 0 || input.instructions.length === 0) {
+    return;
+  }
+  await api.createRecipe(input);
+  revalidatePath("/cocktails");
+}
+
+export async function updateRecipe(id: string, formData: FormData) {
+  await requireVipOrAdmin();
+  const input = parseRecipeFormData(formData);
+  if (!input.name || input.tags.length === 0 || input.ingredientsList.length === 0 || input.instructions.length === 0) {
+    return;
+  }
+  await api.updateRecipe(id, input);
+  revalidatePath("/cocktails");
+}
+
+export async function deleteRecipeAction(id: string) {
+  await requireVipOrAdmin();
+  await api.deleteRecipe(id);
+  revalidatePath("/cocktails");
 }
 
 export async function createEvent(formData: FormData) {
