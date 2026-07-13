@@ -6,7 +6,7 @@ import type { Bottle, BottleVolume } from "@/lib/types";
 import { updateBottleVolumes, updateBottleThreshold, deleteBottleAction } from "@/app/actions";
 import { calculateBottleTotalLiters, calculateTotalBottlesCount, formatLiters } from "@/lib/volumeUtils";
 import BottlePreview from "./BottlePreview";
-import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import ImagePicker from "@/components/ImagePicker";
 
 interface BottleDetailModalProps {
