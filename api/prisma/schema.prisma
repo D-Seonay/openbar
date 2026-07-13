@@ -26,6 +26,12 @@ enum BottleType {
   autre
 }
 
+enum RecipeDifficulty {
+  Facile
+  Moyen
+  Expert
+}
+
 model User {
   id            String         @id @default(cuid())
   username      String         @unique
@@ -34,6 +40,7 @@ model User {
   vip           Boolean        @default(false)
   createdAt     DateTime       @default(now())
   contributions Contribution[]
+  recipes       Recipe[]
 }
 
 model Bottle {
@@ -90,4 +97,20 @@ model StockAdjustment {
   quantityBefore Float
   quantityAfter  Float
   createdAt      DateTime @default(now())
+}
+
+model Recipe {
+  id              String           @id @default(cuid())
+  name            String
+  glass           String?
+  tags            String[]
+  ingredientsList String[]
+  instructions    String[]
+  prepTime        String
+  difficulty      RecipeDifficulty @default(Moyen)
+  description     String
+  vip             Boolean          @default(false)
+  createdById     String
+  createdBy       User             @relation(fields: [createdById], references: [id])
+  createdAt       DateTime         @default(now())
 }
