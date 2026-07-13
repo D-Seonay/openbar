@@ -1,18 +1,35 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { RecipeAvailability } from "@/lib/cocktail-types";
+import type { RecipeAvailability, CocktailRecipe } from "@/lib/cocktail-types";
+import { deleteRecipeAction } from "@/app/actions";
+import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
+import CreateRecipeModal from "./CreateRecipeModal";
 
 interface CocktailStudioProps {
   initialResults: RecipeAvailability[];
   isVip?: boolean;
+  currentUserId?: string;
+  isAdmin?: boolean;
+  allTags: string[];
 }
 
-export default function CocktailStudio({ initialResults, isVip = false }: CocktailStudioProps) {
+type FormModalState = { mode: "create" } | { mode: "edit"; recipe: CocktailRecipe } | null;
+
+export default function CocktailStudio({
+  initialResults,
+  isVip = false,
+  currentUserId,
+  isAdmin = false,
+  allTags,
+}: CocktailStudioProps) {
   const [activeTab, setActiveTab] = useState<"ready" | "vip" | "locked">("ready");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
+  const [formModal, setFormModal] = useState<FormModalState>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [isDeletePending, startDeleteTransition] = useTransition();
 
   const accessibleResults = useMemo(() => {
     return isVip ? initialResults : initialResults.filter((r) => !r.usesVip);
@@ -48,6 +65,9 @@ export default function CocktailStudio({ initialResults, isVip = false }: Cockta
       locked: accessibleResults.filter((r) => !r.makeable).length,
     };
   }, [accessibleResults, isVip]);
+
+  const canEditRecipe = (recipe: CocktailRecipe) =>
+    Boolean(recipe.isCustom && (isAdmin || (currentUserId && recipe.createdById === currentUserId)));
 
   return (
     <div className="space-y-6 relative">
@@ -90,17 +110,28 @@ export default function CocktailStudio({ initialResults, isVip = false }: Cockta
           </button>
         </div>
 
-        <div className="relative w-full sm:w-72">
-          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted text-sm">
-            🔍
-          </span>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Chercher cocktail, ingrédient..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-ink-2 border border-white/[0.1] text-sm text-cream placeholder:text-muted/60 focus:outline-none focus:border-orange/60"
-          />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-72">
+            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted text-sm">
+              🔍
+            </span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Chercher cocktail, ingrédient..."
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-ink-2 border border-white/[0.1] text-sm text-cream placeholder:text-muted/60 focus:outline-none focus:border-orange/60"
+            />
+          </div>
+
+          {isVip && (
+            <button
+              onClick={() => setFormModal({ mode: "create" })}
+              className="shrink-0 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider bg-orange text-ink hover:bg-orange-hover transition-colors cursor-pointer"
+            >
+              ＋ Recette
+            </button>
+          )}
         </div>
       </div>
 
@@ -137,6 +168,11 @@ export default function CocktailStudio({ initialResults, isVip = false }: Cockta
                         <span className="font-display font-bold text-base text-cream group-hover:text-orange transition-colors">
                           {item.recipe.name}
                         </span>
+                        {item.recipe.isCustom && (
+                          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-orange/20 text-orange border border-orange/30">
+                            Custom
+                          </span>
+                        )}
                         {item.usesVip && isVip && (
                           <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-gold text-ink shadow-sm">
                             VIP
@@ -151,6 +187,9 @@ export default function CocktailStudio({ initialResults, isVip = false }: Cockta
                       <p className="text-xs text-muted mt-0.5 truncate max-w-sm sm:max-w-xl">
                         {item.recipe.glass ? `${item.recipe.glass} · ` : ""}
                         {item.recipe.tags.join(" · ")}
+                        {item.recipe.isCustom && item.recipe.createdByUsername
+                          ? ` · par ${item.recipe.createdByUsername}`
+                          : ""}
                       </p>
                     </div>
                   </div>
@@ -202,6 +241,12 @@ export default function CocktailStudio({ initialResults, isVip = false }: Cockta
                     <h2 className="font-display text-2xl font-bold text-cream mt-1">
                       {selectedItem.recipe.name}
                     </h2>
+                    {selectedItem.recipe.isCustom && (
+                      <span className="text-[10px] text-muted mt-1 block">
+                        Recette custom
+                        {selectedItem.recipe.createdByUsername ? ` · par ${selectedItem.recipe.createdByUsername}` : ""}
+                      </span>
+                    )}
                   </div>
                   <button
                     onClick={() => setSelectedRecipeId(null)}
@@ -262,6 +307,20 @@ export default function CocktailStudio({ initialResults, isVip = false }: Cockta
                   </div>
                 </div>
 
+                {/* Detailed ingredients list */}
+                {selectedItem.recipe.ingredientsList.length > 0 && (
+                  <div className="space-y-3">
+                    <span className="text-xs uppercase tracking-caps text-gold font-bold block">
+                      Ingrédients Détaillés
+                    </span>
+                    <ul className="space-y-1.5 text-xs text-cream list-disc list-inside">
+                      {selectedItem.recipe.ingredientsList.map((line, idx) => (
+                        <li key={idx}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 {/* Preparation Guide */}
                 <div className="p-5 rounded-xl bg-ink border border-white/[0.08] space-y-2.5">
                   <span className="text-xs uppercase tracking-caps text-gold font-bold block">
@@ -276,17 +335,64 @@ export default function CocktailStudio({ initialResults, isVip = false }: Cockta
 
               <div className="pt-6 mt-6 border-t border-white/[0.08] flex items-center justify-between text-xs">
                 <span className="text-muted">Le Bar de Noa · Carte Cocktails</span>
-                <button
-                  onClick={() => setSelectedRecipeId(null)}
-                  className="px-5 py-2.5 rounded-xl bg-orange text-ink font-bold uppercase tracking-wider hover:bg-orange-hover transition-colors cursor-pointer"
-                >
-                  Fermer
-                </button>
+                <div className="flex items-center gap-2">
+                  {canEditRecipe(selectedItem.recipe) && (
+                    <>
+                      <button
+                        onClick={() => {
+                          setFormModal({ mode: "edit", recipe: selectedItem.recipe });
+                          setSelectedRecipeId(null);
+                        }}
+                        className="px-4 py-2.5 rounded-xl bg-ink border border-orange/30 text-orange font-bold uppercase tracking-wider hover:bg-orange/10 transition-colors cursor-pointer"
+                      >
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget({ id: selectedItem.recipe.id, name: selectedItem.recipe.name })}
+                        className="px-4 py-2.5 rounded-xl bg-ink border border-red-500/30 text-red-400 font-bold uppercase tracking-wider hover:bg-red-950/20 transition-colors cursor-pointer"
+                      >
+                        Supprimer
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setSelectedRecipeId(null)}
+                    className="px-5 py-2.5 rounded-xl bg-orange text-ink font-bold uppercase tracking-wider hover:bg-orange-hover transition-colors cursor-pointer"
+                  >
+                    Fermer
+                  </button>
+                </div>
               </div>
             </motion.aside>
           </>
         )}
       </AnimatePresence>
+
+      {formModal && (
+        <CreateRecipeModal
+          mode={formModal.mode}
+          allTags={allTags}
+          initialRecipe={formModal.mode === "edit" ? formModal.recipe : undefined}
+          onClose={() => setFormModal(null)}
+        />
+      )}
+
+      <ConfirmDeleteModal
+        isOpen={deleteTarget !== null}
+        title="Supprimer la recette ?"
+        description={`Êtes-vous sûr de vouloir supprimer définitivement "${deleteTarget?.name}" ?`}
+        isPending={isDeletePending}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          const id = deleteTarget.id;
+          startDeleteTransition(() => {
+            deleteRecipeAction(id);
+          });
+          setSelectedRecipeId(null);
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }
