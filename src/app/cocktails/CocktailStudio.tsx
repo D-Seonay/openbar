@@ -326,10 +326,19 @@ export default function CocktailStudio({
                   <span className="text-xs uppercase tracking-caps text-gold font-bold block">
                     Guide de Mixologie & Préparation
                   </span>
-                  <p className="text-cream text-xs sm:text-sm leading-relaxed whitespace-pre-line">
-                    {selectedItem.recipe.instructions ||
-                      "Mesurez les ingrédients avec précision, rafraîchissez au shaker ou au verre à mélange selon le spiritueux, puis servez dans un verre préalablement glacé."}
-                  </p>
+                  <div className="text-cream text-xs sm:text-sm leading-relaxed space-y-2">
+                    {selectedItem.recipe.instructions.length > 0 ? (
+                      <ol className="list-decimal list-inside space-y-1.5">
+                        {selectedItem.recipe.instructions.map((step, idx) => (
+                          <li key={idx}>{step}</li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <p>
+                        Mesurez les ingrédients avec précision, rafraîchissez au shaker ou au verre à mélange selon le spiritueux, puis servez dans un verre préalablement glacé.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
