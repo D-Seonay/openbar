@@ -7,6 +7,7 @@ import { CocktailsModule } from './cocktails/cocktails.module';
 import { EventsModule } from './events/events.module';
 import { ContributionsModule } from './contributions/contributions.module';
 import { StockAdjustmentsModule } from './stock-adjustments/stock-adjustments.module';
+import { RecipesModule } from './recipes/recipes.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { StockAdjustmentsModule } from './stock-adjustments/stock-adjustments.mo
     EventsModule,
     ContributionsModule,
     StockAdjustmentsModule,
+    RecipesModule,
   ],
 })
 export class AppModule {}
