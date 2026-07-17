@@ -6,6 +6,8 @@ import type {
   Contribution,
   StockAdjustment,
   AccountUser,
+  Bar,
+  BarMember,
 } from "./types";
 import type { CocktailRecipe, RecipeAvailability } from "./cocktail-types";
 
@@ -16,6 +18,26 @@ export async function apiLogin(
   password: string,
 ): Promise<{ token: string } | null> {
   const res = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+    cache: "no-store",
+  });
+
+  if (!res.ok) return null;
+
+  const setCookie = res.headers.get("set-cookie");
+  const match = setCookie?.match(/bardenoa_session=([^;]+)/);
+  if (!match) return null;
+
+  return { token: match[1] };
+}
+
+export async function apiSignup(
+  username: string,
+  password: string,
+): Promise<{ token: string } | null> {
+  const res = await fetch(`${API_URL}/auth/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
@@ -195,4 +217,35 @@ export function updateUser(
 
 export function deleteUser(id: string): Promise<{ success: boolean }> {
   return request(`/users/${id}`, { method: "DELETE" });
+}
+
+// Bars
+export function listMyBars(): Promise<Bar[]> {
+  return request<Bar[]>("/bars/mine");
+}
+
+export function createBar(name: string): Promise<{ id: string; name: string }> {
+  return request("/bars", { method: "POST", body: JSON.stringify({ name }) });
+}
+
+export function listBarMembers(barId: string): Promise<BarMember[]> {
+  return request<BarMember[]>(`/bars/${barId}/members`);
+}
+
+export function inviteBarMember(barId: string, username: string, vip: boolean): Promise<BarMember> {
+  return request<BarMember>(`/bars/${barId}/members`, {
+    method: "POST",
+    body: JSON.stringify({ username, vip }),
+  });
+}
+
+export function updateBarMemberVip(barId: string, membershipId: string, vip: boolean): Promise<BarMember> {
+  return request<BarMember>(`/bars/${barId}/members/${membershipId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ vip }),
+  });
+}
+
+export function removeBarMember(barId: string, membershipId: string): Promise<{ success: boolean }> {
+  return request(`/bars/${barId}/members/${membershipId}`, { method: "DELETE" });
 }

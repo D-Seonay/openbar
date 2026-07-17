@@ -69,3 +69,21 @@ export interface AccountUser {
   vip: boolean;
   createdAt: string;
 }
+
+export interface Bar {
+  id: string;
+  name: string;
+  createdAt: string;
+  myRole: "OWNER" | "MEMBER";
+  myVip: boolean;
+}
+
+export interface BarMember {
+  id: string;
+  barId: string;
+  userId: string;
+  role: "OWNER" | "MEMBER";
+  vip: boolean;
+  createdAt: string;
+  user: { username: string };
+}
