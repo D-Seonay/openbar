@@ -7,10 +7,10 @@ import { UsersService } from '../users/users.service';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let usersService: { findByUsername: jest.Mock };
+  let usersService: { findByUsername: jest.Mock; create: jest.Mock };
 
   beforeEach(async () => {
-    usersService = { findByUsername: jest.fn() };
+    usersService = { findByUsername: jest.fn(), create: jest.fn() };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -56,5 +56,20 @@ describe('AuthService', () => {
     usersService.findByUsername.mockResolvedValue(null);
 
     await expect(service.login('ghost', 'whatever')).rejects.toThrow(UnauthorizedException);
+  });
+
+  it('creates a new account and returns a signed token on signup', async () => {
+    usersService.create.mockResolvedValue({
+      id: '2',
+      username: 'newuser',
+      role: 'USER',
+      vip: false,
+    });
+
+    const result = await service.signup('newuser', 'secret123');
+
+    expect(usersService.create).toHaveBeenCalledWith({ username: 'newuser', password: 'secret123' });
+    expect(result.token).toBe('signed.jwt.token');
+    expect(result.user).toEqual({ id: '2', username: 'newuser', role: 'USER', vip: false });
   });
 });

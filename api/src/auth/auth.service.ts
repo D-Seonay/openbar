@@ -10,6 +10,13 @@ export interface JwtPayload {
   vip: boolean;
 }
 
+interface AuthenticatedUser {
+  id: string;
+  username: string;
+  role: 'ADMIN' | 'USER';
+  vip: boolean;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -25,8 +32,7 @@ export class AuthService {
     return user;
   }
 
-  async login(username: string, password: string) {
-    const user = await this.validateUser(username, password);
+  private issueToken(user: AuthenticatedUser) {
     const payload: JwtPayload = {
       sub: user.id,
       username: user.username,
@@ -37,5 +43,15 @@ export class AuthService {
       token: this.jwtService.sign(payload),
       user: { id: user.id, username: user.username, role: user.role, vip: user.vip },
     };
+  }
+
+  async login(username: string, password: string) {
+    const user = await this.validateUser(username, password);
+    return this.issueToken(user);
+  }
+
+  async signup(username: string, password: string) {
+    const user = await this.usersService.create({ username, password });
+    return this.issueToken(user);
   }
 }
