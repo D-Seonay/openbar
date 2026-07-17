@@ -32,15 +32,21 @@ enum RecipeDifficulty {
   Expert
 }
 
+enum BarRole {
+  OWNER
+  MEMBER
+}
+
 model User {
-  id            String         @id @default(cuid())
-  username      String         @unique
-  passwordHash  String
-  role          Role           @default(USER)
-  vip           Boolean        @default(false)
-  createdAt     DateTime       @default(now())
-  contributions Contribution[]
-  recipes       Recipe[]
+  id              String         @id @default(cuid())
+  username        String         @unique
+  passwordHash    String
+  role            Role           @default(USER)
+  vip             Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  contributions   Contribution[]
+  recipes         Recipe[]
+  barMemberships  BarMembership[]
 }
 
 model Bottle {
@@ -113,4 +119,24 @@ model Recipe {
   createdById     String
   createdBy       User             @relation(fields: [createdById], references: [id])
   createdAt       DateTime         @default(now())
+}
+
+model Bar {
+  id          String          @id @default(cuid())
+  name        String
+  createdAt   DateTime        @default(now())
+  memberships BarMembership[]
+}
+
+model BarMembership {
+  id        String   @id @default(cuid())
+  barId     String
+  bar       Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      BarRole
+  vip       Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([barId, userId])
 }
