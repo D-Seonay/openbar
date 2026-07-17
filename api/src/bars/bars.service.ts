@@ -1,4 +1,9 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
 
@@ -58,14 +63,20 @@ export class BarsService {
     });
   }
 
-  async inviteMember(barId: string, requesterId: string, username: string, vip: boolean) {
+  async inviteMember(
+    barId: string,
+    requesterId: string,
+    username: string,
+    vip: boolean,
+  ) {
     await this.assertOwner(barId, requesterId);
 
     const target = await this.usersService.findByUsername(username);
     if (!target) throw new NotFoundException('Utilisateur introuvable');
 
     const existing = await this.getMembership(barId, target.id);
-    if (existing) throw new ConflictException('Cette personne a déjà accès à ce bar');
+    if (existing)
+      throw new ConflictException('Cette personne a déjà accès à ce bar');
 
     return this.prisma.barMembership.create({
       data: { barId, userId: target.id, role: 'MEMBER', vip },
@@ -73,13 +84,23 @@ export class BarsService {
     });
   }
 
-  async updateMemberVip(barId: string, requesterId: string, membershipId: string, vip: boolean) {
+  async updateMemberVip(
+    barId: string,
+    requesterId: string,
+    membershipId: string,
+    vip: boolean,
+  ) {
     await this.assertOwner(barId, requesterId);
 
-    const membership = await this.prisma.barMembership.findUnique({ where: { id: membershipId } });
-    if (!membership || membership.barId !== barId) throw new NotFoundException('Membre introuvable');
+    const membership = await this.prisma.barMembership.findUnique({
+      where: { id: membershipId },
+    });
+    if (!membership || membership.barId !== barId)
+      throw new NotFoundException('Membre introuvable');
     if (membership.role === 'OWNER') {
-      throw new ForbiddenException('Impossible de modifier le statut du propriétaire');
+      throw new ForbiddenException(
+        'Impossible de modifier le statut du propriétaire',
+      );
     }
 
     return this.prisma.barMembership.update({
@@ -92,17 +113,24 @@ export class BarsService {
   async removeMember(barId: string, requesterId: string, membershipId: string) {
     await this.getBar(barId);
 
-    const membership = await this.prisma.barMembership.findUnique({ where: { id: membershipId } });
-    if (!membership || membership.barId !== barId) throw new NotFoundException('Membre introuvable');
+    const membership = await this.prisma.barMembership.findUnique({
+      where: { id: membershipId },
+    });
+    if (!membership || membership.barId !== barId)
+      throw new NotFoundException('Membre introuvable');
     if (membership.role === 'OWNER') {
-      throw new ForbiddenException('Impossible de retirer le propriétaire du bar');
+      throw new ForbiddenException(
+        'Impossible de retirer le propriétaire du bar',
+      );
     }
 
     const requesterMembership = await this.getMembership(barId, requesterId);
     const isOwner = requesterMembership?.role === 'OWNER';
     const isSelf = membership.userId === requesterId;
     if (!isOwner && !isSelf) {
-      throw new ForbiddenException('Vous ne pouvez retirer que vous-même, ou être le propriétaire du bar');
+      throw new ForbiddenException(
+        'Vous ne pouvez retirer que vous-même, ou être le propriétaire du bar',
+      );
     }
 
     await this.prisma.barMembership.delete({ where: { id: membershipId } });
@@ -116,14 +144,18 @@ export class BarsService {
   }
 
   private getMembership(barId: string, userId: string) {
-    return this.prisma.barMembership.findUnique({ where: { barId_userId: { barId, userId } } });
+    return this.prisma.barMembership.findUnique({
+      where: { barId_userId: { barId, userId } },
+    });
   }
 
   private async assertOwner(barId: string, userId: string) {
     await this.getBar(barId);
     const membership = await this.getMembership(barId, userId);
     if (!membership || membership.role !== 'OWNER') {
-      throw new ForbiddenException('Seul le propriétaire du bar peut effectuer cette action');
+      throw new ForbiddenException(
+        'Seul le propriétaire du bar peut effectuer cette action',
+      );
     }
   }
 }
