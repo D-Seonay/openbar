@@ -1,50 +1,64 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
 import type { JwtPayload } from '../auth/auth.service';
-import { canSeeVip } from '../auth/vip.util';
+import { BarAccessService } from '../bars/bar-access.service';
 import { BottlesService } from './bottles.service';
 import { CreateBottleDto } from './dto/create-bottle.dto';
 import { UpdateBottleDto } from './dto/update-bottle.dto';
 
+@UseGuards(JwtAuthGuard)
 @Controller('bottles')
 export class BottlesController {
-  constructor(private readonly bottlesService: BottlesService) {}
+  constructor(
+    private readonly bottlesService: BottlesService,
+    private readonly barAccessService: BarAccessService,
+  ) {}
 
-  @UseGuards(OptionalJwtAuthGuard)
   @Get()
-  findAll(@Req() req: Request) {
-    return this.bottlesService.findAll(canSeeVip(req.user as JwtPayload | undefined));
+  async findAll(@Req() req: Request, @Query('barId') barId: string) {
+    const user = req.user as JwtPayload;
+    const { canSeeVip } = await this.barAccessService.assertMember(barId, user);
+    return this.bottlesService.findAll(barId, canSeeVip);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.bottlesService.findOne(id);
+  async findOne(@Req() req: Request, @Param('id') id: string) {
+    const user = req.user as JwtPayload;
+    const bottle = await this.bottlesService.findOne(id);
+    await this.barAccessService.assertMember(bottle.barId, user);
+    return bottle;
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
   @Post()
-  create(@Body() dto: CreateBottleDto) {
+  async create(@Req() req: Request, @Body() dto: CreateBottleDto) {
+    const user = req.user as JwtPayload;
+    const { isOwnerOrAdmin } = await this.barAccessService.assertMember(dto.barId, user);
+    if (!isOwnerOrAdmin) {
+      throw new ForbiddenException('Seul le propriétaire du bar peut gérer le stock');
+    }
     return this.bottlesService.create(dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateBottleDto) {
+  async update(@Req() req: Request, @Param('id') id: string, @Body() dto: UpdateBottleDto) {
+    const user = req.user as JwtPayload;
+    const bottle = await this.bottlesService.findOne(id);
+    const { isOwnerOrAdmin } = await this.barAccessService.assertMember(bottle.barId, user);
+    if (!isOwnerOrAdmin) {
+      throw new ForbiddenException('Seul le propriétaire du bar peut gérer le stock');
+    }
     return this.bottlesService.update(id, dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Req() req: Request, @Param('id') id: string) {
+    const user = req.user as JwtPayload;
+    const bottle = await this.bottlesService.findOne(id);
+    const { isOwnerOrAdmin } = await this.barAccessService.assertMember(bottle.barId, user);
+    if (!isOwnerOrAdmin) {
+      throw new ForbiddenException('Seul le propriétaire du bar peut gérer le stock');
+    }
     return this.bottlesService.remove(id);
   }
 }

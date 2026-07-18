@@ -12,6 +12,9 @@ class BottleVolumeDto {
 
 export class CreateBottleDto {
   @IsString()
+  barId: string;
+
+  @IsString()
   name: string;
 
   @IsEnum(BottleType)

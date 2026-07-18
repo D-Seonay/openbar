@@ -8,9 +8,9 @@ import { UpdateBottleDto } from './dto/update-bottle.dto';
 export class BottlesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(includeVip: boolean) {
+  findAll(barId: string, includeVip: boolean) {
     return this.prisma.bottle.findMany({
-      where: includeVip ? undefined : { vip: false },
+      where: { barId, ...(includeVip ? {} : { vip: false }) },
       include: { volumes: true },
       orderBy: { name: 'asc' },
     });
