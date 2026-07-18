@@ -1,13 +1,22 @@
-import { notFound } from "next/navigation";
-import { getEvent, listBottles } from "@/lib/api-client";
+import { notFound, redirect } from "next/navigation";
+import { getEvent, listBottles, listMyBars } from "@/lib/api-client";
+import { getSession } from "@/lib/session";
+import { resolveActiveBar } from "@/lib/active-bar";
 import BilanClientForm from "./BilanClientForm";
 
 export default async function BilanPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const session = await getSession();
+  if (!session) redirect("/login");
+
   const event = await getEvent(slug);
   if (!event) notFound();
 
-  const bottles = await listBottles();
+  const bars = await listMyBars();
+  const activeBar = await resolveActiveBar(bars);
+  if (!activeBar) redirect("/creer");
+
+  const bottles = await listBottles(activeBar.id);
   // Sort alphabetically so it is predictable
   bottles.sort((a, b) => a.name.localeCompare(b.name));
 

@@ -1,22 +1,28 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { getEvent, listContributions, listBottles, listStockAdjustments, evaluateCocktails } from "@/lib/api-client";
+import { getEvent, listContributions, listBottles, listStockAdjustments, evaluateCocktails, listMyBars } from "@/lib/api-client";
 import { getSession } from "@/lib/session";
+import { resolveActiveBar } from "@/lib/active-bar";
 import GuestPanel from "./GuestPanel";
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const session = await getSession();
+  if (!session) redirect("/login");
+
   const event = await getEvent(slug);
   if (!event) notFound();
 
-  const [bottles, adjustments, availability, session] = await Promise.all([
-    listBottles(),
-    listStockAdjustments(slug),
-    evaluateCocktails(),
-    getSession(),
-  ]);
+  const bars = await listMyBars();
+  const activeBar = await resolveActiveBar(bars);
+  if (!activeBar) redirect("/creer");
 
-  const contributions = session ? await listContributions(slug) : [];
+  const [bottles, adjustments, availability, contributions] = await Promise.all([
+    listBottles(activeBar.id),
+    listStockAdjustments(slug),
+    evaluateCocktails(activeBar.id),
+    listContributions(slug),
+  ]);
 
   const stock = bottles
     .filter((b) => !b.vip && b.type !== "mixer" && b.quantity > 0)

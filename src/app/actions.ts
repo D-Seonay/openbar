@@ -166,19 +166,19 @@ export async function deleteRecipeAction(id: string) {
   revalidatePath("/cocktails");
 }
 
-export async function createEvent(formData: FormData) {
-  await requireAdmin();
+export async function createEvent(barId: string, formData: FormData) {
+  await requireBarOwnerOrAdmin(barId);
   const name = String(formData.get("name") ?? "").trim();
   const date = String(formData.get("date") ?? "");
   if (!name || !date) return;
 
-  const event = await api.createEvent({ name, date });
+  const event = await api.createEvent(barId, { name, date });
   revalidatePath("/soirees");
   redirect(`/soirees/${event.slug}`);
 }
 
 export async function deleteEventAction(slug: string) {
-  await requireAdmin();
+  await requireLoggedIn();
   await api.deleteEvent(slug);
   revalidatePath("/soirees");
 }
@@ -198,7 +198,7 @@ export async function deleteContributionAction(slug: string, id: string) {
 }
 
 export async function submitBilan(slug: string, formData: FormData) {
-  await requireAdmin();
+  await requireLoggedIn();
   const changes: { bottleId: string; quantityAfter: number }[] = [];
   for (const [key, value] of formData.entries()) {
     if (!key.startsWith("quantity-")) continue;

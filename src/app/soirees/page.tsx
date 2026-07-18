@@ -1,12 +1,22 @@
 import Link from "next/link";
-import { listEvents } from "@/lib/api-client";
+import { redirect } from "next/navigation";
+import { listEvents, listMyBars } from "@/lib/api-client";
 import { createEvent } from "@/app/actions";
+import { getSession } from "@/lib/session";
+import { resolveActiveBar } from "@/lib/active-bar";
 import CopyLink from "./CopyLink";
 import DeleteEventButton from "./DeleteEventButton";
 import PageTransition from "@/components/PageTransition";
 
 export default async function SoireesPage() {
-  const events = await listEvents();
+  const session = await getSession();
+  if (!session) redirect("/login");
+
+  const bars = await listMyBars();
+  const activeBar = await resolveActiveBar(bars);
+  if (!activeBar) redirect("/creer");
+
+  const events = await listEvents(activeBar.id);
   const sorted = [...events].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
@@ -26,7 +36,7 @@ export default async function SoireesPage() {
             <h2 className="font-display text-xl text-cream">Créer un Événement</h2>
             <p className="text-muted text-[11px] mt-0.5">Configurez une nouvelle date.</p>
           </div>
-          <form action={createEvent} className="space-y-3.5">
+          <form action={createEvent.bind(null, activeBar.id)} className="space-y-3.5">
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted mb-1 block">Nom de la soirée</label>
               <input
