@@ -88,14 +88,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export { ApiError };
 
 // Bottles
-export function listBottles(): Promise<Bottle[]> {
-  return request<Bottle[]>("/bottles");
+export function listBottles(barId: string): Promise<Bottle[]> {
+  return request<Bottle[]>(`/bottles?barId=${barId}`);
 }
 
 export function addBottle(
+  barId: string,
   input: Omit<Bottle, "id" | "createdAt">,
 ): Promise<Bottle> {
-  return request<Bottle>("/bottles", { method: "POST", body: JSON.stringify(input) });
+  return request<Bottle>("/bottles", { method: "POST", body: JSON.stringify({ ...input, barId }) });
 }
 
 export function updateBottle(
@@ -110,8 +111,8 @@ export function deleteBottle(id: string): Promise<{ success: boolean }> {
 }
 
 // Events
-export function listEvents(): Promise<EventItem[]> {
-  return request<EventItem[]>("/events");
+export function listEvents(barId: string): Promise<EventItem[]> {
+  return request<EventItem[]>(`/events?barId=${barId}`);
 }
 
 export async function getEvent(slug: string): Promise<EventItem | null> {
@@ -123,8 +124,8 @@ export async function getEvent(slug: string): Promise<EventItem | null> {
   }
 }
 
-export function createEvent(input: { name: string; date: string }): Promise<EventItem> {
-  return request<EventItem>("/events", { method: "POST", body: JSON.stringify(input) });
+export function createEvent(barId: string, input: { name: string; date: string }): Promise<EventItem> {
+  return request<EventItem>("/events", { method: "POST", body: JSON.stringify({ ...input, barId }) });
 }
 
 export function deleteEvent(slug: string): Promise<{ success: boolean }> {
@@ -166,8 +167,8 @@ export function applyStockAdjustments(
 }
 
 // Cocktails
-export function evaluateCocktails(): Promise<RecipeAvailability[]> {
-  return request<RecipeAvailability[]>("/cocktails");
+export function evaluateCocktails(barId: string): Promise<RecipeAvailability[]> {
+  return request<RecipeAvailability[]>(`/cocktails?barId=${barId}`);
 }
 
 export interface RecipeInput {
@@ -182,8 +183,8 @@ export interface RecipeInput {
   vip: boolean;
 }
 
-export function createRecipe(input: RecipeInput): Promise<CocktailRecipe> {
-  return request<CocktailRecipe>("/recipes", { method: "POST", body: JSON.stringify(input) });
+export function createRecipe(barId: string, input: RecipeInput): Promise<CocktailRecipe> {
+  return request<CocktailRecipe>("/recipes", { method: "POST", body: JSON.stringify({ ...input, barId }) });
 }
 
 export function updateRecipe(id: string, input: Partial<RecipeInput>): Promise<CocktailRecipe> {
