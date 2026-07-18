@@ -36,6 +36,16 @@ async function requireBarOwnerOrAdmin(barId: string) {
   if (!isOwner) redirect("/");
 }
 
+async function requireBarVipOrAdmin(barId: string) {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  if (session.role === "ADMIN") return;
+
+  const bars = await api.listMyBars();
+  const bar = bars.find((b) => b.id === barId);
+  if (!bar || !bar.myVip) redirect("/");
+}
+
 function parseTags(raw: FormDataEntryValue | null): string[] {
   if (!raw) return [];
   return String(raw)
@@ -130,13 +140,13 @@ function parseRecipeFormData(formData: FormData) {
   return { name, glass, prepTime, difficulty, description, vip, tags, ingredientsList, instructions };
 }
 
-export async function createRecipe(formData: FormData) {
-  await requireVipOrAdmin();
+export async function createRecipe(barId: string, formData: FormData) {
+  await requireBarVipOrAdmin(barId);
   const input = parseRecipeFormData(formData);
   if (!input.name || input.tags.length === 0 || input.ingredientsList.length === 0 || input.instructions.length === 0) {
     return;
   }
-  await api.createRecipe(input);
+  await api.createRecipe(barId, input);
   revalidatePath("/cocktails");
 }
 

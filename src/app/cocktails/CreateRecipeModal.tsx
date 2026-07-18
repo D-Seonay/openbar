@@ -11,9 +11,10 @@ interface CreateRecipeModalProps {
   allTags: string[];
   initialRecipe?: CocktailRecipe;
   onClose: () => void;
+  barId: string;
 }
 
-export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClose }: CreateRecipeModalProps) {
+export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClose, barId }: CreateRecipeModalProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>(initialRecipe?.tags ?? []);
   const [ingredientsList, setIngredientsList] = useState<string[]>(initialRecipe?.ingredientsList ?? [""]);
   const [instructions, setInstructions] = useState<string[]>(initialRecipe?.instructions ?? [""]);
@@ -34,7 +35,7 @@ export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClos
   const removeLine = (list: string[], setList: (v: string[]) => void, idx: number) =>
     setList(list.filter((_, i) => i !== idx));
 
-  const action = mode === "edit" && initialRecipe ? updateRecipe.bind(null, initialRecipe.id) : createRecipe;
+  const action = mode === "edit" && initialRecipe ? updateRecipe.bind(null, initialRecipe.id) : createRecipe.bind(null, barId);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     const hasTag = selectedTags.length > 0;

@@ -13,6 +13,7 @@ interface CocktailStudioProps {
   currentUserId?: string;
   isAdmin?: boolean;
   allTags: string[];
+  barId: string;
 }
 
 type FormModalState = { mode: "create" } | { mode: "edit"; recipe: CocktailRecipe } | null;
@@ -23,6 +24,7 @@ export default function CocktailStudio({
   currentUserId,
   isAdmin = false,
   allTags,
+  barId,
 }: CocktailStudioProps) {
   const [activeTab, setActiveTab] = useState<"ready" | "vip" | "locked">("ready");
   const [searchQuery, setSearchQuery] = useState("");
@@ -383,6 +385,7 @@ export default function CocktailStudio({
           allTags={allTags}
           initialRecipe={formModal.mode === "edit" ? formModal.recipe : undefined}
           onClose={() => setFormModal(null)}
+          barId={barId}
         />
       )}
 

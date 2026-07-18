@@ -1,17 +1,25 @@
-import { evaluateCocktails, listBottles } from "@/lib/api-client";
+import { redirect } from "next/navigation";
+import { evaluateCocktails, listBottles, listMyBars } from "@/lib/api-client";
 import { getSession } from "@/lib/session";
+import { resolveActiveBar } from "@/lib/active-bar";
 import CocktailStudio from "./CocktailStudio";
 import PageTransition from "@/components/PageTransition";
 
 export default async function CocktailsPage() {
-  const [results, session, bottles] = await Promise.all([
-    evaluateCocktails(),
-    getSession(),
-    listBottles(),
+  const session = await getSession();
+  if (!session) redirect("/login");
+
+  const bars = await listMyBars();
+  const activeBar = await resolveActiveBar(bars);
+  if (!activeBar) redirect("/creer");
+
+  const [results, bottles] = await Promise.all([
+    evaluateCocktails(activeBar.id),
+    listBottles(activeBar.id),
   ]);
 
-  const isVip = Boolean(session?.vip || session?.role === "ADMIN");
-  const isAdmin = session?.role === "ADMIN";
+  const isVip = Boolean(session.vip || session.role === "ADMIN" || activeBar.myVip);
+  const isAdmin = session.role === "ADMIN";
   const allTags = Array.from(new Set(bottles.flatMap((b) => b.tags))).sort();
 
   return (
@@ -31,9 +39,10 @@ export default async function CocktailsPage() {
       <CocktailStudio
         initialResults={results}
         isVip={isVip}
-        currentUserId={session?.sub}
+        currentUserId={session.sub}
         isAdmin={isAdmin}
         allTags={allTags}
+        barId={activeBar.id}
       />
     </PageTransition>
   );
