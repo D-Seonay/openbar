@@ -143,7 +143,7 @@ export class BarsService {
     return bar;
   }
 
-  private getMembership(barId: string, userId: string) {
+  getMembership(barId: string, userId: string) {
     return this.prisma.barMembership.findUnique({
       where: { barId_userId: { barId, userId } },
     });
