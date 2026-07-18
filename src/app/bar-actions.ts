@@ -2,8 +2,10 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import * as api from "@/lib/api-client";
 import { SESSION_COOKIE, getSession } from "@/lib/session";
+import { ACTIVE_BAR_COOKIE } from "@/lib/active-bar";
 
 export async function signup(formData: FormData) {
   const username = String(formData.get("username") ?? "").trim();
@@ -43,4 +45,16 @@ export async function createBarAction(formData: FormData) {
 
   await api.createBar(name);
   redirect("/");
+}
+
+export async function switchBarAction(barId: string) {
+  await requireSession();
+  const cookieStore = await cookies();
+  cookieStore.set(ACTIVE_BAR_COOKIE, barId, {
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 30,
+    path: "/",
+  });
+  revalidatePath("/");
 }

@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
-import { isAdminLoggedIn } from "@/lib/session";
+import { getSession } from "@/lib/session";
+import { listMyBars } from "@/lib/api-client";
+import { resolveActiveBar } from "@/lib/active-bar";
 import Navigation from "@/components/Navigation";
+import BarSwitcher from "@/components/BarSwitcher";
 
 const outfit = Outfit({
   weight: ["500", "600", "700", "800"],
@@ -27,7 +30,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const isAdmin = await isAdminLoggedIn();
+  const session = await getSession();
+  const isAdmin = session?.role === "ADMIN";
+  const bars = session ? await listMyBars() : [];
+  const activeBar = session ? await resolveActiveBar(bars) : null;
 
   return (
     <html lang="fr" className={`h-full ${outfit.variable} ${jakarta.variable}`}>
@@ -52,7 +58,18 @@ export default async function RootLayout({
               </span>
             </Link>
 
-            <Navigation isAdmin={isAdmin} />
+            <div className="flex items-center gap-3">
+              {session && !activeBar && (
+                <Link
+                  href="/creer"
+                  className="text-xs font-semibold uppercase tracking-wider text-orange hover:text-orange-hover transition-colors"
+                >
+                  Crée ton bar
+                </Link>
+              )}
+              {activeBar && bars.length > 1 && <BarSwitcher bars={bars} activeBarId={activeBar.id} />}
+              <Navigation isAdmin={isAdmin} isBarOwner={activeBar?.myRole === "OWNER"} />
+            </div>
           </div>
         </header>
 
