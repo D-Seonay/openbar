@@ -54,10 +54,10 @@ export class CocktailsService {
     private readonly recipesService: RecipesService,
   ) {}
 
-  async evaluate(includeVip: boolean): Promise<RecipeAvailability[]> {
+  async evaluate(barId: string, includeVip: boolean): Promise<RecipeAvailability[]> {
     const [bottles, customRecipes] = await Promise.all([
-      this.bottlesService.findAll(includeVip),
-      this.recipesService.findVisible(includeVip),
+      this.bottlesService.findAll(barId, includeVip),
+      this.recipesService.findVisible(barId, includeVip),
     ]);
 
     const mapped: CocktailRecipe[] = customRecipes.map((r) => ({
