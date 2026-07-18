@@ -58,3 +58,35 @@ export async function switchBarAction(barId: string) {
   });
   revalidatePath("/");
 }
+
+export async function inviteMemberAction(barId: string, formData: FormData): Promise<{ error?: string }> {
+  await requireSession();
+  const username = String(formData.get("username") ?? "").trim();
+  const vip = formData.get("vip") === "on";
+  if (!username) return { error: "Nom d'utilisateur requis" };
+
+  try {
+    await api.inviteBarMember(barId, username, vip);
+    revalidatePath("/membres");
+    return {};
+  } catch (err) {
+    return { error: err instanceof api.ApiError ? err.message : "Erreur lors de l'invitation" };
+  }
+}
+
+export async function toggleMemberVipAction(barId: string, membershipId: string, vip: boolean) {
+  await requireSession();
+  await api.updateBarMemberVip(barId, membershipId, vip);
+  revalidatePath("/membres");
+}
+
+export async function removeMemberAction(barId: string, membershipId: string): Promise<{ error?: string }> {
+  await requireSession();
+  try {
+    await api.removeBarMember(barId, membershipId);
+    revalidatePath("/membres");
+    return {};
+  } catch (err) {
+    return { error: err instanceof api.ApiError ? err.message : "Erreur lors de la révocation" };
+  }
+}
