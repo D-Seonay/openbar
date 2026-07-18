@@ -1,38 +1,52 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
+import type { JwtPayload } from '../auth/auth.service';
+import { BarAccessService } from '../bars/bar-access.service';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 
+@UseGuards(JwtAuthGuard)
 @Controller('events')
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) {}
+  constructor(
+    private readonly eventsService: EventsService,
+    private readonly barAccessService: BarAccessService,
+  ) {}
 
-  @UseGuards(OptionalJwtAuthGuard)
   @Get()
-  findAll() {
-    return this.eventsService.findAll();
+  async findAll(@Req() req: Request, @Query('barId') barId: string) {
+    const user = req.user as JwtPayload;
+    await this.barAccessService.assertMember(barId, user);
+    return this.eventsService.findAll(barId);
   }
 
-  @UseGuards(OptionalJwtAuthGuard)
   @Get(':slug')
-  findOne(@Param('slug') slug: string) {
-    return this.eventsService.findBySlug(slug);
+  async findOne(@Req() req: Request, @Param('slug') slug: string) {
+    const user = req.user as JwtPayload;
+    const event = await this.eventsService.findBySlug(slug);
+    await this.barAccessService.assertMember(event.barId, user);
+    return event;
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
   @Post()
-  create(@Body() dto: CreateEventDto) {
+  async create(@Req() req: Request, @Body() dto: CreateEventDto) {
+    const user = req.user as JwtPayload;
+    const { isOwnerOrAdmin } = await this.barAccessService.assertMember(dto.barId, user);
+    if (!isOwnerOrAdmin) {
+      throw new ForbiddenException('Seul le propriétaire du bar peut créer une soirée');
+    }
     return this.eventsService.create(dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
   @Delete(':slug')
-  remove(@Param('slug') slug: string) {
+  async remove(@Req() req: Request, @Param('slug') slug: string) {
+    const user = req.user as JwtPayload;
+    const event = await this.eventsService.findBySlug(slug);
+    const { isOwnerOrAdmin } = await this.barAccessService.assertMember(event.barId, user);
+    if (!isOwnerOrAdmin) {
+      throw new ForbiddenException('Seul le propriétaire du bar peut supprimer une soirée');
+    }
     return this.eventsService.remove(slug);
   }
 }

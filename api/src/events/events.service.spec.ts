@@ -25,7 +25,7 @@ describe('EventsService', () => {
     prisma.event.findUnique.mockResolvedValue(null);
     prisma.event.create.mockImplementation(({ data }) => Promise.resolve(data));
 
-    const event = await service.create({ name: 'Apéro du samedi', date: '2026-07-11' });
+    const event = await service.create({ barId: 'bar-1', name: 'Apéro du samedi', date: '2026-07-11' });
 
     expect(event.slug).toBe('apero-du-samedi');
   });
@@ -36,8 +36,17 @@ describe('EventsService', () => {
       .mockResolvedValueOnce(null);
     prisma.event.create.mockImplementation(({ data }) => Promise.resolve(data));
 
-    const event = await service.create({ name: 'Apéro du samedi', date: '2026-07-18' });
+    const event = await service.create({ barId: 'bar-1', name: 'Apéro du samedi', date: '2026-07-18' });
 
     expect(event.slug).toBe('apero-du-samedi-2');
+  });
+
+  it('scopes findAll to the given bar', async () => {
+    await service.findAll('bar-1');
+
+    expect(prisma.event.findMany).toHaveBeenCalledWith({
+      where: { barId: 'bar-1' },
+      orderBy: { date: 'asc' },
+    });
   });
 });

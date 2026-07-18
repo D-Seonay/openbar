@@ -17,8 +17,8 @@ function slugify(name: string) {
 export class EventsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
-    return this.prisma.event.findMany({ orderBy: { date: 'asc' } });
+  findAll(barId: string) {
+    return this.prisma.event.findMany({ where: { barId }, orderBy: { date: 'asc' } });
   }
 
   async findBySlug(slug: string) {
@@ -35,7 +35,7 @@ export class EventsService {
       n += 1;
       slug = `${base}-${n}`;
     }
-    return this.prisma.event.create({ data: { name: dto.name, date: dto.date, slug } });
+    return this.prisma.event.create({ data: { barId: dto.barId, name: dto.name, date: dto.date, slug } });
   }
 
   async remove(slug: string) {
