@@ -1,18 +1,26 @@
 import Link from "next/link";
-import { listBottles, listEvents, evaluateCocktails } from "@/lib/api-client";
+import { redirect } from "next/navigation";
+import { listBottles, listEvents, evaluateCocktails, listMyBars } from "@/lib/api-client";
 import { getSession } from "@/lib/session";
+import { resolveActiveBar } from "@/lib/active-bar";
 import PageTransition from "@/components/PageTransition";
 import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
 
 export default async function HomePage() {
-  const [bottles, events, availability, session] = await Promise.all([
-    listBottles(),
-    listEvents(),
-    evaluateCocktails(),
-    getSession(),
+  const session = await getSession();
+  if (!session) redirect("/login");
+
+  const bars = await listMyBars();
+  const activeBar = await resolveActiveBar(bars);
+  if (!activeBar) redirect("/creer");
+
+  const [bottles, events, availability] = await Promise.all([
+    listBottles(activeBar.id),
+    listEvents(activeBar.id),
+    evaluateCocktails(activeBar.id),
   ]);
 
-  const isVipOrAdmin = Boolean(session?.vip || session?.role === "ADMIN");
+  const isVipOrAdmin = Boolean(session.vip || session.role === "ADMIN" || activeBar.myVip);
   const accessibleBottles = isVipOrAdmin ? bottles : bottles.filter((b) => !b.vip);
 
   const stockCount = accessibleBottles.filter((b) => !b.vip && b.type !== "mixer" && b.quantity > 0).length;

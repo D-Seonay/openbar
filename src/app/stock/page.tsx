@@ -1,19 +1,25 @@
-import { listBottles } from "@/lib/api-client";
+import { redirect } from "next/navigation";
+import { listBottles, listMyBars } from "@/lib/api-client";
 import { calculateBottleTotalLiters, calculateTotalBottlesCount, formatLiters } from "@/lib/volumeUtils";
-import { isAdminLoggedIn, getSession } from "@/lib/session";
+import { getSession } from "@/lib/session";
+import { resolveActiveBar } from "@/lib/active-bar";
 import StockStudio from "./StockStudio";
 import AddBottleForm from "./AddBottleForm";
 import PageTransition from "@/components/PageTransition";
 import AlertsManagerTrigger from "./AlertsManagerTrigger";
 
 export default async function StockPage() {
-  const [isAdmin, session, bottles] = await Promise.all([
-    isAdminLoggedIn(),
-    getSession(),
-    listBottles(),
-  ]);
+  const session = await getSession();
+  if (!session) redirect("/login");
 
-  const isVipOrAdmin = Boolean(session?.vip || session?.role === "ADMIN");
+  const bars = await listMyBars();
+  const activeBar = await resolveActiveBar(bars);
+  if (!activeBar) redirect("/creer");
+
+  const bottles = await listBottles(activeBar.id);
+
+  const isVipOrAdmin = Boolean(session.vip || session.role === "ADMIN" || activeBar.myVip);
+  const canManageStock = session.role === "ADMIN" || activeBar.myRole === "OWNER";
 
   const normal = bottles.filter((b) => !b.vip);
   const vip = bottles.filter((b) => b.vip);
@@ -26,7 +32,7 @@ export default async function StockPage() {
     (b) => b.lowStockThreshold != null && b.quantity <= b.lowStockThreshold
   ).length;
 
-  const addBottleForm = <AddBottleForm isVip={isVipOrAdmin} />;
+  const addBottleForm = <AddBottleForm isVip={isVipOrAdmin} barId={activeBar.id} />;
 
   return (
     <PageTransition className="space-y-8">
@@ -63,7 +69,7 @@ export default async function StockPage() {
         normalBottles={normal}
         vipBottles={vip}
         addBottleForm={addBottleForm}
-        isAdmin={isAdmin}
+        isAdmin={canManageStock}
         isVip={isVipOrAdmin}
       />
     </PageTransition>

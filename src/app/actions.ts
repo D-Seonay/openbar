@@ -21,6 +21,21 @@ async function requireVipOrAdmin() {
   }
 }
 
+async function requireLoggedIn() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+}
+
+async function requireBarOwnerOrAdmin(barId: string) {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  if (session.role === "ADMIN") return;
+
+  const bars = await api.listMyBars();
+  const isOwner = bars.some((bar) => bar.id === barId && bar.myRole === "OWNER");
+  if (!isOwner) redirect("/");
+}
+
 function parseTags(raw: FormDataEntryValue | null): string[] {
   if (!raw) return [];
   return String(raw)
@@ -29,8 +44,8 @@ function parseTags(raw: FormDataEntryValue | null): string[] {
     .filter(Boolean);
 }
 
-export async function createBottle(formData: FormData) {
-  await requireAdmin();
+export async function createBottle(barId: string, formData: FormData) {
+  await requireBarOwnerOrAdmin(barId);
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return;
   const type = String(formData.get("type") ?? "autre") as BottleType;
@@ -54,14 +69,14 @@ export async function createBottle(formData: FormData) {
     }
   }
 
-  await api.addBottle({ name, type, quantity, vip, tags, notes, lowStockThreshold, volumes, imageUrl });
+  await api.addBottle(barId, { name, type, quantity, vip, tags, notes, lowStockThreshold, volumes, imageUrl });
   revalidatePath("/stock");
   revalidatePath("/cocktails");
   revalidatePath("/");
 }
 
 export async function updateBottleQuantity(id: string, quantity: number) {
-  await requireAdmin();
+  await requireLoggedIn();
   await api.updateBottle(id, { quantity: Math.max(0, quantity) });
   revalidatePath("/stock");
   revalidatePath("/cocktails");
@@ -69,7 +84,7 @@ export async function updateBottleQuantity(id: string, quantity: number) {
 }
 
 export async function updateBottleVolumes(id: string, volumes: BottleVolume[], imageUrl?: string) {
-  await requireAdmin();
+  await requireLoggedIn();
   const quantity = volumes.reduce((sum, v) => sum + v.quantity, 0);
   await api.updateBottle(id, { volumes, quantity, imageUrl });
   revalidatePath("/stock");
@@ -77,14 +92,14 @@ export async function updateBottleVolumes(id: string, volumes: BottleVolume[], i
 }
 
 export async function updateBottleThreshold(id: string, threshold: number | null) {
-  await requireAdmin();
+  await requireLoggedIn();
   await api.updateBottle(id, { lowStockThreshold: threshold ?? undefined });
   revalidatePath("/stock");
   revalidatePath("/");
 }
 
 export async function deleteBottleAction(id: string) {
-  await requireAdmin();
+  await requireLoggedIn();
   await api.deleteBottle(id);
   revalidatePath("/stock");
   revalidatePath("/cocktails");

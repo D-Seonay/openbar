@@ -19,7 +19,7 @@ const TYPES = [
   ["autre", "Autre"],
 ] as const;
 
-export default function AddBottleForm({ isVip = false }: { isVip?: boolean }) {
+export default function AddBottleForm({ isVip = false, barId }: { isVip?: boolean; barId: string }) {
   const [volumes, setVolumes] = useState<BottleVolume[]>([{ size: "70cl", quantity: 1 }]);
   const [imageUrl, setImageUrl] = useState("");
 
@@ -42,7 +42,7 @@ export default function AddBottleForm({ isVip = false }: { isVip?: boolean }) {
   };
 
   return (
-    <form action={createBottle} className="grid sm:grid-cols-2 gap-4">
+    <form action={createBottle.bind(null, barId)} className="grid sm:grid-cols-2 gap-4">
       {/* Hidden input to pass volumes list as JSON */}
       <input type="hidden" name="volumes" value={JSON.stringify(volumes)} />
 
