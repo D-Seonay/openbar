@@ -59,6 +59,8 @@ model Bottle {
   notes             String?
   lowStockThreshold Float?
   imageUrl          String?
+  barId             String
+  bar               Bar               @relation(fields: [barId], references: [id], onDelete: Cascade)
   createdAt         DateTime          @default(now())
   volumes           BottleVolume[]
   stockAdjustments  StockAdjustment[]
@@ -77,6 +79,8 @@ model Event {
   slug             String            @unique
   name             String
   date             String
+  barId            String
+  bar              Bar               @relation(fields: [barId], references: [id], onDelete: Cascade)
   createdAt        DateTime          @default(now())
   contributions    Contribution[]
   stockAdjustments StockAdjustment[]
@@ -118,6 +122,8 @@ model Recipe {
   vip             Boolean          @default(false)
   createdById     String
   createdBy       User             @relation(fields: [createdById], references: [id])
+  barId           String
+  bar             Bar              @relation(fields: [barId], references: [id], onDelete: Cascade)
   createdAt       DateTime         @default(now())
 }
 
@@ -126,6 +132,9 @@ model Bar {
   name        String
   createdAt   DateTime        @default(now())
   memberships BarMembership[]
+  bottles     Bottle[]
+  events      Event[]
+  recipes     Recipe[]
 }
 
 model BarMembership {

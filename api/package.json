@@ -17,7 +17,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "migrate:json": "ts-node scripts/migrate-from-json.ts"
+    "migrate:json": "ts-node scripts/migrate-from-json.ts",
+    "backfill:bar-data": "ts-node scripts/backfill-bar-data.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
