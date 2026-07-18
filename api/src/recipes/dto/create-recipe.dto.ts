@@ -3,6 +3,9 @@ import { RecipeDifficulty } from '@prisma/client';
 
 export class CreateRecipeDto {
   @IsString()
+  barId: string;
+
+  @IsString()
   name: string;
 
   @IsString()

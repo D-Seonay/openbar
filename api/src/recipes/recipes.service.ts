@@ -8,9 +8,9 @@ import type { JwtPayload } from '../auth/auth.service';
 export class RecipesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findVisible(includeVip: boolean) {
+  findVisible(barId: string, includeVip: boolean) {
     return this.prisma.recipe.findMany({
-      where: includeVip ? undefined : { vip: false },
+      where: { barId, ...(includeVip ? {} : { vip: false }) },
       include: { createdBy: { select: { username: true } } },
       orderBy: { createdAt: 'desc' },
     });

@@ -2,21 +2,25 @@ import { Body, Controller, Delete, ForbiddenException, Param, Patch, Post, Req, 
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { JwtPayload } from '../auth/auth.service';
-import { canSeeVip } from '../auth/vip.util';
+import { BarAccessService } from '../bars/bar-access.service';
 import { RecipesService } from './recipes.service';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
 
 @Controller('recipes')
 export class RecipesController {
-  constructor(private readonly recipesService: RecipesService) {}
+  constructor(
+    private readonly recipesService: RecipesService,
+    private readonly barAccessService: BarAccessService,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Req() req: Request, @Body() dto: CreateRecipeDto) {
+  async create(@Req() req: Request, @Body() dto: CreateRecipeDto) {
     const user = req.user as JwtPayload;
-    if (!canSeeVip(user)) {
-      throw new ForbiddenException('Réservé aux comptes VIP ou Admin');
+    const { canSeeVip } = await this.barAccessService.assertMember(dto.barId, user);
+    if (!canSeeVip) {
+      throw new ForbiddenException('Réservé aux comptes VIP ou Admin de ce bar');
     }
     return this.recipesService.create(dto, user.sub);
   }

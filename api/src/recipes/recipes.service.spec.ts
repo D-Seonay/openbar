@@ -31,20 +31,20 @@ describe('RecipesService', () => {
   });
 
   it('excludes VIP recipes from the query when includeVip is false', async () => {
-    await service.findVisible(false);
+    await service.findVisible('bar-1', false);
 
     expect(prisma.recipe.findMany).toHaveBeenCalledWith({
-      where: { vip: false },
+      where: { barId: 'bar-1', vip: false },
       include: { createdBy: { select: { username: true } } },
       orderBy: { createdAt: 'desc' },
     });
   });
 
   it('does not filter by vip when includeVip is true', async () => {
-    await service.findVisible(true);
+    await service.findVisible('bar-1', true);
 
     expect(prisma.recipe.findMany).toHaveBeenCalledWith({
-      where: undefined,
+      where: { barId: 'bar-1' },
       include: { createdBy: { select: { username: true } } },
       orderBy: { createdAt: 'desc' },
     });
