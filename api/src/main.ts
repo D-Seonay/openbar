@@ -13,7 +13,7 @@ async function bootstrap() {
     credentials: true,
   });
   // Lightweight health endpoint used by Docker healthcheck probe
-  app.getHttpAdapter().get('/health', (_req, res) => {
+  app.getHttpAdapter().get('/health', (_req: unknown, res: import('express').Response) => {
     res.status(200).json({ status: 'ok' });
   });
   await app.listen(process.env.PORT ?? 3001);
