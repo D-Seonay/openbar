@@ -230,6 +230,14 @@ export class BarsService {
     }
 
     if (accept) {
+      const existingMembership = await this.getMembership(
+        barId,
+        request.userId,
+      );
+      if (existingMembership) {
+        throw new ConflictException('Cet utilisateur est déjà membre de ce bar');
+      }
+
       const [, updated] = await this.prisma.$transaction([
         this.prisma.barMembership.create({
           data: { barId, userId: request.userId, role: 'MEMBER', vip: false },

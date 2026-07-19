@@ -514,7 +514,9 @@ describe('BarsService', () => {
 
     it('accepting creates a membership and marks the request ACCEPTED', async () => {
       prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
-      prisma.barMembership.findUnique.mockResolvedValue({ id: 'm1', role: 'OWNER' });
+      prisma.barMembership.findUnique
+        .mockResolvedValueOnce({ id: 'm1', role: 'OWNER' }) // assertOwner check
+        .mockResolvedValueOnce(null); // existing membership check for requester
       prisma.barJoinRequest.findUnique.mockResolvedValue({
         id: 'req-1',
         barId: BAR_ID,
@@ -528,8 +530,33 @@ describe('BarsService', () => {
 
       const result = await service.respondToJoinRequest(BAR_ID, OWNER_ID, 'req-1', true);
 
+      expect(prisma.barMembership.create).toHaveBeenCalledWith({
+        data: { barId: BAR_ID, userId: OTHER_ID, role: 'MEMBER', vip: false },
+      });
+      expect(prisma.barJoinRequest.update).toHaveBeenCalledWith({
+        where: { id: 'req-1' },
+        data: { status: 'ACCEPTED' },
+      });
       expect(prisma.$transaction).toHaveBeenCalled();
       expect(result).toEqual({ id: 'req-1', status: 'ACCEPTED' });
+    });
+
+    it('rejects acceptance if the requester already has a membership for this bar', async () => {
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
+      prisma.barMembership.findUnique
+        .mockResolvedValueOnce({ id: 'm1', role: 'OWNER' }) // assertOwner check
+        .mockResolvedValueOnce({ id: 'm2', role: 'MEMBER' }); // requester already has a membership
+      prisma.barJoinRequest.findUnique.mockResolvedValue({
+        id: 'req-1',
+        barId: BAR_ID,
+        userId: OTHER_ID,
+        status: 'PENDING',
+      });
+
+      await expect(
+        service.respondToJoinRequest(BAR_ID, OWNER_ID, 'req-1', true),
+      ).rejects.toThrow(ConflictException);
+      expect(prisma.$transaction).not.toHaveBeenCalled();
     });
 
     it('declining marks the request DECLINED without creating a membership', async () => {
