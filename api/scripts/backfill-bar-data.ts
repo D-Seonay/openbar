@@ -21,7 +21,7 @@ async function main() {
   if (!bar) {
     bar = await prisma.bar.create({
       data: {
-        name: 'Le Bar de Noa',
+        name: 'OpenBar',
         memberships: { create: { userId: admin.id, role: 'OWNER', vip: true } },
       },
     });

@@ -78,7 +78,7 @@ export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClos
             <input
               name="name"
               defaultValue={initialRecipe?.name}
-              placeholder="Ex: Le Punch de Noa"
+              placeholder="Ex: Le Punch d'Orange"
               required
               className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
             />
