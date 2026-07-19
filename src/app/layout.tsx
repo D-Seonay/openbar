@@ -6,6 +6,7 @@ import { getSession } from "@/lib/session";
 import { listMyBars } from "@/lib/api-client";
 import { resolveActiveBar } from "@/lib/active-bar";
 import Navigation from "@/components/Navigation";
+import AccountMenu from "@/components/AccountMenu";
 import BarSwitcher from "@/components/BarSwitcher";
 
 const outfit = Outfit({
@@ -69,6 +70,9 @@ export default async function RootLayout({
               )}
               {activeBar && bars.length > 1 && <BarSwitcher bars={bars} activeBarId={activeBar.id} />}
               <Navigation isAdmin={isAdmin} isBarOwner={activeBar?.myRole === "OWNER"} />
+              <div className="pl-2 border-l border-white/[0.1] ml-1 flex items-center">
+                <AccountMenu session={session} />
+              </div>
             </div>
           </div>
         </header>

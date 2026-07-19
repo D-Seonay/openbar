@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import AdminBadge from "./AdminBadge";
 
 const NAV = [
   { href: "/stock", label: "Cave & Stock" },
@@ -44,10 +43,6 @@ export default function Navigation({
       {NAV.map((item) => navLink(item, pathname))}
       {isBarOwner && OWNER_NAV.map((item) => navLink(item, pathname))}
       {isAdmin && ADMIN_NAV.map((item) => navLink(item, pathname))}
-
-      <div className="pl-2 border-l border-white/[0.1] ml-1 flex items-center">
-        <AdminBadge isAdmin={isAdmin} />
-      </div>
     </nav>
   );
 }
