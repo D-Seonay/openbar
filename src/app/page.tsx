@@ -15,10 +15,11 @@ export default async function HomePage() {
   const activeBar = await resolveActiveBar(bars);
   if (!activeBar) redirect("/creer");
 
-  const [bottles, availability, directory, eventsByBar] = await Promise.all([
+  const [bottles, availability, directory, events, eventsByBar] = await Promise.all([
     listBottles(activeBar.id),
     evaluateCocktails(activeBar.id),
     listBarsDirectory(),
+    listEvents(activeBar.id),
     Promise.all(
       bars.map(async (bar) => {
         const barEvents = await listEvents(bar.id);
@@ -40,11 +41,16 @@ export default async function HomePage() {
     .sort((a, b) => (a.quantity - a.lowStockThreshold!) - (b.quantity - b.lowStockThreshold!));
 
   const today = new Date().toISOString().slice(0, 10);
-  const upcoming = eventsByBar
-    .flat()
+  const upcoming = events
     .filter((e) => e.date >= today)
     .sort((a, b) => a.date.localeCompare(b.date));
   const nextEvent = upcoming[0];
+
+  const upcomingAcrossBars = eventsByBar
+    .flat()
+    .filter((e) => e.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const nextEventAcrossAll = upcomingAcrossBars[0];
 
   return (
     <PageTransition className="space-y-8">
@@ -134,18 +140,18 @@ export default async function HomePage() {
               </span>
             </div>
 
-            {nextEvent ? (
+            {nextEventAcrossAll ? (
               <div className="space-y-3">
-                <h3 className="font-display text-2xl font-bold text-cream">{nextEvent.name}</h3>
+                <h3 className="font-display text-2xl font-bold text-cream">{nextEventAcrossAll.name}</h3>
                 <p className="text-orange text-xs font-semibold capitalize">
-                  {new Date(nextEvent.date).toLocaleDateString("fr-FR", {
+                  {new Date(nextEventAcrossAll.date).toLocaleDateString("fr-FR", {
                     weekday: "long",
                     day: "numeric",
                     month: "long",
                     year: "numeric",
                   })}
                   {" · "}
-                  {nextEvent.barName}
+                  {nextEventAcrossAll.barName}
                 </p>
                 <p className="text-xs text-muted leading-relaxed">
                   Le Party Board interactif permet aux invités d&apos;annoncer leurs apports et de promener leurs verres dans le salon.
@@ -159,9 +165,9 @@ export default async function HomePage() {
           </div>
 
           <div className="pt-6 mt-6 border-t border-white/[0.08]">
-            {nextEvent ? (
+            {nextEventAcrossAll ? (
               <Link
-                href={`/soirees/${nextEvent.slug}`}
+                href={`/soirees/${nextEventAcrossAll.slug}`}
                 className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-orange to-orange-hover text-ink font-extrabold text-xs uppercase tracking-wider box-orange-glow transition-all hover:brightness-110"
               >
                 <span>Ouvrir le Party Board</span>
