@@ -8,6 +8,8 @@ import type {
   AccountUser,
   Bar,
   BarMember,
+  BarDirectoryEntry,
+  PendingJoinRequest,
 } from "./types";
 import type { CocktailRecipe, RecipeAvailability } from "./cocktail-types";
 
@@ -249,4 +251,27 @@ export function updateBarMemberVip(barId: string, membershipId: string, vip: boo
 
 export function removeBarMember(barId: string, membershipId: string): Promise<{ success: boolean }> {
   return request(`/bars/${barId}/members/${membershipId}`, { method: "DELETE" });
+}
+
+export function listBarsDirectory(): Promise<BarDirectoryEntry[]> {
+  return request<BarDirectoryEntry[]>("/bars/directory");
+}
+
+export function requestToJoinBar(barId: string): Promise<{ id: string; status: string }> {
+  return request(`/bars/${barId}/join-requests`, { method: "POST" });
+}
+
+export function listPendingJoinRequests(barId: string): Promise<PendingJoinRequest[]> {
+  return request<PendingJoinRequest[]>(`/bars/${barId}/join-requests`);
+}
+
+export function respondToJoinRequest(
+  barId: string,
+  requestId: string,
+  accept: boolean,
+): Promise<{ id: string; status: string }> {
+  return request(`/bars/${barId}/join-requests/${requestId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ accept }),
+  });
 }

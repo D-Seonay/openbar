@@ -87,3 +87,20 @@ export interface BarMember {
   createdAt: string;
   user: { username: string };
 }
+
+export interface BarDirectoryEntry {
+  id: string;
+  name: string;
+  ownerUsername: string;
+  memberCount: number;
+  myStatus: "OWNER" | "MEMBER" | "PENDING" | "NONE";
+}
+
+export interface PendingJoinRequest {
+  id: string;
+  barId: string;
+  userId: string;
+  status: "PENDING" | "ACCEPTED" | "DECLINED";
+  createdAt: string;
+  user: { username: string };
+}
