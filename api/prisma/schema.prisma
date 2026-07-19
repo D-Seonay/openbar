@@ -37,6 +37,12 @@ enum BarRole {
   MEMBER
 }
 
+enum JoinRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
 model User {
   id              String         @id @default(cuid())
   username        String         @unique
@@ -47,6 +53,7 @@ model User {
   contributions   Contribution[]
   recipes         Recipe[]
   barMemberships  BarMembership[]
+  barJoinRequests BarJoinRequest[]
 }
 
 model Bottle {
@@ -128,13 +135,14 @@ model Recipe {
 }
 
 model Bar {
-  id          String          @id @default(cuid())
-  name        String
-  createdAt   DateTime        @default(now())
-  memberships BarMembership[]
-  bottles     Bottle[]
-  events      Event[]
-  recipes     Recipe[]
+  id           String          @id @default(cuid())
+  name         String
+  createdAt    DateTime        @default(now())
+  memberships  BarMembership[]
+  bottles      Bottle[]
+  events       Event[]
+  recipes      Recipe[]
+  joinRequests BarJoinRequest[]
 }
 
 model BarMembership {
@@ -146,6 +154,19 @@ model BarMembership {
   role      BarRole
   vip       Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  @@unique([barId, userId])
+}
+
+model BarJoinRequest {
+  id        String            @id @default(cuid())
+  barId     String
+  bar       Bar               @relation(fields: [barId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    JoinRequestStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 
   @@unique([barId, userId])
 }
