@@ -101,3 +101,9 @@ export async function requestToJoinBarAction(barId: string): Promise<{ error?: s
     return { error: err instanceof api.ApiError ? err.message : "Erreur lors de la demande" };
   }
 }
+
+export async function respondToJoinRequestAction(barId: string, requestId: string, accept: boolean) {
+  await requireSession();
+  await api.respondToJoinRequest(barId, requestId, accept);
+  revalidatePath("/membres");
+}

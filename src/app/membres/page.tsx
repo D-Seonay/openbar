@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { listMyBars, listBarMembers } from "@/lib/api-client";
+import { listMyBars, listBarMembers, listPendingJoinRequests } from "@/lib/api-client";
 import { resolveActiveBar } from "@/lib/active-bar";
 import PageTransition from "@/components/PageTransition";
 import InviteMemberForm from "./InviteMemberForm";
 import MemberRow from "./MemberRow";
+import PendingRequests from "./PendingRequests";
 
 export default async function BarMembresPage() {
   const session = await getSession();
@@ -15,7 +16,10 @@ export default async function BarMembresPage() {
   if (!activeBar) redirect("/creer");
   if (activeBar.myRole !== "OWNER") redirect("/");
 
-  const members = await listBarMembers(activeBar.id);
+  const [members, pendingRequests] = await Promise.all([
+    listBarMembers(activeBar.id),
+    listPendingJoinRequests(activeBar.id),
+  ]);
 
   return (
     <PageTransition className="space-y-8">
@@ -28,6 +32,8 @@ export default async function BarMembresPage() {
           Membres de {activeBar.name}
         </h1>
       </div>
+
+      <PendingRequests barId={activeBar.id} requests={pendingRequests} />
 
       <div className="grid lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-4 rounded-2xl bg-ink-2 border border-white/[0.08] p-6 shadow-xl">
