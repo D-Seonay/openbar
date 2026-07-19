@@ -12,7 +12,7 @@ export default async function SignupPage({
     <div className="max-w-sm mx-auto mt-16 bg-ink-2/40 border border-orange/10 p-8 rounded-xl box-orange-glow space-y-4">
       <div className="text-center">
         <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">Nouveau compte</span>
-        <h1 className="font-display text-3xl text-cream mt-1">Rejoindre Bardenoa</h1>
+        <h1 className="font-display text-3xl text-cream mt-1">Rejoindre OpenBar</h1>
       </div>
       <form action={signup} className="space-y-3">
         <input

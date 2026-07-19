@@ -21,7 +21,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Le Bar de Noa — Mixologie & Cave Privée",
+  title: "OpenBar — Mixologie & Cave Privée",
   description: "Stock d'exception, recettes de cocktails et organisation de soirées",
 };
 
@@ -51,10 +51,10 @@ export default async function RootLayout({
               className="group font-display text-xl sm:text-2xl font-bold tracking-tight text-cream hover:text-orange transition-colors flex items-center gap-2.5"
             >
               <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange via-orange-dim to-brick-dark border border-orange/40 flex items-center justify-center text-ink text-lg font-black shadow-[0_0_15px_rgba(255,107,53,0.3)] group-hover:scale-105 transition-transform duration-200">
-                N
+                O
               </span>
               <span>
-                Le Bar <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange to-gold">de Noa</span>
+                Open<span className="text-transparent bg-clip-text bg-gradient-to-r from-orange to-gold">Bar</span>
               </span>
             </Link>
 
@@ -78,7 +78,7 @@ export default async function RootLayout({
         </main>
 
         <footer className="border-t border-white/[0.06] text-center text-xs text-muted/70 py-8 bg-ink-2/50 backdrop-blur-sm relative z-10">
-          Le Bar de Noa · Salon privé de mixologie © {new Date().getFullYear()}
+          OpenBar · Salon privé de mixologie © {new Date().getFullYear()}
         </footer>
       </body>
     </html>

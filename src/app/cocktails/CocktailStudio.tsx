@@ -345,7 +345,7 @@ export default function CocktailStudio({
               </div>
 
               <div className="pt-6 mt-6 border-t border-white/[0.08] flex items-center justify-between text-xs">
-                <span className="text-muted">Le Bar de Noa · Carte Cocktails</span>
+                <span className="text-muted">OpenBar · Carte Cocktails</span>
                 <div className="flex items-center gap-2">
                   {canEditRecipe(selectedItem.recipe) && (
                     <>

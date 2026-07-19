@@ -420,7 +420,7 @@ export default function StockStudio({
               </div>
 
               <div className="pt-6 mt-6 border-t border-white/[0.08] flex items-center justify-between text-xs">
-                <span className="text-muted">Le Bar de Noa · Studio Cave</span>
+                <span className="text-muted">OpenBar · Studio Cave</span>
                 <button
                   onClick={handleCloseDrawer}
                   className="px-5 py-2.5 rounded-xl bg-orange text-ink font-bold uppercase tracking-wider hover:bg-orange-hover transition-colors cursor-pointer"
