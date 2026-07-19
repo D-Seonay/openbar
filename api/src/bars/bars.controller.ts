@@ -6,6 +6,7 @@ import { BarsService } from './bars.service';
 import { CreateBarDto } from './dto/create-bar.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { RespondJoinRequestDto } from './dto/respond-join-request.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('bars')
@@ -22,6 +23,12 @@ export class BarsController {
   findMine(@Req() req: Request) {
     const user = req.user as JwtPayload;
     return this.barsService.findMine(user.sub);
+  }
+
+  @Get('directory')
+  findDirectory(@Req() req: Request) {
+    const user = req.user as JwtPayload;
+    return this.barsService.findDirectory(user.sub);
   }
 
   @Get(':id/members')
@@ -51,5 +58,28 @@ export class BarsController {
   removeMember(@Req() req: Request, @Param('id') id: string, @Param('membershipId') membershipId: string) {
     const user = req.user as JwtPayload;
     return this.barsService.removeMember(id, user.sub, membershipId);
+  }
+
+  @Post(':id/join-requests')
+  createJoinRequest(@Req() req: Request, @Param('id') id: string) {
+    const user = req.user as JwtPayload;
+    return this.barsService.createJoinRequest(id, user.sub);
+  }
+
+  @Get(':id/join-requests')
+  findPendingRequests(@Req() req: Request, @Param('id') id: string) {
+    const user = req.user as JwtPayload;
+    return this.barsService.findPendingRequests(id, user.sub);
+  }
+
+  @Patch(':id/join-requests/:requestId')
+  respondToJoinRequest(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Param('requestId') requestId: string,
+    @Body() dto: RespondJoinRequestDto,
+  ) {
+    const user = req.user as JwtPayload;
+    return this.barsService.respondToJoinRequest(id, user.sub, requestId, dto.accept);
   }
 }
