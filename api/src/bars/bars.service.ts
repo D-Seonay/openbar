@@ -137,6 +137,117 @@ export class BarsService {
     return { success: true as const };
   }
 
+  async findDirectory(userId: string) {
+    const bars = await this.prisma.bar.findMany({
+      include: {
+        memberships: {
+          select: { userId: true, role: true, user: { select: { username: true } } },
+        },
+        _count: { select: { memberships: true } },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    const pendingRequests = await this.prisma.barJoinRequest.findMany({
+      where: { userId, status: 'PENDING' },
+      select: { barId: true },
+    });
+    const pendingBarIds = new Set(pendingRequests.map((r) => r.barId));
+
+    return bars.map((bar) => {
+      const owner = bar.memberships.find((m) => m.role === 'OWNER');
+      const myMembership = bar.memberships.find((m) => m.userId === userId);
+
+      let myStatus: 'OWNER' | 'MEMBER' | 'PENDING' | 'NONE' = 'NONE';
+      if (myMembership?.role === 'OWNER') myStatus = 'OWNER';
+      else if (myMembership) myStatus = 'MEMBER';
+      else if (pendingBarIds.has(bar.id)) myStatus = 'PENDING';
+
+      return {
+        id: bar.id,
+        name: bar.name,
+        ownerUsername: owner?.user.username ?? '—',
+        memberCount: bar._count.memberships,
+        myStatus,
+      };
+    });
+  }
+
+  async createJoinRequest(barId: string, userId: string) {
+    await this.getBar(barId);
+
+    const membership = await this.getMembership(barId, userId);
+    if (membership) {
+      throw new ConflictException('Vous êtes déjà membre de ce bar');
+    }
+
+    const existing = await this.prisma.barJoinRequest.findUnique({
+      where: { barId_userId: { barId, userId } },
+    });
+
+    if (existing?.status === 'PENDING') {
+      throw new ConflictException('Vous avez déjà une demande en attente pour ce bar');
+    }
+
+    if (existing) {
+      return this.prisma.barJoinRequest.update({
+        where: { id: existing.id },
+        data: { status: 'PENDING' },
+      });
+    }
+
+    return this.prisma.barJoinRequest.create({
+      data: { barId, userId, status: 'PENDING' },
+    });
+  }
+
+  async findPendingRequests(barId: string, requesterId: string) {
+    await this.assertOwner(barId, requesterId);
+
+    return this.prisma.barJoinRequest.findMany({
+      where: { barId, status: 'PENDING' },
+      include: { user: { select: { username: true } } },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async respondToJoinRequest(
+    barId: string,
+    requesterId: string,
+    requestId: string,
+    accept: boolean,
+  ) {
+    await this.assertOwner(barId, requesterId);
+
+    const request = await this.prisma.barJoinRequest.findUnique({
+      where: { id: requestId },
+    });
+    if (!request || request.barId !== barId) {
+      throw new NotFoundException('Demande introuvable');
+    }
+    if (request.status !== 'PENDING') {
+      throw new ConflictException('Cette demande a déjà été traitée');
+    }
+
+    if (accept) {
+      const [, updated] = await this.prisma.$transaction([
+        this.prisma.barMembership.create({
+          data: { barId, userId: request.userId, role: 'MEMBER', vip: false },
+        }),
+        this.prisma.barJoinRequest.update({
+          where: { id: requestId },
+          data: { status: 'ACCEPTED' },
+        }),
+      ]);
+      return updated;
+    }
+
+    return this.prisma.barJoinRequest.update({
+      where: { id: requestId },
+      data: { status: 'DECLINED' },
+    });
+  }
+
   private async getBar(barId: string) {
     const bar = await this.prisma.bar.findUnique({ where: { id: barId } });
     if (!bar) throw new NotFoundException('Bar introuvable');
