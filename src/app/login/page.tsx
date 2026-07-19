@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { login } from "./actions";
 
 export default async function LoginPage({
@@ -10,7 +11,7 @@ export default async function LoginPage({
   return (
     <div className="max-w-sm mx-auto mt-16 bg-ink-2/40 border border-orange/10 p-8 rounded-xl box-orange-glow space-y-4">
       <div className="text-center">
-        <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">Espace réservé</span>
+        <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">Connexion</span>
         <h1 className="font-display text-3xl text-cream mt-1">OpenBar</h1>
       </div>
       <form action={login} className="space-y-3">
@@ -25,7 +26,7 @@ export default async function LoginPage({
         <input
           name="password"
           type="password"
-          placeholder="Mot de passe d'administration"
+          placeholder="Mot de passe"
           required
           autoFocus
           className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-2.5 text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
@@ -38,6 +39,12 @@ export default async function LoginPage({
           Se connecter
         </button>
       </form>
+      <p className="text-center text-xs text-muted">
+        Pas de compte ?{" "}
+        <Link href="/signup" className="text-orange hover:underline">
+          Créer un compte
+        </Link>
+      </p>
     </div>
   );
 }
