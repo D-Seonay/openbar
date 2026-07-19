@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { listBottles, listEvents, evaluateCocktails, listMyBars } from "@/lib/api-client";
+import { listBottles, listEvents, evaluateCocktails, listMyBars, listBarsDirectory } from "@/lib/api-client";
 import { getSession } from "@/lib/session";
 import { resolveActiveBar } from "@/lib/active-bar";
 import PageTransition from "@/components/PageTransition";
 import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
+import BarDirectory from "./BarDirectory";
 
 export default async function HomePage() {
   const session = await getSession();
@@ -14,10 +15,16 @@ export default async function HomePage() {
   const activeBar = await resolveActiveBar(bars);
   if (!activeBar) redirect("/creer");
 
-  const [bottles, events, availability] = await Promise.all([
+  const [bottles, availability, directory, eventsByBar] = await Promise.all([
     listBottles(activeBar.id),
-    listEvents(activeBar.id),
     evaluateCocktails(activeBar.id),
+    listBarsDirectory(),
+    Promise.all(
+      bars.map(async (bar) => {
+        const barEvents = await listEvents(bar.id);
+        return barEvents.map((event) => ({ ...event, barName: bar.name }));
+      }),
+    ),
   ]);
 
   const isVipOrAdmin = Boolean(session.vip || session.role === "ADMIN" || activeBar.myVip);
@@ -33,7 +40,10 @@ export default async function HomePage() {
     .sort((a, b) => (a.quantity - a.lowStockThreshold!) - (b.quantity - b.lowStockThreshold!));
 
   const today = new Date().toISOString().slice(0, 10);
-  const upcoming = events.filter((e) => e.date >= today).sort((a, b) => a.date.localeCompare(b.date));
+  const upcoming = eventsByBar
+    .flat()
+    .filter((e) => e.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date));
   const nextEvent = upcoming[0];
 
   return (
@@ -134,6 +144,8 @@ export default async function HomePage() {
                     month: "long",
                     year: "numeric",
                   })}
+                  {" · "}
+                  {nextEvent.barName}
                 </p>
                 <p className="text-xs text-muted leading-relaxed">
                   Le Party Board interactif permet aux invités d&apos;annoncer leurs apports et de promener leurs verres dans le salon.
@@ -218,6 +230,8 @@ export default async function HomePage() {
           )}
         </div>
       </div>
+
+      <BarDirectory entries={directory} />
     </PageTransition>
   );
 }

@@ -90,3 +90,14 @@ export async function removeMemberAction(barId: string, membershipId: string): P
     return { error: err instanceof api.ApiError ? err.message : "Erreur lors de la révocation" };
   }
 }
+
+export async function requestToJoinBarAction(barId: string): Promise<{ error?: string }> {
+  await requireSession();
+  try {
+    await api.requestToJoinBar(barId);
+    revalidatePath("/");
+    return {};
+  } catch (err) {
+    return { error: err instanceof api.ApiError ? err.message : "Erreur lors de la demande" };
+  }
+}
