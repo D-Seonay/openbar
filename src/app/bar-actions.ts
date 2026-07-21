@@ -107,3 +107,20 @@ export async function respondToJoinRequestAction(barId: string, requestId: strin
   await api.respondToJoinRequest(barId, requestId, accept);
   revalidatePath("/membres");
 }
+
+export async function setBarVisibilityAction(barId: string, isPublic: boolean) {
+  await requireSession();
+  await api.updateBarVisibility(barId, isPublic);
+  revalidatePath("/membres");
+}
+
+export async function generateInviteLinkAction(barId: string): Promise<{ inviteToken?: string; error?: string }> {
+  await requireSession();
+  try {
+    const result = await api.generateInviteLink(barId);
+    revalidatePath("/membres");
+    return { inviteToken: result.inviteToken };
+  } catch (err) {
+    return { error: err instanceof api.ApiError ? err.message : "Erreur lors de la génération du lien" };
+  }
+}

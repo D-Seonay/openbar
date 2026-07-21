@@ -6,6 +6,8 @@ import PageTransition from "@/components/PageTransition";
 import InviteMemberForm from "./InviteMemberForm";
 import MemberRow from "./MemberRow";
 import PendingRequests from "./PendingRequests";
+import BarVisibilitySection from "./BarVisibilitySection";
+import InviteLinkSection from "./InviteLinkSection";
 
 export default async function BarMembresPage() {
   const session = await getSession();
@@ -36,8 +38,12 @@ export default async function BarMembresPage() {
       <PendingRequests barId={activeBar.id} requests={pendingRequests} />
 
       <div className="grid lg:grid-cols-12 gap-8 items-start">
-        <div className="lg:col-span-4 rounded-2xl bg-ink-2 border border-white/[0.08] p-6 shadow-xl">
-          <InviteMemberForm barId={activeBar.id} />
+        <div className="lg:col-span-4 space-y-6">
+          <div className="rounded-2xl bg-ink-2 border border-white/[0.08] p-6 shadow-xl">
+            <InviteMemberForm barId={activeBar.id} />
+          </div>
+          <BarVisibilitySection barId={activeBar.id} isPublic={activeBar.isPublic} />
+          <InviteLinkSection barId={activeBar.id} inviteToken={activeBar.inviteToken} />
         </div>
 
         <div className="lg:col-span-8 rounded-2xl bg-ink-2/60 border border-white/[0.08] overflow-hidden divide-y divide-white/[0.06] shadow-xl">
