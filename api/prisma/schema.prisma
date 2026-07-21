@@ -137,6 +137,8 @@ model Recipe {
 model Bar {
   id           String          @id @default(cuid())
   name         String
+  isPublic     Boolean         @default(true)
+  inviteToken  String?         @unique
   createdAt    DateTime        @default(now())
   memberships  BarMembership[]
   bottles      Bottle[]
