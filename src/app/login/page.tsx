@@ -45,6 +45,11 @@ export default async function LoginPage({
           Créer un compte
         </Link>
       </p>
+      <p className="text-center text-xs text-muted">
+        <Link href="/decouvrir" className="text-orange hover:underline">
+          Voir les bars sans compte
+        </Link>
+      </p>
     </div>
   );
 }

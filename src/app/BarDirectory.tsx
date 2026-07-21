@@ -1,11 +1,18 @@
 // src/app/BarDirectory.tsx
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { BarDirectoryEntry } from "@/lib/types";
 import { requestToJoinBarAction } from "@/app/bar-actions";
 
-export default function BarDirectory({ entries }: { entries: BarDirectoryEntry[] }) {
+export default function BarDirectory({
+  entries,
+  guestMode = false,
+}: {
+  entries: BarDirectoryEntry[];
+  guestMode?: boolean;
+}) {
   const [isPending, startTransition] = useTransition();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -62,15 +69,23 @@ export default function BarDirectory({ entries }: { entries: BarDirectoryEntry[]
                   Demande envoyée
                 </span>
               )}
-              {entry.myStatus === "NONE" && (
-                <button
-                  disabled={isPending && pendingId === entry.id}
-                  onClick={() => handleRequest(entry.id)}
-                  className="text-xs px-3 py-1.5 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-orange font-semibold transition-colors cursor-pointer"
-                >
-                  Demander à rejoindre
-                </button>
-              )}
+              {entry.myStatus === "NONE" &&
+                (guestMode ? (
+                  <Link
+                    href="/signup"
+                    className="text-xs px-3 py-1.5 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-orange font-semibold transition-colors"
+                  >
+                    Créer un compte pour rejoindre
+                  </Link>
+                ) : (
+                  <button
+                    disabled={isPending && pendingId === entry.id}
+                    onClick={() => handleRequest(entry.id)}
+                    className="text-xs px-3 py-1.5 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-orange font-semibold transition-colors cursor-pointer"
+                  >
+                    Demander à rejoindre
+                  </button>
+                ))}
             </div>
           ))}
         </div>
