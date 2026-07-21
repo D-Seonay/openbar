@@ -100,12 +100,14 @@ describe('BarsService', () => {
   });
 
   describe('findMine', () => {
-    it('flattens each bar to include the caller role and vip', async () => {
+    it('flattens each bar to include the caller role, vip, visibility, and invite token (owner only)', async () => {
       prisma.bar.findMany.mockResolvedValue([
         {
           id: BAR_ID,
           name: 'Chez Noa',
           createdAt: new Date('2026-01-01'),
+          isPublic: true,
+          inviteToken: 'tok-1',
           memberships: [{ role: 'OWNER', vip: true }],
         },
       ]);
@@ -124,8 +126,27 @@ describe('BarsService', () => {
           createdAt: new Date('2026-01-01'),
           myRole: 'OWNER',
           myVip: true,
+          isPublic: true,
+          inviteToken: 'tok-1',
         },
       ]);
+    });
+
+    it('hides the invite token from a non-owner member', async () => {
+      prisma.bar.findMany.mockResolvedValue([
+        {
+          id: BAR_ID,
+          name: 'Chez Noa',
+          createdAt: new Date('2026-01-01'),
+          isPublic: true,
+          inviteToken: 'tok-1',
+          memberships: [{ role: 'MEMBER', vip: false }],
+        },
+      ]);
+
+      const result = await service.findMine(OTHER_ID);
+
+      expect(result[0].inviteToken).toBeNull();
     });
   });
 

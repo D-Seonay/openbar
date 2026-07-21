@@ -48,6 +48,8 @@ export class BarsService {
       createdAt: bar.createdAt,
       myRole: bar.memberships[0].role,
       myVip: bar.memberships[0].vip,
+      isPublic: bar.isPublic,
+      inviteToken: bar.memberships[0].role === 'OWNER' ? bar.inviteToken : null,
     }));
   }
 
