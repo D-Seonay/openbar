@@ -9,6 +9,7 @@ import { InviteMemberDto } from './dto/invite-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { RespondJoinRequestDto } from './dto/respond-join-request.dto';
 import { UpdateBarVisibilityDto } from './dto/update-bar-visibility.dto';
+import { RenameBarDto } from './dto/rename-bar.dto';
 
 @Controller('bars')
 export class BarsController {
@@ -92,6 +93,13 @@ export class BarsController {
   setPublic(@Req() req: Request, @Param('id') id: string, @Body() dto: UpdateBarVisibilityDto) {
     const user = req.user as JwtPayload;
     return this.barsService.setPublic(id, user.sub, dto.isPublic);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/name')
+  rename(@Req() req: Request, @Param('id') id: string, @Body() dto: RenameBarDto) {
+    const user = req.user as JwtPayload;
+    return this.barsService.rename(id, user.sub, dto.name);
   }
 
   @UseGuards(JwtAuthGuard)

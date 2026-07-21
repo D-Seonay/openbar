@@ -403,6 +403,29 @@ describe('BarsService', () => {
     });
   });
 
+  describe('rename', () => {
+    it('forbids a non-owner from renaming the bar', async () => {
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
+      prisma.barMembership.findUnique.mockResolvedValue({ id: 'm1', role: 'MEMBER' });
+
+      await expect(service.rename(BAR_ID, OTHER_ID, 'Nouveau Nom')).rejects.toThrow(ForbiddenException);
+    });
+
+    it('updates the bar name for the owner', async () => {
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
+      prisma.barMembership.findUnique.mockResolvedValue({ id: 'm1', role: 'OWNER' });
+      prisma.bar.update.mockResolvedValue({ id: BAR_ID, name: 'Nouveau Nom' });
+
+      const result = await service.rename(BAR_ID, OWNER_ID, 'Nouveau Nom');
+
+      expect(prisma.bar.update).toHaveBeenCalledWith({
+        where: { id: BAR_ID },
+        data: { name: 'Nouveau Nom' },
+      });
+      expect(result).toEqual({ id: BAR_ID, name: 'Nouveau Nom' });
+    });
+  });
+
   describe('findDirectory', () => {
     it('flags OWNER/MEMBER/PENDING/NONE correctly per bar', async () => {
       prisma.bar.findMany.mockResolvedValue([

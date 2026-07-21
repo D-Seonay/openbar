@@ -150,6 +150,15 @@ export class BarsService {
     return { id: bar.id, isPublic: bar.isPublic };
   }
 
+  async rename(barId: string, requesterId: string, name: string) {
+    await this.assertOwner(barId, requesterId);
+    const bar = await this.prisma.bar.update({
+      where: { id: barId },
+      data: { name },
+    });
+    return { id: bar.id, name: bar.name };
+  }
+
   searchUsers(query: string) {
     return this.usersService.search(query);
   }
