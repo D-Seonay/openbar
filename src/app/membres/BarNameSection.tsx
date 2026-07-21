@@ -1,7 +1,7 @@
 // src/app/membres/BarNameSection.tsx
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { renameBarAction } from "@/app/bar-actions";
 
 export default function BarNameSection({ barId, name }: { barId: string; name: string }) {
@@ -9,6 +9,12 @@ export default function BarNameSection({ barId, name }: { barId: string; name: s
   const [value, setValue] = useState(name);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setValue(name);
+    setSaved(false);
+    setError(null);
+  }, [barId, name]);
 
   const handleSave = () => {
     setError(null);
