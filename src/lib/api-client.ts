@@ -313,3 +313,7 @@ export async function joinViaInviteLinkWithToken(
 export function updateBarVisibility(barId: string, isPublic: boolean): Promise<{ id: string; isPublic: boolean }> {
   return request(`/bars/${barId}/visibility`, { method: "PATCH", body: JSON.stringify({ isPublic }) });
 }
+
+export function renameBar(barId: string, name: string): Promise<{ id: string; name: string }> {
+  return request(`/bars/${barId}/name`, { method: "PATCH", body: JSON.stringify({ name }) });
+}

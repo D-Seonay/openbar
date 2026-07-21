@@ -151,3 +151,14 @@ export async function joinViaInviteLinkAction(token: string) {
   await requireSession();
   await api.joinViaInviteLink(token);
 }
+
+export async function renameBarAction(barId: string, name: string): Promise<{ error?: string }> {
+  await requireSession();
+  try {
+    await api.renameBar(barId, name);
+    revalidatePath("/membres");
+    return {};
+  } catch (err) {
+    return { error: err instanceof api.ApiError ? err.message : "Erreur lors du renommage" };
+  }
+}

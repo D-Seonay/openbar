@@ -8,6 +8,7 @@ import MemberRow from "./MemberRow";
 import PendingRequests from "./PendingRequests";
 import BarVisibilitySection from "./BarVisibilitySection";
 import InviteLinkSection from "./InviteLinkSection";
+import BarNameSection from "./BarNameSection";
 
 export default async function BarMembresPage() {
   const session = await getSession();
@@ -39,6 +40,7 @@ export default async function BarMembresPage() {
 
       <div className="grid lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-4 space-y-6">
+          <BarNameSection barId={activeBar.id} name={activeBar.name} />
           <div className="rounded-2xl bg-ink-2 border border-white/[0.08] p-6 shadow-xl">
             <InviteMemberForm barId={activeBar.id} />
           </div>
