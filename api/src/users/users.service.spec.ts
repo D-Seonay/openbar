@@ -86,4 +86,11 @@ describe('UsersService', () => {
     });
     expect(result).toEqual([{ id: '1', username: 'noah' }]);
   });
+
+  it('returns an empty array for an empty or whitespace-only query without hitting the database', async () => {
+    await expect(service.search('')).resolves.toEqual([]);
+    await expect(service.search('   ')).resolves.toEqual([]);
+
+    expect(prisma.user.findMany).not.toHaveBeenCalled();
+  });
 });

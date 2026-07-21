@@ -37,6 +37,7 @@ export class UsersService {
   }
 
   search(query: string) {
+    if (!query.trim()) return Promise.resolve([]);
     return this.prisma.user.findMany({
       where: { username: { contains: query, mode: 'insensitive' } },
       select: { id: true, username: true },
