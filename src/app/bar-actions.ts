@@ -124,3 +124,13 @@ export async function generateInviteLinkAction(barId: string): Promise<{ inviteT
     return { error: err instanceof api.ApiError ? err.message : "Erreur lors de la génération du lien" };
   }
 }
+
+export async function searchUsersAction(query: string) {
+  await requireSession();
+  if (!query.trim()) return [];
+  try {
+    return await api.searchUsers(query);
+  } catch {
+    return [];
+  }
+}
