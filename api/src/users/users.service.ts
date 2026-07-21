@@ -36,6 +36,15 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { username } });
   }
 
+  search(query: string) {
+    return this.prisma.user.findMany({
+      where: { username: { contains: query, mode: 'insensitive' } },
+      select: { id: true, username: true },
+      orderBy: { username: 'asc' },
+      take: 10,
+    });
+  }
+
   async update(id: string, input: { role?: Role; vip?: boolean; password?: string }) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('Utilisateur introuvable');

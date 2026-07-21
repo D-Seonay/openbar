@@ -4,9 +4,12 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { BarsService } from './bars.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
+
+jest.mock('crypto', () => ({ randomBytes: jest.fn() }));
 
 describe('BarsService', () => {
   let service: BarsService;
@@ -14,7 +17,7 @@ describe('BarsService', () => {
     bar: Record<string, jest.Mock>;
     barMembership: Record<string, jest.Mock>;
   };
-  let usersService: { findByUsername: jest.Mock };
+  let usersService: { findByUsername: jest.Mock; search: jest.Mock };
 
   const OWNER_ID = 'owner-1';
   const OTHER_ID = 'other-1';
@@ -44,7 +47,7 @@ describe('BarsService', () => {
       },
       $transaction: jest.fn(),
     };
-    usersService = { findByUsername: jest.fn() };
+    usersService = { findByUsername: jest.fn(), search: jest.fn() };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -638,6 +641,89 @@ describe('BarsService', () => {
         data: { status: 'DECLINED' },
       });
       expect(result).toEqual({ id: 'req-1', status: 'DECLINED' });
+    });
+  });
+
+  describe('searchUsers', () => {
+    it('delegates to UsersService.search', async () => {
+      usersService.search.mockResolvedValue([{ id: '1', username: 'bob' }]);
+
+      const result = await service.searchUsers('bo');
+
+      expect(usersService.search).toHaveBeenCalledWith('bo');
+      expect(result).toEqual([{ id: '1', username: 'bob' }]);
+    });
+  });
+
+  describe('generateInviteLink', () => {
+    it('forbids a non-owner from generating a link', async () => {
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
+      prisma.barMembership.findUnique.mockResolvedValue({ id: 'm1', role: 'MEMBER' });
+
+      await expect(service.generateInviteLink(BAR_ID, OTHER_ID)).rejects.toThrow(ForbiddenException);
+    });
+
+    it('generates and stores a new token for the owner', async () => {
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
+      prisma.barMembership.findUnique.mockResolvedValue({ id: 'm1', role: 'OWNER' });
+      (randomBytes as jest.Mock).mockReturnValue(Buffer.from('a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4', 'hex'));
+      prisma.bar.update.mockResolvedValue({ id: BAR_ID, inviteToken: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4' });
+
+      const result = await service.generateInviteLink(BAR_ID, OWNER_ID);
+
+      expect(prisma.bar.update).toHaveBeenCalledWith({
+        where: { id: BAR_ID },
+        data: { inviteToken: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4' },
+      });
+      expect(result).toEqual({ inviteToken: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4' });
+    });
+  });
+
+  describe('previewInviteLink', () => {
+    it('throws NotFoundException for an invalid token', async () => {
+      prisma.bar.findUnique.mockResolvedValue(null);
+
+      await expect(service.previewInviteLink('bad-token')).rejects.toThrow(NotFoundException);
+    });
+
+    it('returns the bar name for a valid token', async () => {
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID, name: 'Chez Noa', inviteToken: 'tok-1' });
+
+      const result = await service.previewInviteLink('tok-1');
+
+      expect(prisma.bar.findUnique).toHaveBeenCalledWith({ where: { inviteToken: 'tok-1' } });
+      expect(result).toEqual({ barName: 'Chez Noa' });
+    });
+  });
+
+  describe('joinViaInviteLink', () => {
+    it('throws NotFoundException for an invalid token', async () => {
+      prisma.bar.findUnique.mockResolvedValue(null);
+
+      await expect(service.joinViaInviteLink('bad-token', OTHER_ID)).rejects.toThrow(NotFoundException);
+    });
+
+    it('is idempotent if the caller is already a member', async () => {
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID, name: 'Chez Noa', inviteToken: 'tok-1' });
+      prisma.barMembership.findUnique.mockResolvedValue({ id: 'm1', role: 'MEMBER' });
+
+      const result = await service.joinViaInviteLink('tok-1', OTHER_ID);
+
+      expect(prisma.barMembership.create).not.toHaveBeenCalled();
+      expect(result).toEqual({ barId: BAR_ID, barName: 'Chez Noa', alreadyMember: true });
+    });
+
+    it('creates a MEMBER membership for a new joiner', async () => {
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID, name: 'Chez Noa', inviteToken: 'tok-1' });
+      prisma.barMembership.findUnique.mockResolvedValue(null);
+      prisma.barMembership.create.mockResolvedValue({ id: 'm2' });
+
+      const result = await service.joinViaInviteLink('tok-1', OTHER_ID);
+
+      expect(prisma.barMembership.create).toHaveBeenCalledWith({
+        data: { barId: BAR_ID, userId: OTHER_ID, role: 'MEMBER', vip: false },
+      });
+      expect(result).toEqual({ barId: BAR_ID, barName: 'Chez Noa', alreadyMember: false });
     });
   });
 });

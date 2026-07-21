@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
 
@@ -145,6 +146,41 @@ export class BarsService {
       data: { isPublic },
     });
     return { id: bar.id, isPublic: bar.isPublic };
+  }
+
+  searchUsers(query: string) {
+    return this.usersService.search(query);
+  }
+
+  async generateInviteLink(barId: string, requesterId: string) {
+    await this.assertOwner(barId, requesterId);
+    const inviteToken = randomBytes(16).toString('hex');
+    await this.prisma.bar.update({
+      where: { id: barId },
+      data: { inviteToken },
+    });
+    return { inviteToken };
+  }
+
+  async previewInviteLink(token: string) {
+    const bar = await this.prisma.bar.findUnique({ where: { inviteToken: token } });
+    if (!bar) throw new NotFoundException("Lien d'invitation invalide");
+    return { barName: bar.name };
+  }
+
+  async joinViaInviteLink(token: string, userId: string) {
+    const bar = await this.prisma.bar.findUnique({ where: { inviteToken: token } });
+    if (!bar) throw new NotFoundException("Lien d'invitation invalide");
+
+    const existing = await this.getMembership(bar.id, userId);
+    if (existing) {
+      return { barId: bar.id, barName: bar.name, alreadyMember: true };
+    }
+
+    await this.prisma.barMembership.create({
+      data: { barId: bar.id, userId, role: 'MEMBER', vip: false },
+    });
+    return { barId: bar.id, barName: bar.name, alreadyMember: false };
   }
 
   async findDirectory(userId?: string) {

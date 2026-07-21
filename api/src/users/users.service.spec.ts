@@ -72,4 +72,18 @@ describe('UsersService', () => {
     expect(updateArgs.data.passwordHash).toBeDefined();
     expect(updateArgs.data.passwordHash).not.toBe('newsecret123');
   });
+
+  it('searches users by partial, case-insensitive username match', async () => {
+    prisma.user.findMany.mockResolvedValue([{ id: '1', username: 'noah' }]);
+
+    const result = await service.search('noa');
+
+    expect(prisma.user.findMany).toHaveBeenCalledWith({
+      where: { username: { contains: 'noa', mode: 'insensitive' } },
+      select: { id: true, username: true },
+      orderBy: { username: 'asc' },
+      take: 10,
+    });
+    expect(result).toEqual([{ id: '1', username: 'noah' }]);
+  });
 });
