@@ -4,9 +4,9 @@ import { signup } from "@/app/bar-actions";
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; inviteToken?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, inviteToken } = await searchParams;
 
   return (
     <div className="max-w-sm mx-auto mt-16 bg-ink-2/40 border border-orange/10 p-8 rounded-xl box-orange-glow space-y-4">
@@ -15,6 +15,7 @@ export default async function SignupPage({
         <h1 className="font-display text-3xl text-cream mt-1">Rejoindre OpenBar</h1>
       </div>
       <form action={signup} className="space-y-3">
+        {inviteToken && <input type="hidden" name="inviteToken" value={inviteToken} />}
         <input
           name="username"
           type="text"

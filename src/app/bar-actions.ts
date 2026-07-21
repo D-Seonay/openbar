@@ -11,6 +11,7 @@ export async function signup(formData: FormData) {
   const username = String(formData.get("username") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
+  const inviteToken = formData.get("inviteToken");
 
   if (!username || password.length < 6 || password !== confirmPassword) {
     redirect("/signup?error=1");
@@ -29,6 +30,12 @@ export async function signup(formData: FormData) {
     maxAge: 60 * 60 * 24 * 30,
     path: "/",
   });
+
+  if (typeof inviteToken === "string" && inviteToken) {
+    await api.joinViaInviteLinkWithToken(inviteToken, result.token);
+    redirect("/");
+  }
+
   redirect("/creer");
 }
 
@@ -133,4 +140,9 @@ export async function searchUsersAction(query: string) {
   } catch {
     return [];
   }
+}
+
+export async function joinViaInviteLinkAction(token: string) {
+  await requireSession();
+  await api.joinViaInviteLink(token);
 }

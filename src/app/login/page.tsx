@@ -4,9 +4,9 @@ import { login } from "./actions";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; redirectTo?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, redirectTo } = await searchParams;
 
   return (
     <div className="max-w-sm mx-auto mt-16 bg-ink-2/40 border border-orange/10 p-8 rounded-xl box-orange-glow space-y-4">
@@ -15,6 +15,7 @@ export default async function LoginPage({
         <h1 className="font-display text-3xl text-cream mt-1">OpenBar</h1>
       </div>
       <form action={login} className="space-y-3">
+        <input type="hidden" name="redirectTo" value={redirectTo ?? "/"} />
         <input
           name="username"
           type="text"
