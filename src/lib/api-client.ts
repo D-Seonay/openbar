@@ -10,6 +10,8 @@ import type {
   BarMember,
   BarDirectoryEntry,
   PendingJoinRequest,
+  UserSearchResult,
+  InviteLinkPreview,
 } from "./types";
 import type { CocktailRecipe, RecipeAvailability } from "./cocktail-types";
 
@@ -274,4 +276,40 @@ export function respondToJoinRequest(
     method: "PATCH",
     body: JSON.stringify({ accept }),
   });
+}
+
+export function searchUsers(query: string): Promise<UserSearchResult[]> {
+  return request<UserSearchResult[]>(`/bars/search-users?q=${encodeURIComponent(query)}`);
+}
+
+export function generateInviteLink(barId: string): Promise<{ inviteToken: string }> {
+  return request(`/bars/${barId}/invite-link`, { method: "POST" });
+}
+
+export function previewInviteLink(token: string): Promise<InviteLinkPreview> {
+  return request<InviteLinkPreview>(`/bars/invite/${token}/preview`);
+}
+
+export function joinViaInviteLink(token: string): Promise<{ barId: string; barName: string; alreadyMember: boolean }> {
+  return request(`/bars/invite/${token}/join`, { method: "POST" });
+}
+
+export async function joinViaInviteLinkWithToken(
+  token: string,
+  sessionToken: string,
+): Promise<{ barId: string; barName: string; alreadyMember: boolean }> {
+  const res = await fetch(`${API_URL}/bars/invite/${token}/join`, {
+    method: "POST",
+    headers: { Cookie: `${SESSION_COOKIE}=${sessionToken}` },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    throw new ApiError(res.status, body.message ?? `Erreur API (${res.status})`);
+  }
+  return res.json();
+}
+
+export function updateBarVisibility(barId: string, isPublic: boolean): Promise<{ id: string; isPublic: boolean }> {
+  return request(`/bars/${barId}/visibility`, { method: "PATCH", body: JSON.stringify({ isPublic }) });
 }

@@ -76,6 +76,8 @@ export interface Bar {
   createdAt: string;
   myRole: "OWNER" | "MEMBER";
   myVip: boolean;
+  isPublic: boolean;
+  inviteToken: string | null;
 }
 
 export interface BarMember {
@@ -103,4 +105,13 @@ export interface PendingJoinRequest {
   status: "PENDING" | "ACCEPTED" | "DECLINED";
   createdAt: string;
   user: { username: string };
+}
+
+export interface UserSearchResult {
+  id: string;
+  username: string;
+}
+
+export interface InviteLinkPreview {
+  barName: string;
 }
