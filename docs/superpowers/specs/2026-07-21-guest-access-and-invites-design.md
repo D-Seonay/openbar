@@ -105,11 +105,22 @@ immédiatement, aucune ligne supplémentaire n'est créée).
 - `GET /bars/search-users?q=` — `JwtAuthGuard`. Appelle `searchUsers`.
 - `POST /bars/:id/invite-link` — `JwtAuthGuard`. Appelle `generateInviteLink`.
 - `GET /bars/invite/:token/preview` — `OptionalJwtAuthGuard` (accessible
-  sans compte, mais un guard optionnel suffit puisqu'aucune donnée
-  utilisateur n'est nécessaire ; garde la cohérence avec le reste du
-  contrôleur plutôt que de retirer complètement le guard).
+  sans compte ; en pratique aucune donnée utilisateur n'est utilisée par
+  cette route, mais le guard reste posé pour cohérence avec le reste du
+  contrôleur).
 - `POST /bars/invite/:token/join` — `JwtAuthGuard` (il faut être connecté
   pour rejoindre). Appelle `joinViaInviteLink`.
+
+**Point d'implémentation important** : NestJS compose les guards de classe
+et de méthode (les deux s'exécutent, aucun n'annule l'autre) — un guard de
+méthode ne peut donc pas rendre une route "optionnelle" si le contrôleur
+porte déjà `@UseGuards(JwtAuthGuard)` au niveau classe, comme c'est le cas
+aujourd'hui pour `BarsController`. Le guard de classe doit être retiré et
+remplacé par un `@UseGuards(JwtAuthGuard)` explicite sur chaque route sauf
+`findDirectory` et `previewInviteLink` (qui reçoivent
+`@UseGuards(OptionalJwtAuthGuard)`) — c'est exactement le pattern déjà en
+place dans `ContributionsController` (pas de guard de classe, un guard par
+méthode), à reproduire ici.
 
 Toutes les routes existantes (membres, demandes à rejoindre) restent
 inchangées à part `findDirectory`/`createJoinRequest` ci-dessus.
