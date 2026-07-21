@@ -32,7 +32,12 @@ export async function signup(formData: FormData) {
   });
 
   if (typeof inviteToken === "string" && inviteToken) {
-    await api.joinViaInviteLinkWithToken(inviteToken, result.token);
+    try {
+      await api.joinViaInviteLinkWithToken(inviteToken, result.token);
+    } catch {
+      // Invite link may have been regenerated/invalidated between page load and
+      // submit — the account still exists and is logged in, just not auto-joined.
+    }
     redirect("/");
   }
 
