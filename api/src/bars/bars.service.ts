@@ -27,6 +27,7 @@ export class BarsService {
     return this.prisma.bar.create({
       data: {
         name,
+        isPublic: false,
         memberships: { create: { userId, role: 'OWNER', vip: true } },
       },
       include: { memberships: true },
@@ -137,8 +138,18 @@ export class BarsService {
     return { success: true as const };
   }
 
-  async findDirectory(userId: string) {
+  async setPublic(barId: string, requesterId: string, isPublic: boolean) {
+    await this.assertOwner(barId, requesterId);
+    const bar = await this.prisma.bar.update({
+      where: { id: barId },
+      data: { isPublic },
+    });
+    return { id: bar.id, isPublic: bar.isPublic };
+  }
+
+  async findDirectory(userId?: string) {
     const bars = await this.prisma.bar.findMany({
+      where: { isPublic: true },
       include: {
         memberships: {
           select: { userId: true, role: true, user: { select: { username: true } } },
@@ -148,15 +159,18 @@ export class BarsService {
       orderBy: { name: 'asc' },
     });
 
-    const pendingRequests = await this.prisma.barJoinRequest.findMany({
-      where: { userId, status: 'PENDING' },
-      select: { barId: true },
-    });
-    const pendingBarIds = new Set(pendingRequests.map((r) => r.barId));
+    let pendingBarIds = new Set<string>();
+    if (userId) {
+      const pendingRequests = await this.prisma.barJoinRequest.findMany({
+        where: { userId, status: 'PENDING' },
+        select: { barId: true },
+      });
+      pendingBarIds = new Set(pendingRequests.map((r) => r.barId));
+    }
 
     return bars.map((bar) => {
       const owner = bar.memberships.find((m) => m.role === 'OWNER');
-      const myMembership = bar.memberships.find((m) => m.userId === userId);
+      const myMembership = userId ? bar.memberships.find((m) => m.userId === userId) : undefined;
 
       let myStatus: 'OWNER' | 'MEMBER' | 'PENDING' | 'NONE' = 'NONE';
       if (myMembership?.role === 'OWNER') myStatus = 'OWNER';
@@ -174,7 +188,10 @@ export class BarsService {
   }
 
   async createJoinRequest(barId: string, userId: string) {
-    await this.getBar(barId);
+    const bar = await this.getBar(barId);
+    if (!bar.isPublic) {
+      throw new ForbiddenException('Ce bar est privé');
+    }
 
     const membership = await this.getMembership(barId, userId);
     if (membership) {

@@ -26,6 +26,7 @@ describe('BarsService', () => {
         create: jest.fn(),
         findMany: jest.fn(),
         findUnique: jest.fn(),
+        update: jest.fn(),
       },
       barMembership: {
         create: jest.fn(),
@@ -73,6 +74,7 @@ describe('BarsService', () => {
       expect(prisma.bar.create).toHaveBeenCalledWith({
         data: {
           name: 'Chez Noa',
+          isPublic: false,
           memberships: {
             create: { userId: OWNER_ID, role: 'OWNER', vip: true },
           },
@@ -354,6 +356,29 @@ describe('BarsService', () => {
     });
   });
 
+  describe('setPublic', () => {
+    it('forbids a non-owner from changing visibility', async () => {
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
+      prisma.barMembership.findUnique.mockResolvedValue({ id: 'm1', role: 'MEMBER' });
+
+      await expect(service.setPublic(BAR_ID, OTHER_ID, true)).rejects.toThrow(ForbiddenException);
+    });
+
+    it('updates the bar visibility for the owner', async () => {
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
+      prisma.barMembership.findUnique.mockResolvedValue({ id: 'm1', role: 'OWNER' });
+      prisma.bar.update.mockResolvedValue({ id: BAR_ID, isPublic: false });
+
+      const result = await service.setPublic(BAR_ID, OWNER_ID, false);
+
+      expect(prisma.bar.update).toHaveBeenCalledWith({
+        where: { id: BAR_ID },
+        data: { isPublic: false },
+      });
+      expect(result).toEqual({ id: BAR_ID, isPublic: false });
+    });
+  });
+
   describe('findDirectory', () => {
     it('flags OWNER/MEMBER/PENDING/NONE correctly per bar', async () => {
       prisma.bar.findMany.mockResolvedValue([
@@ -389,6 +414,16 @@ describe('BarsService', () => {
 
       const result = await service.findDirectory(OWNER_ID);
 
+      expect(prisma.bar.findMany).toHaveBeenCalledWith({
+        where: { isPublic: true },
+        include: {
+          memberships: {
+            select: { userId: true, role: true, user: { select: { username: true } } },
+          },
+          _count: { select: { memberships: true } },
+        },
+        orderBy: { name: 'asc' },
+      });
       expect(prisma.barJoinRequest.findMany).toHaveBeenCalledWith({
         where: { userId: OWNER_ID, status: 'PENDING' },
         select: { barId: true },
@@ -400,11 +435,36 @@ describe('BarsService', () => {
         { id: 'bar-none', name: 'Bar Lointain', ownerUsername: 'stranger2', memberCount: 1, myStatus: 'NONE' },
       ]);
     });
+
+    it('returns myStatus NONE for every bar when called without a userId (guest)', async () => {
+      prisma.bar.findMany.mockResolvedValue([
+        {
+          id: 'bar-a',
+          name: 'Bar A',
+          memberships: [{ userId: OWNER_ID, role: 'OWNER', user: { username: 'owner1' } }],
+          _count: { memberships: 1 },
+        },
+      ]);
+
+      const result = await service.findDirectory();
+
+      expect(prisma.barJoinRequest.findMany).not.toHaveBeenCalled();
+      expect(result).toEqual([
+        { id: 'bar-a', name: 'Bar A', ownerUsername: 'owner1', memberCount: 1, myStatus: 'NONE' },
+      ]);
+    });
   });
 
   describe('createJoinRequest', () => {
+    it('rejects a join request for a private bar', async () => {
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID, isPublic: false });
+
+      await expect(service.createJoinRequest(BAR_ID, OTHER_ID)).rejects.toThrow(ForbiddenException);
+      expect(prisma.barMembership.findUnique).not.toHaveBeenCalled();
+    });
+
     it('rejects if the caller is already a member', async () => {
-      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID, isPublic: true });
       prisma.barMembership.findUnique.mockResolvedValue({ id: 'm1', role: 'MEMBER' });
 
       await expect(service.createJoinRequest(BAR_ID, OTHER_ID)).rejects.toThrow(ConflictException);
@@ -412,7 +472,7 @@ describe('BarsService', () => {
     });
 
     it('rejects if a PENDING request already exists', async () => {
-      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID, isPublic: true });
       prisma.barMembership.findUnique.mockResolvedValue(null);
       prisma.barJoinRequest.findUnique.mockResolvedValue({ id: 'req-1', status: 'PENDING' });
 
@@ -421,7 +481,7 @@ describe('BarsService', () => {
     });
 
     it('reactivates a DECLINED request instead of creating a new row', async () => {
-      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID, isPublic: true });
       prisma.barMembership.findUnique.mockResolvedValue(null);
       prisma.barJoinRequest.findUnique.mockResolvedValue({ id: 'req-1', status: 'DECLINED' });
       prisma.barJoinRequest.update.mockResolvedValue({ id: 'req-1', status: 'PENDING' });
@@ -437,7 +497,7 @@ describe('BarsService', () => {
     });
 
     it('creates a new PENDING request when none exists', async () => {
-      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID, isPublic: true });
       prisma.barMembership.findUnique.mockResolvedValue(null);
       prisma.barJoinRequest.findUnique.mockResolvedValue(null);
       prisma.barJoinRequest.create.mockResolvedValue({ id: 'req-2', status: 'PENDING' });
