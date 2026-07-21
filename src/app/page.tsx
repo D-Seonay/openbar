@@ -6,10 +6,11 @@ import { resolveActiveBar } from "@/lib/active-bar";
 import PageTransition from "@/components/PageTransition";
 import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
 import BarDirectory from "./BarDirectory";
+import GuestLanding from "./GuestLanding";
 
 export default async function HomePage() {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) return <GuestLanding />;
 
   const bars = await listMyBars();
   const activeBar = await resolveActiveBar(bars);
