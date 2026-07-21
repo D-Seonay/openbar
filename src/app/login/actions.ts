@@ -8,7 +8,9 @@ import { SESSION_COOKIE } from "@/lib/session";
 export async function login(formData: FormData) {
   const username = String(formData.get("username") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const redirectTo = String(formData.get("redirectTo") ?? "/");
+  const rawRedirectTo = String(formData.get("redirectTo") ?? "/");
+  const redirectTo =
+    rawRedirectTo.startsWith("/") && !rawRedirectTo.startsWith("//") ? rawRedirectTo : "/";
 
   if (!username || !password) {
     redirect("/login?error=1");
