@@ -9,5 +9,5 @@ jobs:
       - name: Redéployer la stack
         run: |
           cd /opt/bardenoa
-          git pull
+          sudo git pull --ff-only
           sudo docker compose up -d --build

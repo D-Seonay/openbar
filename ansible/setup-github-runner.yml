@@ -28,6 +28,12 @@
     github_runner_token: ""
 
   tasks:
+    - name: Configurer l'accès SSH persistant du repo pour git pull en CD
+      ansible.builtin.command: >
+        git config --file /opt/bardenoa/.git/config core.sshCommand
+        "ssh -i /root/.ssh/id_ed25519_bardenoa_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+      become: true
+
     - name: Vérifier si le runner est déjà installé et enregistré
       ansible.builtin.stat:
         path: "{{ runner_dir }}/.runner"
@@ -65,6 +71,13 @@
         src: "{{ runner_tarball_url }}"
         dest: "{{ runner_dir }}"
         remote_src: true
+      when: not runner_config.stat.exists
+
+    - name: Installer les dépendances système du runner (.NET/ICU)
+      ansible.builtin.command: ./bin/installdependencies.sh
+      become: true
+      args:
+        chdir: "{{ runner_dir }}"
       when: not runner_config.stat.exists
 
     - name: Enregistrer le runner auprès de GitHub

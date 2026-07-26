@@ -1,6 +1,6 @@
 # Ansible — déploiement bardenoa sur Proxmox
 
-Quatre playbooks pour créer la VM bardenoa, la rendre joignable en SSH, y
+Cinq playbooks pour créer la VM bardenoa, la rendre joignable en SSH, y
 déployer la stack docker-compose, et la brancher sur l'ingress du cluster
 k3s (lifeos) qui tourne sur ce même hôte Proxmox.
 
@@ -70,9 +70,11 @@ ansible-playbook -i ansible/inventory.ini ansible/setup-github-runner.yml \
   -e github_runner_token=<token-collé-ci-dessus>
 ```
 
-Relance `deploy-bardenoa.yml` après chaque `git push` sur `main` pour
-redéployer (pull + rebuild + up) — le `JWT_SECRET` généré au premier run
-n'est jamais régénéré.
+Une fois `setup-github-runner.yml` en place, `deploy-bardenoa.yml` n'a plus
+besoin d'être relancé après chaque changement de code applicatif (voir la
+section Déploiement continu ci-dessous) — il reste utile pour des
+changements d'infra (nouvelle variable d'environnement, changement de
+configuration Docker Compose, etc.).
 
 ## Déploiement continu
 
@@ -150,5 +152,3 @@ régénère un token, et relance le playbook.
 - TLS/Let's Encrypt sur `openbar.seonay.eu` (pas de cert-manager configuré
   sur ce cluster pour l'instant — HTTP simple).
 - Sauvegardes de la base Postgres de production.
-- Déploiement automatique sur push (CI/CD) — `deploy-bardenoa.yml` reste
-  déclenché à la main.
