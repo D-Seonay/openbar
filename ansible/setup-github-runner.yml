@@ -1,0 +1,104 @@
+# =============================================================================
+# setup-github-runner.yml
+# Installe et enregistre un runner GitHub Actions auto-hébergé directement
+# sur la VM bardenoa, pour que le déploiement continu (.github/workflows/
+# deploy.yml) n'ait besoin d'aucune exposition entrante : le runner ouvre
+# une connexion sortante vers GitHub, insensible au fait que l'hôte Proxmox
+# WiFi-only change d'IP (vécu pendant cette même session de travail).
+#
+# Idempotent au niveau "tout ou rien", comme create-proxmox-vm.yml : si
+# ~/actions-runner/.runner existe déjà, le playbook ne touche à rien (le
+# token de registration expire de toute façon après un premier usage).
+#
+# Prérequis : un token de registration GitHub, valable ~1h, jamais commité :
+#   gh api -X POST repos/D-Seonay/bardenoa/actions/runners/registration-token --jq .token
+#
+# Usage :
+#   ansible-playbook -i ansible/inventory.ini ansible/setup-github-runner.yml \
+#     -e github_runner_token=<token>
+# =============================================================================
+
+- name: Installer et enregistrer le runner GitHub Actions sur la VM bardenoa
+  hosts: bardenoa
+  gather_facts: false
+
+  vars:
+    github_repo: "D-Seonay/bardenoa"
+    runner_dir: "/home/{{ ansible_user }}/actions-runner"
+    github_runner_token: ""
+
+  tasks:
+    - name: Vérifier si le runner est déjà installé et enregistré
+      ansible.builtin.stat:
+        path: "{{ runner_dir }}/.runner"
+      register: runner_config
+
+    - name: Refuser de continuer sans token de registration
+      ansible.builtin.fail:
+        msg: >-
+          github_runner_token est vide. Génère-en un avec :
+          gh api -X POST repos/{{ github_repo }}/actions/runners/registration-token --jq .token
+          puis relance avec -e github_runner_token=<token>.
+      when: not runner_config.stat.exists and github_runner_token == ""
+
+    - name: Créer le dossier du runner
+      ansible.builtin.file:
+        path: "{{ runner_dir }}"
+        state: directory
+        mode: "0755"
+      when: not runner_config.stat.exists
+
+    - name: Résoudre la dernière release du runner GitHub Actions
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/actions/runner/releases/latest
+        return_content: true
+      register: runner_release
+      when: not runner_config.stat.exists
+
+    - name: Extraire l'URL de téléchargement linux-x64
+      ansible.builtin.set_fact:
+        runner_tarball_url: "{{ (runner_release.json.assets | selectattr('name', 'match', '^actions-runner-linux-x64-.*\\.tar\\.gz$') | first).browser_download_url }}"
+      when: not runner_config.stat.exists
+
+    - name: Télécharger et extraire l'archive du runner
+      ansible.builtin.unarchive:
+        src: "{{ runner_tarball_url }}"
+        dest: "{{ runner_dir }}"
+        remote_src: true
+      when: not runner_config.stat.exists
+
+    - name: Enregistrer le runner auprès de GitHub
+      ansible.builtin.command: >
+        ./config.sh --url https://github.com/{{ github_repo }}
+        --token {{ github_runner_token }}
+        --unattended --labels bardenoa-vm --name bardenoa-vm
+      args:
+        chdir: "{{ runner_dir }}"
+      no_log: true
+      when: not runner_config.stat.exists
+
+    - name: Installer le service systemd du runner
+      ansible.builtin.command: "./svc.sh install {{ ansible_user }}"
+      become: true
+      args:
+        chdir: "{{ runner_dir }}"
+      when: not runner_config.stat.exists
+
+    - name: Démarrer le service du runner
+      ansible.builtin.command: ./svc.sh start
+      become: true
+      args:
+        chdir: "{{ runner_dir }}"
+      when: not runner_config.stat.exists
+
+    - name: Vérifier l'état du service
+      ansible.builtin.command: ./svc.sh status
+      become: true
+      args:
+        chdir: "{{ runner_dir }}"
+      register: runner_status
+      changed_when: false
+
+    - name: Résumé
+      ansible.builtin.debug:
+        msg: "{{ runner_status.stdout }}"
