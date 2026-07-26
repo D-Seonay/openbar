@@ -21,7 +21,9 @@ pas à ouvrir de nouveaux ports sur la Freebox ou l'hôte Proxmox.
 
 ## Prérequis
 
-- Accès SSH root à l'hôte Proxmox (`192.168.1.10`)
+- Accès SSH root à l'hôte Proxmox (`192.168.1.253` — le WiFi n'a pas de
+  réservation DHCP statique pour cet hôte, donc cette IP peut changer ;
+  vérifie-la dans l'interface de ta Freebox si un playbook timeout en SSH)
 - Accès SSH à la VM k3s existante (`10.10.10.50`), joignable uniquement en
   passant par l'hôte Proxmox (`ProxyJump`)
 - `ansible-playbook` en local (`brew install ansible` ou équivalent)
@@ -44,7 +46,7 @@ cp ansible/inventory.ini.example ansible/inventory.ini
 # 1. Crée la VM (Debian 12 cloud image, 2 vCPU / 2 Go / 20 Go, 10.10.10.51)
 ansible-playbook -i ansible/inventory.ini ansible/create-proxmox-vm.yml
 
-# 2. Ouvre l'accès SSH depuis le LAN : ssh -p 2223 debian@192.168.1.10
+# 2. Ouvre l'accès SSH depuis le LAN : ssh -p 2223 debian@192.168.1.253
 ansible-playbook -i ansible/inventory.ini ansible/setup-vm-nat.yml
 
 # 3. Installe Docker, clone le repo, lance `docker compose up -d --build`.
@@ -72,6 +74,25 @@ attendant la propagation DNS, tu peux tester en mappant le domaine vers
 cette IP publique dans `/etc/hosts` sur ta machine cliente (pas sur les VMs).
 
 ## Dépannage
+
+**`Host key verification failed` sur `[k3s]`/`[bardenoa]`** : Ansible ne
+peut pas répondre au prompt interactif "are you sure you want to continue
+connecting?" que SSH pose la première fois qu'il voit un hôte (ici, les VMs
+sur `10.10.10.0/24`, jamais contactées avant). C'est pour ça que
+`ansible_ssh_common_args` inclut `-o StrictHostKeyChecking=accept-new` pour
+ces deux groupes — accepte automatiquement une clé *jamais vue*, mais
+continue de refuser une clé qui *change* (donc pas de baisse de sécurité
+réelle). Si l'erreur persiste malgré tout, vérifie s'il existe une entrée
+en conflit dans ton `~/.ssh/known_hosts` pour ces IP (`ssh-keygen -R
+10.10.10.50` / `ssh-keygen -R 10.10.10.51` pour la supprimer).
+
+**Timeout SSH vers l'hôte Proxmox** (`ssh: connect to host ... port 22:
+Operation timed out`, ou `ping` qui répond `Host is down`) : l'hôte n'a que
+du WiFi, sans réservation DHCP statique connue — son IP peut changer entre
+deux sessions. Vérifie son IP actuelle dans l'interface d'admin de ta
+Freebox (liste des appareils connectés), puis mets à jour `ansible_host`
+pour le groupe `[proxmox]` (et le `ProxyJump` des groupes `[k3s]`/
+`[bardenoa]`) dans `ansible/inventory.ini`.
 
 **VM à moitié provisionnée** : `create-proxmox-vm.yml` est idempotent
 seulement sur l'existence du `vmid` (`qm status`) — si `qm importdisk` /

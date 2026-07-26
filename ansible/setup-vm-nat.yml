@@ -89,6 +89,6 @@
     - name: Résumé
       ansible.builtin.debug:
         msg: >-
-          NAT actif. Depuis ton Mac : ssh -p 2223 debian@192.168.1.10 pour la
+          NAT actif. Depuis ton Mac : ssh -p 2223 debian@{{ ansible_host }} pour la
           VM bardenoa (10.10.10.51). Le trafic web passe par l'ingress k3s
           existant — lance configure-ingress.yml pour le brancher.

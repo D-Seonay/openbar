@@ -88,9 +88,10 @@
           Clé publique :
             {{ deploy_pubkey.stdout }}
 
-          Enregistre-la en lecture seule sur le repo, puis relance ce
-          playbook :
-            gh repo deploy-key add - --repo {{ github_repo }} --title bardenoa-vm --read-only <<< "{{ deploy_pubkey.stdout }}"
+          Enregistre-la en lecture seule sur le repo (c'est le comportement
+          par défaut de `gh repo deploy-key add`, pas besoin de flag), puis
+          relance ce playbook :
+            gh repo deploy-key add - --repo {{ github_repo }} --title bardenoa-vm <<< "{{ deploy_pubkey.stdout }}"
       when: not repo_git_dir.stat.exists and clone_result is failed
 
     - name: Mettre à jour le repo (déploiements suivants)
