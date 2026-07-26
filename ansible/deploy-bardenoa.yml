@@ -112,6 +112,7 @@
       register: generated_jwt_secret
       changed_when: false
       when: not env_file.stat.exists
+      no_log: true
 
     - name: Écrire le fichier .env de production
       ansible.builtin.copy:
@@ -119,6 +120,7 @@
         content: "JWT_SECRET={{ generated_jwt_secret.stdout }}\n"
         mode: "0600"
       when: not env_file.stat.exists
+      no_log: true
 
     - name: Lancer la stack avec Docker Compose
       ansible.builtin.command: docker compose up -d --build

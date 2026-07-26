@@ -28,6 +28,10 @@ pas à ouvrir de nouveaux ports sur la Freebox ou l'hôte Proxmox.
 - Une clé SSH locale à injecter dans la VM (`~/.ssh/id_rsa.pub` par défaut)
 - Le repo bardenoa doit être privé et accessible via `gh` (utilisé une fois,
   à la main, pour enregistrer la deploy key générée par `deploy-bardenoa.yml`)
+- Les playbooks `[bardenoa]`/`[k3s]` tournent avec `become: true`, ce qui
+  suppose un sudo sans mot de passe pour l'utilisateur `debian` — vrai par
+  défaut sur les images cloud Debian, à vérifier si tu pars d'une autre image
+  de base
 
 ```bash
 cp ansible/inventory.ini.example ansible/inventory.ini
@@ -46,6 +50,10 @@ ansible-playbook -i ansible/inventory.ini ansible/setup-vm-nat.yml
 # 3. Installe Docker, clone le repo, lance `docker compose up -d --build`.
 #    Premier run : échoue avec les instructions pour enregistrer la deploy
 #    key générée sur la VM via `gh repo deploy-key add` — relance ensuite.
+#    Note : après create-proxmox-vm.yml, cloud-init a besoin d'environ 30 à
+#    60 secondes pour finir de configurer la VM (réseau, clé SSH) avant que
+#    deploy-bardenoa.yml puisse s'y connecter — si la connexion échoue juste
+#    après le playbook précédent, patiente puis relance.
 ansible-playbook -i ansible/inventory.ini ansible/deploy-bardenoa.yml
 
 # 4. Route openbar.seonay.eu vers la VM depuis l'ingress k3s existant
@@ -62,6 +70,28 @@ n'est jamais régénéré.
 forward 80/443 vers la VM k3s existe déjà, pas besoin d'en ajouter). En
 attendant la propagation DNS, tu peux tester en mappant le domaine vers
 cette IP publique dans `/etc/hosts` sur ta machine cliente (pas sur les VMs).
+
+## Dépannage
+
+**VM à moitié provisionnée** : `create-proxmox-vm.yml` est idempotent
+seulement sur l'existence du `vmid` (`qm status`) — si `qm importdisk` /
+`qm resize` / l'injection de la clé SSH échoue après la création de la
+coquille VM (ex : `local-lvm` plein), le `vmid` 9001 existe déjà et le
+playbook considérera la VM comme prête au prochain run, alors qu'elle est
+incomplète (pas de disque, pas de clé SSH, ou éteinte). Pour repartir de
+zéro : `qm destroy 9001` sur l'hôte Proxmox, puis relance
+`create-proxmox-vm.yml`.
+
+**`wan_iface` incorrect** : `setup-vm-nat.yml` suppose l'interface WiFi
+nommée `wlo1`. iptables accepte silencieusement une interface qui n'existe
+pas — le playbook réussit, mais aucun trafic ne passe (`ssh -p 2223 ...`
+reste bloqué sans erreur). Vérifie le nom réel avec `ip -br link` sur
+l'hôte Proxmox avant de lancer ce playbook, et ajuste la variable
+`wan_iface` si besoin.
+
+**L'ingress répond une erreur (502 ou timeout)** : vérifie d'abord que la
+stack tourne directement sur la VM avec `curl http://10.10.10.51:8080`
+depuis l'hôte Proxmox, avant de creuser côté k3s/Traefik.
 
 ## Hors scope
 

@@ -2,5 +2,6 @@ node_modules
 .next
 api
 .env.local
+.env
 *.md
 data
