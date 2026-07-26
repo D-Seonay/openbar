@@ -76,7 +76,7 @@
         key_file: "{{ deploy_key_path }}"
         accept_hostkey: true
       register: clone_result
-      failed_when: false
+      ignore_errors: true
       when: not repo_git_dir.stat.exists
 
     - name: Arrêter avec les instructions si le clone a échoué (deploy key pas encore enregistrée)
