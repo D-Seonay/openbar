@@ -1,0 +1,47 @@
+# =============================================================================
+# configure-ingress.yml
+# Route openbar.seonay.eu vers la VM bardenoa via l'ingress Traefik déjà en
+# place sur le cluster k3s lifeos, hébergé sur ce même hôte Proxmox. Un
+# Service sans selector + des Endpoints pointant sur l'IP de la VM bardenoa
+# permettent à Traefik de proxifier vers une VM externe au cluster.
+#
+# Aucune règle NAT supplémentaire n'est nécessaire côté hôte Proxmox :
+# Traefik route déjà 80/443 par en-tête Host, donc ce playbook se contente
+# d'ajouter une règle de routage applicative.
+#
+# HTTP simple pour l'instant, pas de cert-manager sur ce cluster.
+#
+# Usage :
+#   ansible-playbook -i ansible/inventory.ini ansible/configure-ingress.yml
+# =============================================================================
+
+- name: Router openbar.seonay.eu vers la VM bardenoa
+  hosts: k3s
+  become: true
+  gather_facts: false
+
+  vars:
+    bardenoa_ip: "10.10.10.51"
+    bardenoa_port: 8080
+    ingress_host: "openbar.seonay.eu"
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+
+  tasks:
+    - name: Générer le manifeste Kubernetes
+      ansible.builtin.template:
+        src: templates/ingress.yml.j2
+        dest: /tmp/bardenoa-ingress.yml
+        mode: "0644"
+
+    - name: Appliquer le manifeste
+      ansible.builtin.command: kubectl apply -f /tmp/bardenoa-ingress.yml
+      environment:
+        KUBECONFIG: "{{ kubeconfig }}"
+      changed_when: true
+
+    - name: Résumé
+      ansible.builtin.debug:
+        msg: >-
+          Ingress appliqué. Une fois le DNS de {{ ingress_host }} propagé
+          vers l'IP publique de la Freebox : curl http://{{ ingress_host }}
+          doit répondre la page d'accueil bardenoa.
