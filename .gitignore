@@ -35,6 +35,9 @@ yarn-error.log*
 !.env.example
 !api/.env.example
 
+# ansible inventory (real host details, not for git)
+/ansible/inventory.ini
+
 # vercel
 .vercel
 
