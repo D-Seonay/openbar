@@ -1,0 +1,127 @@
+# =============================================================================
+# deploy-bardenoa.yml
+# Déploie la stack docker-compose de bardenoa (Postgres + API NestJS + web
+# Next.js) sur sa VM dédiée. Contrairement au cluster k3s de lifeos (installé
+# à la main), docker-compose est trivial à automatiser de bout en bout :
+# ce playbook installe Docker, clone le repo privé via une deploy key
+# dédiée, génère un JWT_SECRET s'il n'existe pas encore, et lance la stack.
+#
+# Idempotent : rejouable après chaque `git push` sur bardenoa pour
+# redéployer (pull + rebuild + up), sans jamais régénérer un secret déjà en
+# place ni recréer la deploy key.
+#
+# Premier run : le clone échoue tant que la deploy key générée sur la VM
+# n'est pas enregistrée sur GitHub — le playbook affiche la clé publique et
+# la commande à lancer, puis s'arrête. Relance le playbook une fois la clé
+# enregistrée.
+#
+# Usage :
+#   ansible-playbook -i ansible/inventory.ini ansible/deploy-bardenoa.yml
+# =============================================================================
+
+- name: Déployer bardenoa sur sa VM
+  hosts: bardenoa
+  become: true
+  gather_facts: false
+
+  vars:
+    github_repo: "D-Seonay/bardenoa"
+    app_dir: /opt/bardenoa
+    deploy_key_path: "/root/.ssh/id_ed25519_bardenoa_deploy"
+
+  tasks:
+    - name: Installer git
+      ansible.builtin.apt:
+        name: git
+        state: present
+        update_cache: true
+
+    - name: Installer Docker (script officiel get.docker.com)
+      ansible.builtin.shell: curl -fsSL https://get.docker.com | sh
+      args:
+        creates: /usr/bin/docker
+
+    - name: Ajouter l'utilisateur {{ ansible_user }} au groupe docker
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: true
+
+    - name: Créer le dossier ~/.ssh pour root
+      ansible.builtin.file:
+        path: /root/.ssh
+        state: directory
+        mode: "0700"
+
+    - name: Générer une deploy key SSH dédiée si absente
+      ansible.builtin.command: ssh-keygen -t ed25519 -f {{ deploy_key_path }} -N "" -C "bardenoa-vm-deploy"
+      args:
+        creates: "{{ deploy_key_path }}"
+
+    - name: Lire la clé publique générée
+      ansible.builtin.command: cat {{ deploy_key_path }}.pub
+      register: deploy_pubkey
+      changed_when: false
+
+    - name: Vérifier si le repo est déjà cloné
+      ansible.builtin.stat:
+        path: "{{ app_dir }}/.git"
+      register: repo_git_dir
+
+    - name: Cloner le repo bardenoa (première fois)
+      ansible.builtin.git:
+        repo: "git@github.com:{{ github_repo }}.git"
+        dest: "{{ app_dir }}"
+        version: main
+        key_file: "{{ deploy_key_path }}"
+        accept_hostkey: true
+      register: clone_result
+      failed_when: false
+      when: not repo_git_dir.stat.exists
+
+    - name: Arrêter avec les instructions si le clone a échoué (deploy key pas encore enregistrée)
+      ansible.builtin.fail:
+        msg: |
+          Le clone a échoué — la deploy key générée sur cette VM n'est
+          probablement pas encore enregistrée sur GitHub.
+
+          Clé publique :
+            {{ deploy_pubkey.stdout }}
+
+          Enregistre-la en lecture seule sur le repo, puis relance ce
+          playbook :
+            gh repo deploy-key add - --repo {{ github_repo }} --title bardenoa-vm --read-only <<< "{{ deploy_pubkey.stdout }}"
+      when: not repo_git_dir.stat.exists and clone_result is failed
+
+    - name: Mettre à jour le repo (déploiements suivants)
+      ansible.builtin.git:
+        repo: "git@github.com:{{ github_repo }}.git"
+        dest: "{{ app_dir }}"
+        version: main
+        key_file: "{{ deploy_key_path }}"
+        accept_hostkey: true
+      when: repo_git_dir.stat.exists
+
+    - name: Vérifier si le fichier .env de production existe déjà
+      ansible.builtin.stat:
+        path: "{{ app_dir }}/.env"
+      register: env_file
+
+    - name: Générer un JWT_SECRET aléatoire
+      ansible.builtin.command: openssl rand -hex 32
+      register: generated_jwt_secret
+      changed_when: false
+      when: not env_file.stat.exists
+
+    - name: Écrire le fichier .env de production
+      ansible.builtin.copy:
+        dest: "{{ app_dir }}/.env"
+        content: "JWT_SECRET={{ generated_jwt_secret.stdout }}\n"
+        mode: "0600"
+      when: not env_file.stat.exists
+
+    - name: Lancer la stack avec Docker Compose
+      ansible.builtin.command: docker compose up -d --build
+      args:
+        chdir: "{{ app_dir }}"
+      changed_when: true
