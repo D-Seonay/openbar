@@ -25,7 +25,7 @@
   gather_facts: false
 
   vars:
-    github_repo: "D-Seonay/bardenoa"
+    github_repo: "D-Seonay/openbar"
     app_dir: /opt/bardenoa
     deploy_key_path: "/root/.ssh/id_ed25519_bardenoa_deploy"
 

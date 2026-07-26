@@ -65,7 +65,7 @@ ansible-playbook -i ansible/inventory.ini ansible/configure-ingress.yml
 #    VM, pour que chaque push sur main redéploie automatiquement (voir
 #    .github/workflows/deploy.yml). Le token expire après ~1h, à régénérer
 #    si tu relances ce playbook plus tard.
-gh api -X POST repos/D-Seonay/bardenoa/actions/runners/registration-token --jq .token
+gh api -X POST repos/D-Seonay/openbar/actions/runners/registration-token --jq .token
 ansible-playbook -i ansible/inventory.ini ansible/setup-github-runner.yml \
   -e github_runner_token=<token-collé-ci-dessus>
 ```
@@ -146,6 +146,14 @@ contraire `.runner` existe mais le service ne tourne pas
 (`sudo ~/actions-runner/svc.sh status` sur la VM), supprime le runner côté
 GitHub (Settings → Actions → Runners), `rm -rf ~/actions-runner` sur la VM,
 régénère un token, et relance le playbook.
+
+**`./config.sh` échoue avec `404 Not Found` sur
+`POST .../actions/runner-registration`** : le repo a été renommé côté
+GitHub (`D-Seonay/bardenoa` → `D-Seonay/openbar`). `git push`/`gh api`
+suivent la redirection automatiquement, mais l'endpoint interne
+d'enregistrement du runner exige le nom canonique actuel — utilise
+`D-Seonay/openbar` dans `--url` et dans la commande `gh api ... /repos/...`
+qui génère le token, pas l'ancien nom.
 
 ## Hors scope
 

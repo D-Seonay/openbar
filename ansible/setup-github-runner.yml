@@ -11,7 +11,7 @@
 # token de registration expire de toute façon après un premier usage).
 #
 # Prérequis : un token de registration GitHub, valable ~1h, jamais commité :
-#   gh api -X POST repos/D-Seonay/bardenoa/actions/runners/registration-token --jq .token
+#   gh api -X POST repos/D-Seonay/openbar/actions/runners/registration-token --jq .token
 #
 # Usage :
 #   ansible-playbook -i ansible/inventory.ini ansible/setup-github-runner.yml \
@@ -23,7 +23,7 @@
   gather_facts: false
 
   vars:
-    github_repo: "D-Seonay/bardenoa"
+    github_repo: "D-Seonay/openbar"
     runner_dir: "/home/{{ ansible_user }}/actions-runner"
     github_runner_token: ""
 
