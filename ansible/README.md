@@ -60,11 +60,32 @@ ansible-playbook -i ansible/inventory.ini ansible/deploy-bardenoa.yml
 
 # 4. Route openbar.seonay.eu vers la VM depuis l'ingress k3s existant
 ansible-playbook -i ansible/inventory.ini ansible/configure-ingress.yml
+
+# 5. (Une seule fois) Installe un runner GitHub Actions auto-hébergé sur la
+#    VM, pour que chaque push sur main redéploie automatiquement (voir
+#    .github/workflows/deploy.yml). Le token expire après ~1h, à régénérer
+#    si tu relances ce playbook plus tard.
+gh api -X POST repos/D-Seonay/bardenoa/actions/runners/registration-token --jq .token
+ansible-playbook -i ansible/inventory.ini ansible/setup-github-runner.yml \
+  -e github_runner_token=<token-collé-ci-dessus>
 ```
 
 Relance `deploy-bardenoa.yml` après chaque `git push` sur `main` pour
 redéployer (pull + rebuild + up) — le `JWT_SECRET` généré au premier run
 n'est jamais régénéré.
+
+## Déploiement continu
+
+Après `setup-github-runner.yml`, chaque `git push` sur `main` déclenche
+automatiquement `.github/workflows/deploy.yml` sur la VM (`git pull` +
+`docker compose up -d --build` dans `/opt/bardenoa`) — plus besoin de
+relancer `deploy-bardenoa.yml` à la main pour les mises à jour de code (le
+`JWT_SECRET` généré au premier déploiement n'est jamais touché).
+
+**Sécurité** : un runner auto-hébergé exécute tout ce que contient le
+workflow au SHA poussé sur `main` — acceptable ici (repo privé, un seul
+mainteneur, pas de pull request externe à fusionner), mais à garder en tête
+si le repo devient un jour public ou accepte des contributions externes.
 
 ## DNS
 
@@ -113,6 +134,16 @@ l'hôte Proxmox avant de lancer ce playbook, et ajuste la variable
 **L'ingress répond une erreur (502 ou timeout)** : vérifie d'abord que la
 stack tourne directement sur la VM avec `curl http://10.10.10.51:8080`
 depuis l'hôte Proxmox, avant de creuser côté k3s/Traefik.
+
+**Runner à moitié installé** : `setup-github-runner.yml` est idempotent
+seulement sur l'existence de `~/actions-runner/.runner` sur la VM — si
+`config.sh`/`svc.sh install`/`svc.sh start` échoue après le téléchargement
+de l'archive (ex : token expiré), le dossier existe mais `.runner` n'y est
+peut-être pas encore, donc un nouveau run repart proprement de zéro. Si au
+contraire `.runner` existe mais le service ne tourne pas
+(`sudo ~/actions-runner/svc.sh status` sur la VM), supprime le runner côté
+GitHub (Settings → Actions → Runners), `rm -rf ~/actions-runner` sur la VM,
+régénère un token, et relance le playbook.
 
 ## Hors scope
 
