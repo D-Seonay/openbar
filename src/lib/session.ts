@@ -8,6 +8,7 @@ export interface SessionUser {
   username: string;
   role: "ADMIN" | "USER";
   vip: boolean;
+  mustChangePassword: boolean;
 }
 
 function getSecret() {

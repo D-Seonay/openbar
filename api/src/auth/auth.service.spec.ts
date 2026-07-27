@@ -33,6 +33,7 @@ describe('AuthService', () => {
       passwordHash,
       role: 'ADMIN',
       vip: true,
+      mustChangePassword: false,
     });
 
     const result = await service.login('noa', 'secret123');
@@ -49,6 +50,7 @@ describe('AuthService', () => {
       passwordHash,
       role: 'ADMIN',
       vip: true,
+      mustChangePassword: false,
     });
 
     await service.login('noa', 'secret123');
@@ -67,6 +69,7 @@ describe('AuthService', () => {
       passwordHash,
       role: 'USER',
       vip: false,
+      mustChangePassword: false,
     });
 
     await service.login('noa', 'secret123');
@@ -85,6 +88,7 @@ describe('AuthService', () => {
       passwordHash,
       role: 'USER',
       vip: false,
+      mustChangePassword: false,
     });
 
     await expect(service.login('noa', 'wrong')).rejects.toThrow(UnauthorizedException);
@@ -109,5 +113,41 @@ describe('AuthService', () => {
     expect(usersService.create).toHaveBeenCalledWith({ username: 'newuser', password: 'secret123' });
     expect(result.token).toBe('signed.jwt.token');
     expect(result.user).toEqual({ id: '2', username: 'newuser', role: 'USER', vip: false });
+  });
+
+  it('includes mustChangePassword: true in the JWT payload when the account must change its password', async () => {
+    const passwordHash = await bcrypt.hash('secret123', 10);
+    usersService.findByUsername.mockResolvedValue({
+      id: '1',
+      username: 'noa',
+      passwordHash,
+      role: 'USER',
+      vip: false,
+      mustChangePassword: true,
+    });
+
+    await service.login('noa', 'secret123');
+
+    expect(jwtService.sign).toHaveBeenCalledWith(
+      expect.objectContaining({ mustChangePassword: true }),
+      { expiresIn: '30d' },
+    );
+  });
+
+  it('includes mustChangePassword: false on a fresh signup', async () => {
+    usersService.create.mockResolvedValue({
+      id: '2',
+      username: 'newuser',
+      role: 'USER',
+      vip: false,
+      mustChangePassword: false,
+    });
+
+    await service.signup('newuser', 'secret123');
+
+    expect(jwtService.sign).toHaveBeenCalledWith(
+      expect.objectContaining({ mustChangePassword: false }),
+      { expiresIn: '30d' },
+    );
   });
 });

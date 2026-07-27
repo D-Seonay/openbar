@@ -8,6 +8,7 @@ export interface JwtPayload {
   username: string;
   role: 'ADMIN' | 'USER';
   vip: boolean;
+  mustChangePassword: boolean;
 }
 
 interface AuthenticatedUser {
@@ -15,6 +16,7 @@ interface AuthenticatedUser {
   username: string;
   role: 'ADMIN' | 'USER';
   vip: boolean;
+  mustChangePassword: boolean;
 }
 
 @Injectable()
@@ -38,6 +40,7 @@ export class AuthService {
       username: user.username,
       role: user.role,
       vip: user.vip,
+      mustChangePassword: user.mustChangePassword,
     };
     const expiresIn = user.role === 'ADMIN' ? '24h' : '30d';
     return {

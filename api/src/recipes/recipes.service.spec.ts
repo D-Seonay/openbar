@@ -8,9 +8,9 @@ describe('RecipesService', () => {
   let service: RecipesService;
   let prisma: { recipe: Record<string, jest.Mock> };
 
-  const owner: JwtPayload = { sub: 'user-1', username: 'alice', role: 'USER', vip: true };
-  const otherUser: JwtPayload = { sub: 'user-2', username: 'bob', role: 'USER', vip: true };
-  const admin: JwtPayload = { sub: 'admin-1', username: 'root', role: 'ADMIN', vip: false };
+  const owner: JwtPayload = { sub: 'user-1', username: 'alice', role: 'USER', vip: true, mustChangePassword: false };
+  const otherUser: JwtPayload = { sub: 'user-2', username: 'bob', role: 'USER', vip: true, mustChangePassword: false };
+  const admin: JwtPayload = { sub: 'admin-1', username: 'root', role: 'ADMIN', vip: false, mustChangePassword: false };
 
   beforeEach(async () => {
     prisma = {

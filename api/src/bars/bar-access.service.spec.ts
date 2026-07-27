@@ -9,8 +9,8 @@ describe('BarAccessService', () => {
   let barsService: { getMembership: jest.Mock };
 
   const BAR_ID = 'bar-1';
-  const admin: JwtPayload = { sub: 'admin-1', username: 'root', role: 'ADMIN', vip: false };
-  const member: JwtPayload = { sub: 'user-1', username: 'alice', role: 'USER', vip: false };
+  const admin: JwtPayload = { sub: 'admin-1', username: 'root', role: 'ADMIN', vip: false, mustChangePassword: false };
+  const member: JwtPayload = { sub: 'user-1', username: 'alice', role: 'USER', vip: false, mustChangePassword: false };
 
   beforeEach(async () => {
     barsService = { getMembership: jest.fn() };
