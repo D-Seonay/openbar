@@ -3,8 +3,9 @@
 import { useState, useTransition, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Bottle, BottleType } from "@/lib/types";
-import { updateBottleQuantity } from "@/app/actions";
+import { updateBottleQuantity, deleteBottleAction } from "@/app/actions";
 import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
+import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 
 interface StockStudioProps {
   normalBottles: Bottle[];
@@ -26,7 +27,9 @@ export default function StockStudio({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
   const [drawerMode, setDrawerMode] = useState<"inspect" | "add" | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [, startTransition] = useTransition();
+  const [isDeletePending, startDeleteTransition] = useTransition();
 
   const shoppingList = useMemo(() => {
     const listToScan = isVip ? [...normalBottles, ...vipBottles] : normalBottles;
@@ -87,9 +90,9 @@ export default function StockStudio({
     setSelectedBottleId(null);
   };
 
-  const quickAdjust = (id: string, delta: number) => {
+  const quickAdjust = (id: string, currentQuantity: number, delta: number) => {
     startTransition(() => {
-      updateBottleQuantity(id, delta);
+      updateBottleQuantity(id, currentQuantity + delta);
     });
   };
 
@@ -285,14 +288,14 @@ export default function StockStudio({
                     {isAdmin && (
                       <div className="flex items-center gap-1.5">
                         <button
-                          onClick={() => quickAdjust(bottle.id, -1)}
+                          onClick={() => quickAdjust(bottle.id, bottle.quantity, -1)}
                           disabled={bottle.quantity <= 0}
                           className="w-8 h-8 rounded-lg bg-ink hover:bg-white/[0.1] text-cream text-sm font-bold flex items-center justify-center disabled:opacity-30 border border-white/[0.08] transition-colors cursor-pointer"
                         >
                           -
                         </button>
                         <button
-                          onClick={() => quickAdjust(bottle.id, 1)}
+                          onClick={() => quickAdjust(bottle.id, bottle.quantity, 1)}
                           className="w-8 h-8 rounded-lg bg-ink hover:bg-orange hover:text-ink text-cream text-sm font-bold flex items-center justify-center border border-white/[0.08] transition-colors cursor-pointer"
                         >
                           +
@@ -420,7 +423,16 @@ export default function StockStudio({
               </div>
 
               <div className="pt-6 mt-6 border-t border-white/[0.08] flex items-center justify-between text-xs">
-                <span className="text-muted">OpenBar · Studio Cave</span>
+                {drawerMode === "inspect" && isAdmin && selectedBottle ? (
+                  <button
+                    onClick={() => setDeleteTarget({ id: selectedBottle.id, name: selectedBottle.name })}
+                    className="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    Supprimer
+                  </button>
+                ) : (
+                  <span className="text-muted">OpenBar · Studio Cave</span>
+                )}
                 <button
                   onClick={handleCloseDrawer}
                   className="px-5 py-2.5 rounded-xl bg-orange text-ink font-bold uppercase tracking-wider hover:bg-orange-hover transition-colors cursor-pointer"
@@ -432,6 +444,23 @@ export default function StockStudio({
           </>
         )}
       </AnimatePresence>
+
+      <ConfirmDeleteModal
+        isOpen={deleteTarget !== null}
+        title="Supprimer la bouteille ?"
+        description={`Êtes-vous sûr de vouloir supprimer définitivement "${deleteTarget?.name}" ?`}
+        isPending={isDeletePending}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          const id = deleteTarget.id;
+          startDeleteTransition(() => {
+            deleteBottleAction(id);
+          });
+          setDeleteTarget(null);
+          handleCloseDrawer();
+        }}
+      />
     </div>
   );
 }
