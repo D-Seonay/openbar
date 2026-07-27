@@ -274,10 +274,7 @@ export default function StockStudio({
                     </div>
                   </div>
 
-                  <div
-                    className="flex items-center justify-between sm:justify-end gap-6 mt-3 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-0 border-white/[0.06]"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <div className="flex items-center justify-between sm:justify-end gap-6 mt-3 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-0 border-white/[0.06]">
                     <div className="flex items-center gap-2 text-xs">
                       <span className="text-muted">En stock :</span>
                       <span className="text-cream font-bold text-sm bg-ink px-2.5 py-1 rounded-lg border border-white/[0.08]">
@@ -286,7 +283,7 @@ export default function StockStudio({
                     </div>
 
                     {isAdmin && (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => quickAdjust(bottle.id, bottle.quantity, -1)}
                           disabled={bottle.quantity <= 0}
