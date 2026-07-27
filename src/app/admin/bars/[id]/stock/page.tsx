@@ -4,7 +4,6 @@ import { calculateBottleTotalLiters, calculateTotalBottlesCount, formatLiters } 
 import { isAdminLoggedIn } from "@/lib/session";
 import PageTransition from "@/components/PageTransition";
 import StockStudio from "@/app/stock/StockStudio";
-import AddBottleForm from "@/app/stock/AddBottleForm";
 import AlertsManagerTrigger from "@/app/stock/AlertsManagerTrigger";
 
 export default async function AdminBarStockPage({
@@ -26,8 +25,6 @@ export default async function AdminBarStockPage({
   const lowStockCount = bottles.filter(
     (b) => b.lowStockThreshold != null && b.quantity <= b.lowStockThreshold
   ).length;
-
-  const addBottleForm = <AddBottleForm isVip barId={id} />;
 
   return (
     <PageTransition className="space-y-8">
@@ -60,7 +57,7 @@ export default async function AdminBarStockPage({
       <StockStudio
         normalBottles={normal}
         vipBottles={vip}
-        addBottleForm={addBottleForm}
+        barId={id}
         isAdmin
         isVip
       />

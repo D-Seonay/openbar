@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, useTransition } from "react";
 import { createBottle } from "@/app/actions";
 import type { BottleVolume } from "@/lib/types";
 import ImagePicker from "@/components/ImagePicker";
@@ -19,9 +19,39 @@ const TYPES = [
   ["autre", "Autre"],
 ] as const;
 
-export default function AddBottleForm({ isVip = false, barId }: { isVip?: boolean; barId: string }) {
-  const [volumes, setVolumes] = useState<BottleVolume[]>([{ size: "70cl", quantity: 1 }]);
+const INITIAL_VOLUMES: BottleVolume[] = [{ size: "70cl", quantity: 1 }];
+
+export default function AddBottleForm({
+  isVip = false,
+  barId,
+  onSuccess,
+}: {
+  isVip?: boolean;
+  barId: string;
+  onSuccess?: () => void;
+}) {
+  const [volumes, setVolumes] = useState<BottleVolume[]>(INITIAL_VOLUMES);
   const [imageUrl, setImageUrl] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const [saved, setSaved] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const handleSubmit = (formData: FormData) => {
+    startTransition(async () => {
+      await createBottle(barId, formData);
+
+      // Reset local state so the form is ready for a fresh entry.
+      setVolumes(INITIAL_VOLUMES);
+      setImageUrl("");
+      formRef.current?.reset();
+
+      setSaved(true);
+      setTimeout(() => {
+        setSaved(false);
+        onSuccess?.();
+      }, 1100);
+    });
+  };
 
   const addVolumeRow = () => {
     setVolumes([...volumes, { size: "1L", quantity: 1 }]);
@@ -42,7 +72,7 @@ export default function AddBottleForm({ isVip = false, barId }: { isVip?: boolea
   };
 
   return (
-    <form action={createBottle.bind(null, barId)} className="grid sm:grid-cols-2 gap-4">
+    <form ref={formRef} action={handleSubmit} className="grid sm:grid-cols-2 gap-4">
       {/* Hidden input to pass volumes list as JSON */}
       <input type="hidden" name="volumes" value={JSON.stringify(volumes)} />
 
@@ -174,10 +204,17 @@ export default function AddBottleForm({ isVip = false, barId }: { isVip?: boolea
 
       <button
         type="submit"
-        className="sm:col-span-2 bg-orange text-ink font-semibold rounded-lg py-2.5 hover:bg-cream transition-colors mt-2 uppercase tracking-caps text-xs duration-350 cursor-pointer"
+        disabled={isPending}
+        className="sm:col-span-2 bg-orange text-ink font-semibold rounded-lg py-2.5 hover:bg-cream transition-colors mt-2 uppercase tracking-caps text-xs duration-350 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        Ajouter au stock
+        {isPending ? "Ajout en cours..." : "Ajouter au stock"}
       </button>
+
+      {saved && (
+        <div className="sm:col-span-2 text-xs bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-emerald-300 text-center font-semibold uppercase tracking-caps">
+          ✓ Bouteille ajoutée !
+        </div>
+      )}
     </form>
   );
 }

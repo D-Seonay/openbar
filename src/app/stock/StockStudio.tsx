@@ -6,11 +6,12 @@ import type { Bottle, BottleType } from "@/lib/types";
 import { updateBottleQuantity, deleteBottleAction } from "@/app/actions";
 import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
+import AddBottleForm from "./AddBottleForm";
 
 interface StockStudioProps {
   normalBottles: Bottle[];
   vipBottles: Bottle[];
-  addBottleForm: React.ReactNode;
+  barId: string;
   isAdmin?: boolean;
   isVip?: boolean;
 }
@@ -18,7 +19,7 @@ interface StockStudioProps {
 export default function StockStudio({
   normalBottles,
   vipBottles,
-  addBottleForm,
+  barId,
   isAdmin = false,
   isVip = false,
 }: StockStudioProps) {
@@ -350,7 +351,7 @@ export default function StockStudio({
 
                 {drawerMode === "add" && (
                   <div className="space-y-4">
-                    {addBottleForm}
+                    <AddBottleForm isVip={isVip} barId={barId} onSuccess={handleCloseDrawer} />
                   </div>
                 )}
 
