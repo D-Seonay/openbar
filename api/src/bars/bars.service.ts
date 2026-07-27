@@ -194,6 +194,49 @@ export class BarsService {
     return { barId: bar.id, barName: bar.name, alreadyMember: false };
   }
 
+  async findAll() {
+    const bars = await this.prisma.bar.findMany({
+      include: {
+        memberships: {
+          select: { role: true, user: { select: { username: true } } },
+        },
+        _count: { select: { memberships: true } },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    return bars.map((bar) => {
+      const owner = bar.memberships.find((m) => m.role === 'OWNER');
+      return {
+        id: bar.id,
+        name: bar.name,
+        ownerUsername: owner?.user.username ?? '—',
+        memberCount: bar._count.memberships,
+        isPublic: bar.isPublic,
+        createdAt: bar.createdAt,
+      };
+    });
+  }
+
+  async findOne(barId: string) {
+    const bar = await this.getBar(barId);
+    const [memberCount, ownerMembership] = await Promise.all([
+      this.prisma.barMembership.count({ where: { barId } }),
+      this.prisma.barMembership.findFirst({
+        where: { barId, role: 'OWNER' },
+        include: { user: { select: { username: true } } },
+      }),
+    ]);
+    return {
+      id: bar.id,
+      name: bar.name,
+      isPublic: bar.isPublic,
+      inviteToken: bar.inviteToken,
+      memberCount,
+      ownerUsername: ownerMembership?.user.username ?? '—',
+    };
+  }
+
   async findDirectory(userId?: string) {
     const bars = await this.prisma.bar.findMany({
       where: { isPublic: true },

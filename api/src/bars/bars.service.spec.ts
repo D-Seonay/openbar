@@ -38,6 +38,7 @@ describe('BarsService', () => {
         findMany: jest.fn(),
         update: jest.fn(),
         delete: jest.fn(),
+        count: jest.fn(),
       },
       barJoinRequest: {
         create: jest.fn(),
@@ -816,6 +817,80 @@ describe('BarsService', () => {
         data: { barId: BAR_ID, userId: OTHER_ID, role: 'MEMBER', vip: false },
       });
       expect(result).toEqual({ barId: BAR_ID, barName: 'Chez Noa', alreadyMember: false });
+    });
+  });
+
+  describe('findAll', () => {
+    it('returns every bar, public and private, with owner and member count', async () => {
+      prisma.bar.findMany.mockResolvedValue([
+        {
+          id: 'bar-a',
+          name: 'Bar Public',
+          isPublic: true,
+          createdAt: new Date('2026-01-01'),
+          memberships: [{ role: 'OWNER', user: { username: 'owner1' } }],
+          _count: { memberships: 1 },
+        },
+        {
+          id: 'bar-b',
+          name: 'Bar Privé',
+          isPublic: false,
+          createdAt: new Date('2026-01-02'),
+          memberships: [{ role: 'OWNER', user: { username: 'owner2' } }],
+          _count: { memberships: 3 },
+        },
+      ]);
+
+      const result = await service.findAll();
+
+      expect(prisma.bar.findMany).toHaveBeenCalledWith({
+        include: {
+          memberships: { select: { role: true, user: { select: { username: true } } } },
+          _count: { select: { memberships: true } },
+        },
+        orderBy: { name: 'asc' },
+      });
+      expect(result).toEqual([
+        { id: 'bar-a', name: 'Bar Public', ownerUsername: 'owner1', memberCount: 1, isPublic: true, createdAt: new Date('2026-01-01') },
+        { id: 'bar-b', name: 'Bar Privé', ownerUsername: 'owner2', memberCount: 3, isPublic: false, createdAt: new Date('2026-01-02') },
+      ]);
+    });
+  });
+
+  describe('findOne', () => {
+    it('throws NotFoundException if the bar does not exist', async () => {
+      prisma.bar.findUnique.mockResolvedValue(null);
+
+      await expect(service.findOne(BAR_ID)).rejects.toThrow(NotFoundException);
+    });
+
+    it('returns bar details with member count and owner username', async () => {
+      prisma.bar.findUnique.mockResolvedValue({
+        id: BAR_ID,
+        name: 'Chez Noa',
+        isPublic: true,
+        inviteToken: 'tok-1',
+      });
+      prisma.barMembership.count.mockResolvedValue(4);
+      prisma.barMembership.findFirst.mockResolvedValue({
+        user: { username: 'owner1' },
+      });
+
+      const result = await service.findOne(BAR_ID);
+
+      expect(prisma.barMembership.count).toHaveBeenCalledWith({ where: { barId: BAR_ID } });
+      expect(prisma.barMembership.findFirst).toHaveBeenCalledWith({
+        where: { barId: BAR_ID, role: 'OWNER' },
+        include: { user: { select: { username: true } } },
+      });
+      expect(result).toEqual({
+        id: BAR_ID,
+        name: 'Chez Noa',
+        isPublic: true,
+        inviteToken: 'tok-1',
+        memberCount: 4,
+        ownerUsername: 'owner1',
+      });
     });
   });
 });
