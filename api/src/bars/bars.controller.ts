@@ -2,6 +2,8 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuard
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import type { JwtPayload } from '../auth/auth.service';
 import { BarsService } from './bars.service';
 import { CreateBarDto } from './dto/create-bar.dto';
@@ -40,6 +42,13 @@ export class BarsController {
   @Get('search-users')
   searchUsers(@Query('q') q: string) {
     return this.barsService.searchUsers(q ?? '');
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Get('all')
+  findAll() {
+    return this.barsService.findAll();
   }
 
   @UseGuards(OptionalJwtAuthGuard)
@@ -133,5 +142,12 @@ export class BarsController {
   ) {
     const user = req.user as JwtPayload;
     return this.barsService.respondToJoinRequest(id, user.sub, requestId, dto.accept);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.barsService.findOne(id);
   }
 }
