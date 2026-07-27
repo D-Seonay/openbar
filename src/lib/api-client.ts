@@ -59,6 +59,35 @@ export async function apiSignup(
   return { token: match[1] };
 }
 
+export async function apiChangePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<{ token: string } | { error: string }> {
+  const cookieStore = await cookies();
+  const currentToken = cookieStore.get(SESSION_COOKIE)?.value;
+
+  const res = await fetch(`${API_URL}/auth/change-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(currentToken ? { Cookie: `${SESSION_COOKIE}=${currentToken}` } : {}),
+    },
+    body: JSON.stringify({ currentPassword, newPassword }),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    return { error: body.message ?? `Erreur API (${res.status})` };
+  }
+
+  const setCookie = res.headers.get("set-cookie");
+  const match = setCookie?.match(/bardenoa_session=([^;]+)/);
+  if (!match) return { error: "Une erreur inattendue est survenue." };
+
+  return { token: match[1] };
+}
+
 class ApiError extends Error {
   constructor(
     public status: number,
