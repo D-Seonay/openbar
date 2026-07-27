@@ -39,8 +39,9 @@ export class AuthService {
       role: user.role,
       vip: user.vip,
     };
+    const expiresIn = user.role === 'ADMIN' ? '24h' : '30d';
     return {
-      token: this.jwtService.sign(payload),
+      token: this.jwtService.sign(payload, { expiresIn }),
       user: { id: user.id, username: user.username, role: user.role, vip: user.vip },
     };
   }

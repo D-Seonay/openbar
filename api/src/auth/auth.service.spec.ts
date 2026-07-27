@@ -8,15 +8,17 @@ import { UsersService } from '../users/users.service';
 describe('AuthService', () => {
   let service: AuthService;
   let usersService: { findByUsername: jest.Mock; create: jest.Mock };
+  let jwtService: { sign: jest.Mock };
 
   beforeEach(async () => {
     usersService = { findByUsername: jest.fn(), create: jest.fn() };
+    jwtService = { sign: jest.fn().mockReturnValue('signed.jwt.token') };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: UsersService, useValue: usersService },
-        { provide: JwtService, useValue: { sign: jest.fn().mockReturnValue('signed.jwt.token') } },
+        { provide: JwtService, useValue: jwtService },
       ],
     }).compile();
 
@@ -37,6 +39,42 @@ describe('AuthService', () => {
 
     expect(result.token).toBe('signed.jwt.token');
     expect(result.user).toEqual({ id: '1', username: 'noa', role: 'ADMIN', vip: true });
+  });
+
+  it('signs an ADMIN token with a 24h expiry', async () => {
+    const passwordHash = await bcrypt.hash('secret123', 10);
+    usersService.findByUsername.mockResolvedValue({
+      id: '1',
+      username: 'noa',
+      passwordHash,
+      role: 'ADMIN',
+      vip: true,
+    });
+
+    await service.login('noa', 'secret123');
+
+    expect(jwtService.sign).toHaveBeenCalledWith(
+      expect.objectContaining({ role: 'ADMIN' }),
+      { expiresIn: '24h' },
+    );
+  });
+
+  it('signs a USER token with a 30d expiry', async () => {
+    const passwordHash = await bcrypt.hash('secret123', 10);
+    usersService.findByUsername.mockResolvedValue({
+      id: '1',
+      username: 'noa',
+      passwordHash,
+      role: 'USER',
+      vip: false,
+    });
+
+    await service.login('noa', 'secret123');
+
+    expect(jwtService.sign).toHaveBeenCalledWith(
+      expect.objectContaining({ role: 'USER' }),
+      { expiresIn: '30d' },
+    );
   });
 
   it('rejects login with a wrong password', async () => {
