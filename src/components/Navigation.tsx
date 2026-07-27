@@ -9,7 +9,10 @@ const NAV = [
   { href: "/soirees", label: "Soirées" },
 ];
 
-const ADMIN_NAV = [{ href: "/comptes", label: "Comptes" }];
+const ADMIN_NAV = [
+  { href: "/comptes", label: "Comptes" },
+  { href: "/admin/bars", label: "Tous les bars" },
+];
 const OWNER_NAV = [{ href: "/membres", label: "Membres" }];
 
 function navLink(item: { href: string; label: string }, pathname: string) {
