@@ -93,4 +93,49 @@ describe('UsersService', () => {
 
     expect(prisma.user.findMany).not.toHaveBeenCalled();
   });
+
+  it('defaults mustChangePassword to false when creating a user without the flag', async () => {
+    prisma.user.findUnique.mockResolvedValue(null);
+    prisma.user.create.mockImplementation(({ data }) => Promise.resolve({ id: '1', ...data }));
+
+    await service.create({ username: 'noa', password: 'secret123' });
+
+    expect(prisma.user.create.mock.calls[0][0].data.mustChangePassword).toBe(false);
+  });
+
+  it('sets mustChangePassword to true when explicitly requested during creation', async () => {
+    prisma.user.findUnique.mockResolvedValue(null);
+    prisma.user.create.mockImplementation(({ data }) => Promise.resolve({ id: '1', ...data }));
+
+    await service.create({ username: 'noa', password: 'secret123', mustChangePassword: true });
+
+    expect(prisma.user.create.mock.calls[0][0].data.mustChangePassword).toBe(true);
+  });
+
+  it('forces mustChangePassword to true on a password update by default', async () => {
+    prisma.user.findUnique.mockResolvedValue({ id: '1', username: 'noa' });
+    prisma.user.update.mockImplementation(({ data }) => Promise.resolve({ id: '1', ...data }));
+
+    await service.update('1', { password: 'newsecret123' });
+
+    expect(prisma.user.update.mock.calls[0][0].data.mustChangePassword).toBe(true);
+  });
+
+  it('does not force mustChangePassword when a password update explicitly opts out', async () => {
+    prisma.user.findUnique.mockResolvedValue({ id: '1', username: 'noa' });
+    prisma.user.update.mockImplementation(({ data }) => Promise.resolve({ id: '1', ...data }));
+
+    await service.update('1', { password: 'newsecret123', mustChangePassword: false });
+
+    expect(prisma.user.update.mock.calls[0][0].data.mustChangePassword).toBe(false);
+  });
+
+  it('returns a user by id', async () => {
+    prisma.user.findUnique.mockResolvedValue({ id: '1', username: 'noa' });
+
+    const result = await service.findById('1');
+
+    expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { id: '1' } });
+    expect(result).toEqual({ id: '1', username: 'noa' });
+  });
 });

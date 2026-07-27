@@ -6,13 +6,26 @@ import { PrismaService } from '../prisma/prisma.service';
 
 const SALT_ROUNDS = 10;
 
-const PUBLIC_SELECT = { id: true, username: true, role: true, vip: true, createdAt: true } as const;
+const PUBLIC_SELECT = {
+  id: true,
+  username: true,
+  role: true,
+  vip: true,
+  createdAt: true,
+  mustChangePassword: true,
+} as const;
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(input: { username: string; password: string; role?: Role; vip?: boolean }) {
+  async create(input: {
+    username: string;
+    password: string;
+    role?: Role;
+    vip?: boolean;
+    mustChangePassword?: boolean;
+  }) {
     const existing = await this.prisma.user.findUnique({ where: { username: input.username } });
     if (existing) throw new ConflictException("Ce nom d'utilisateur existe déjà");
 
@@ -23,9 +36,14 @@ export class UsersService {
         passwordHash,
         role: input.role ?? 'USER',
         vip: input.vip ?? false,
+        mustChangePassword: input.mustChangePassword ?? false,
       },
       select: PUBLIC_SELECT,
     });
+  }
+
+  findById(id: string) {
+    return this.prisma.user.findUnique({ where: { id } });
   }
 
   findAll() {
@@ -46,14 +64,23 @@ export class UsersService {
     });
   }
 
-  async update(id: string, input: { role?: Role; vip?: boolean; password?: string }) {
+  async update(
+    id: string,
+    input: { role?: Role; vip?: boolean; password?: string; mustChangePassword?: boolean },
+  ) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('Utilisateur introuvable');
 
-    const { password, ...rest } = input;
-    const data: { role?: Role; vip?: boolean; passwordHash?: string } = { ...rest };
+    const { password, mustChangePassword, ...rest } = input;
+    const data: {
+      role?: Role;
+      vip?: boolean;
+      passwordHash?: string;
+      mustChangePassword?: boolean;
+    } = { ...rest };
     if (password) {
       data.passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+      data.mustChangePassword = mustChangePassword ?? true;
     }
 
     return this.prisma.user.update({ where: { id }, data, select: PUBLIC_SELECT });

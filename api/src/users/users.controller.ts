@@ -19,7 +19,7 @@ export class UsersController {
 
   @Post()
   create(@Body() dto: CreateUserDto) {
-    return this.usersService.create(dto);
+    return this.usersService.create({ ...dto, mustChangePassword: true });
   }
 
   @Patch(':id')
