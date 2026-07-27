@@ -44,16 +44,17 @@ enum JoinRequestStatus {
 }
 
 model User {
-  id              String         @id @default(cuid())
-  username        String         @unique
-  passwordHash    String
-  role            Role           @default(USER)
-  vip             Boolean        @default(false)
-  createdAt       DateTime       @default(now())
-  contributions   Contribution[]
-  recipes         Recipe[]
-  barMemberships  BarMembership[]
-  barJoinRequests BarJoinRequest[]
+  id                 String         @id @default(cuid())
+  username           String         @unique
+  passwordHash       String
+  role               Role           @default(USER)
+  vip                Boolean        @default(false)
+  mustChangePassword Boolean        @default(false)
+  createdAt          DateTime       @default(now())
+  contributions      Contribution[]
+  recipes            Recipe[]
+  barMemberships     BarMembership[]
+  barJoinRequests    BarJoinRequest[]
 }
 
 model Bottle {
