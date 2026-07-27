@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Bottle, BottleType } from "@/lib/types";
 import { updateBottleQuantity, deleteBottleAction } from "@/app/actions";
@@ -31,6 +32,19 @@ export default function StockStudio({
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [, startTransition] = useTransition();
   const [isDeletePending, startDeleteTransition] = useTransition();
+
+  // The drawer below is `position: fixed`, but the page content is wrapped by
+  // <PageTransition> (a framer-motion div that keeps a non-"none" inline
+  // `transform` even at rest). Any transformed ancestor becomes the containing
+  // block for fixed-position descendants, so without a portal the drawer would
+  // be positioned/sized relative to that content column instead of the real
+  // viewport, causing it to render clipped and off-position. Portal it to
+  // <body> to escape that ancestor. Only render the portal once mounted, since
+  // `document` isn't available during SSR.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const shoppingList = useMemo(() => {
     const listToScan = isVip ? [...normalBottles, ...vipBottles] : normalBottles;
@@ -312,136 +326,144 @@ export default function StockStudio({
         )}
       </div>
 
-      {/* Slide-Over Warm Orange / Cream Inspector Pane */}
-      <AnimatePresence>
-        {drawerMode !== null && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
-              onClick={handleCloseDrawer}
-            />
+      {/* Slide-Over Warm Orange / Cream Inspector Pane, portaled to <body> so its
+          `position: fixed` resolves against the real viewport instead of the
+          <PageTransition> ancestor (framer-motion keeps a non-"none" inline
+          transform on that wrapper, which would otherwise become the
+          containing block for fixed descendants). */}
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {drawerMode !== null && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+                  onClick={handleCloseDrawer}
+                />
 
-            <motion.aside
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ duration: 0.22, ease: "easeOut" }}
-              className="fixed top-0 right-0 h-full w-full max-w-lg bg-ink-2 border-l border-white/[0.1] z-50 p-6 sm:p-8 overflow-y-auto flex flex-col justify-between shadow-2xl"
-            >
-              <div className="space-y-6">
-                <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
-                  <div>
-                    <span className="text-[10px] uppercase tracking-caps text-gold font-bold block">
-                      {drawerMode === "add" ? "Enregistrer un arrivage" : "Fiche de cave"}
-                    </span>
-                    <h2 className="font-display text-2xl font-bold text-cream mt-1">
-                      {drawerMode === "add" ? "Nouvelle Bouteille" : selectedBottle?.name}
-                    </h2>
-                  </div>
-                  <button
-                    onClick={handleCloseDrawer}
-                    className="w-9 h-9 rounded-xl bg-ink border border-white/[0.1] text-muted hover:text-cream text-lg flex items-center justify-center cursor-pointer"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                {drawerMode === "add" && (
-                  <div className="space-y-4">
-                    <AddBottleForm isVip={isVip} barId={barId} onSuccess={handleCloseDrawer} />
-                  </div>
-                )}
-
-                {drawerMode === "inspect" && selectedBottle && (
-                  <div className="space-y-6 text-sm">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
-                        <span className="text-[10px] uppercase tracking-caps text-muted block">Catégorie</span>
-                        <span className="text-cream font-bold capitalize mt-1 block text-base">
-                          {selectedBottle.type}
+                <motion.aside
+                  initial={{ x: "100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "100%" }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                  className="fixed top-0 right-0 h-full w-full max-w-lg bg-ink-2 border-l border-white/[0.1] z-50 p-6 sm:p-8 overflow-y-auto flex flex-col justify-between shadow-2xl"
+                >
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
+                      <div>
+                        <span className="text-[10px] uppercase tracking-caps text-gold font-bold block">
+                          {drawerMode === "add" ? "Enregistrer un arrivage" : "Fiche de cave"}
                         </span>
+                        <h2 className="font-display text-2xl font-bold text-cream mt-1">
+                          {drawerMode === "add" ? "Nouvelle Bouteille" : selectedBottle?.name}
+                        </h2>
                       </div>
-                      <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
-                        <span className="text-[10px] uppercase tracking-caps text-muted block">Quantité</span>
-                        <span className="text-orange font-bold mt-1 block text-base">
-                          {selectedBottle.quantity} bouteille{selectedBottle.quantity > 1 ? "s" : ""}
-                        </span>
-                      </div>
+                      <button
+                        onClick={handleCloseDrawer}
+                        className="w-9 h-9 rounded-xl bg-ink border border-white/[0.1] text-muted hover:text-cream text-lg flex items-center justify-center cursor-pointer"
+                      >
+                        ×
+                      </button>
                     </div>
 
-                    <div className="p-5 rounded-xl bg-ink border border-white/[0.08] space-y-3">
-                      <span className="text-xs uppercase tracking-caps text-gold font-bold block">
-                        Formats & Volumes enregistrés
-                      </span>
-                      {selectedBottle.volumes && selectedBottle.volumes.length > 0 ? (
-                        <div className="space-y-2">
-                          {selectedBottle.volumes.map((v, idx) => (
-                            <div key={idx} className="flex justify-between text-cream">
-                              <span>Format {v.size}</span>
-                              <span className="text-orange font-bold">× {v.quantity} en stock</span>
-                            </div>
-                          ))}
+                    {drawerMode === "add" && (
+                      <div className="space-y-4">
+                        <AddBottleForm isVip={isVip} barId={barId} onSuccess={handleCloseDrawer} />
+                      </div>
+                    )}
+
+                    {drawerMode === "inspect" && selectedBottle && (
+                      <div className="space-y-6 text-sm">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
+                            <span className="text-[10px] uppercase tracking-caps text-muted block">Catégorie</span>
+                            <span className="text-cream font-bold capitalize mt-1 block text-base">
+                              {selectedBottle.type}
+                            </span>
+                          </div>
+                          <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
+                            <span className="text-[10px] uppercase tracking-caps text-muted block">Quantité</span>
+                            <span className="text-orange font-bold mt-1 block text-base">
+                              {selectedBottle.quantity} bouteille{selectedBottle.quantity > 1 ? "s" : ""}
+                            </span>
+                          </div>
                         </div>
-                      ) : (
-                        <p className="text-muted text-xs">Format standard 70cl</p>
-                      )}
-                    </div>
 
-                    <div className="p-5 rounded-xl bg-ink border border-white/[0.08] space-y-3">
-                      <span className="text-xs uppercase tracking-caps text-gold font-bold block">
-                        Tags & Arômes associés
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedBottle.tags.map((t) => (
-                          <span
-                            key={t}
-                            className="px-2.5 py-1 rounded-lg bg-ink-2 border border-white/[0.08] text-cream text-xs font-medium"
-                          >
-                            #{t}
+                        <div className="p-5 rounded-xl bg-ink border border-white/[0.08] space-y-3">
+                          <span className="text-xs uppercase tracking-caps text-gold font-bold block">
+                            Formats & Volumes enregistrés
                           </span>
-                        ))}
-                      </div>
-                    </div>
+                          {selectedBottle.volumes && selectedBottle.volumes.length > 0 ? (
+                            <div className="space-y-2">
+                              {selectedBottle.volumes.map((v, idx) => (
+                                <div key={idx} className="flex justify-between text-cream">
+                                  <span>Format {v.size}</span>
+                                  <span className="text-orange font-bold">× {v.quantity} en stock</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-muted text-xs">Format standard 70cl</p>
+                          )}
+                        </div>
 
-                    {selectedBottle.notes && (
-                      <div className="p-5 rounded-xl bg-ink border border-white/[0.08] space-y-2">
-                        <span className="text-xs uppercase tracking-caps text-gold font-bold block">
-                          Notes / Emplacement en cave
-                        </span>
-                        <p className="text-cream text-xs leading-relaxed">
-                          {selectedBottle.notes}
-                        </p>
+                        <div className="p-5 rounded-xl bg-ink border border-white/[0.08] space-y-3">
+                          <span className="text-xs uppercase tracking-caps text-gold font-bold block">
+                            Tags & Arômes associés
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedBottle.tags.map((t) => (
+                              <span
+                                key={t}
+                                className="px-2.5 py-1 rounded-lg bg-ink-2 border border-white/[0.08] text-cream text-xs font-medium"
+                              >
+                                #{t}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {selectedBottle.notes && (
+                          <div className="p-5 rounded-xl bg-ink border border-white/[0.08] space-y-2">
+                            <span className="text-xs uppercase tracking-caps text-gold font-bold block">
+                              Notes / Emplacement en cave
+                            </span>
+                            <p className="text-cream text-xs leading-relaxed">
+                              {selectedBottle.notes}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
 
-              <div className="pt-6 mt-6 border-t border-white/[0.08] flex items-center justify-between text-xs">
-                {drawerMode === "inspect" && isAdmin && selectedBottle ? (
-                  <button
-                    onClick={() => setDeleteTarget({ id: selectedBottle.id, name: selectedBottle.name })}
-                    className="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer"
-                  >
-                    Supprimer
-                  </button>
-                ) : (
-                  <span className="text-muted">OpenBar · Studio Cave</span>
-                )}
-                <button
-                  onClick={handleCloseDrawer}
-                  className="px-5 py-2.5 rounded-xl bg-orange text-ink font-bold uppercase tracking-wider hover:bg-orange-hover transition-colors cursor-pointer"
-                >
-                  Fermer
-                </button>
-              </div>
-            </motion.aside>
-          </>
+                  <div className="pt-6 mt-6 border-t border-white/[0.08] flex items-center justify-between text-xs">
+                    {drawerMode === "inspect" && isAdmin && selectedBottle ? (
+                      <button
+                        onClick={() => setDeleteTarget({ id: selectedBottle.id, name: selectedBottle.name })}
+                        className="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                      >
+                        Supprimer
+                      </button>
+                    ) : (
+                      <span className="text-muted">OpenBar · Studio Cave</span>
+                    )}
+                    <button
+                      onClick={handleCloseDrawer}
+                      className="px-5 py-2.5 rounded-xl bg-orange text-ink font-bold uppercase tracking-wider hover:bg-orange-hover transition-colors cursor-pointer"
+                    >
+                      Fermer
+                    </button>
+                  </div>
+                </motion.aside>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
 
       <ConfirmDeleteModal
         isOpen={deleteTarget !== null}
