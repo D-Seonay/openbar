@@ -123,6 +123,22 @@ export default function StockStudio({
     }
   };
 
+  const exportCsv = () => {
+    const escapeCsvField = (value: string) => `"${value.replace(/"/g, '""')}"`;
+    const header = ["Nom", "Type", "Quantité", "Tags"].map(escapeCsvField).join(",");
+    const rows = filteredBottles.map((b) =>
+      [b.name, b.type, String(b.quantity), b.tags.join("; ")].map(escapeCsvField).join(",")
+    );
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "stock.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6 relative">
       {/* Top Lounge Filter Switcher */}
@@ -189,6 +205,14 @@ export default function StockStudio({
               className="px-3.5 py-2 rounded-xl bg-orange text-ink font-bold text-xs transition-colors cursor-pointer"
             >
               📋 Copier la liste
+            </button>
+          )}
+          {filteredBottles.length > 0 && (
+            <button
+              onClick={exportCsv}
+              className="px-3.5 py-2 rounded-xl bg-cream hover:bg-white text-ink font-bold text-xs transition-colors cursor-pointer"
+            >
+              📥 Exporter en CSV
             </button>
           )}
         </div>
