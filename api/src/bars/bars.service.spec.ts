@@ -45,6 +45,9 @@ describe('BarsService', () => {
         findMany: jest.fn(),
         update: jest.fn(),
       },
+      user: {
+        findUnique: jest.fn(),
+      },
       $transaction: jest.fn(),
     };
     usersService = { findByUsername: jest.fn(), search: jest.fn() };
@@ -179,6 +182,21 @@ describe('BarsService', () => {
       ]);
 
       const result = await service.findMembers(BAR_ID, OWNER_ID);
+
+      expect(result).toEqual([
+        { id: 'm1', role: 'OWNER', user: { username: 'noa' } },
+      ]);
+    });
+
+    it('allows an admin without a real membership to view the roster', async () => {
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
+      prisma.barMembership.findUnique.mockResolvedValue(null);
+      prisma.user.findUnique.mockResolvedValue({ role: 'ADMIN' });
+      prisma.barMembership.findMany.mockResolvedValue([
+        { id: 'm1', role: 'OWNER', user: { username: 'noa' } },
+      ]);
+
+      const result = await service.findMembers(BAR_ID, 'admin-1');
 
       expect(result).toEqual([
         { id: 'm1', role: 'OWNER', user: { username: 'noa' } },
@@ -378,6 +396,24 @@ describe('BarsService', () => {
       ).rejects.toThrow(ForbiddenException);
       expect(prisma.barMembership.delete).not.toHaveBeenCalled();
     });
+
+    it('allows an admin without a real membership to remove a member', async () => {
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
+      prisma.barMembership.findUnique
+        .mockResolvedValueOnce({
+          id: 'm2',
+          barId: BAR_ID,
+          role: 'MEMBER',
+          userId: OTHER_ID,
+        })
+        .mockResolvedValueOnce(null);
+      prisma.user.findUnique.mockResolvedValue({ role: 'ADMIN' });
+      prisma.barMembership.delete.mockResolvedValue({ id: 'm2' });
+
+      const result = await service.removeMember(BAR_ID, 'admin-1', 'm2');
+
+      expect(result).toEqual({ success: true });
+    });
   });
 
   describe('setPublic', () => {
@@ -422,6 +458,18 @@ describe('BarsService', () => {
         where: { id: BAR_ID },
         data: { name: 'Nouveau Nom' },
       });
+      expect(result).toEqual({ id: BAR_ID, name: 'Nouveau Nom' });
+    });
+
+    it('allows an admin without a real membership to rename the bar', async () => {
+      prisma.bar.findUnique.mockResolvedValue({ id: BAR_ID });
+      prisma.barMembership.findUnique.mockResolvedValue(null);
+      prisma.user.findUnique.mockResolvedValue({ role: 'ADMIN' });
+      prisma.bar.update.mockResolvedValue({ id: BAR_ID, name: 'Nouveau Nom' });
+
+      const result = await service.rename(BAR_ID, 'admin-1', 'Nouveau Nom');
+
+      expect(prisma.barMembership.findUnique).not.toHaveBeenCalled();
       expect(result).toEqual({ id: BAR_ID, name: 'Nouveau Nom' });
     });
   });

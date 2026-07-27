@@ -56,7 +56,7 @@ export class BarsService {
   async findMembers(barId: string, userId: string) {
     await this.getBar(barId);
     const membership = await this.getMembership(barId, userId);
-    if (!membership) {
+    if (!membership && !(await this.isAdmin(userId))) {
       throw new ForbiddenException("Vous n'avez pas accès à ce bar");
     }
 
@@ -129,7 +129,7 @@ export class BarsService {
     }
 
     const requesterMembership = await this.getMembership(barId, requesterId);
-    const isOwner = requesterMembership?.role === 'OWNER';
+    const isOwner = requesterMembership?.role === 'OWNER' || (await this.isAdmin(requesterId));
     const isSelf = membership.userId === requesterId;
     if (!isOwner && !isSelf) {
       throw new ForbiddenException(
@@ -332,8 +332,17 @@ export class BarsService {
     });
   }
 
+  private async isAdmin(userId: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+    return user?.role === 'ADMIN';
+  }
+
   private async assertOwner(barId: string, userId: string) {
     await this.getBar(barId);
+    if (await this.isAdmin(userId)) return;
     const membership = await this.getMembership(barId, userId);
     if (!membership || membership.role !== 'OWNER') {
       throw new ForbiddenException(
