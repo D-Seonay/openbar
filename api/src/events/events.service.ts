@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEventDto } from './dto/create-event.dto';
 
@@ -29,11 +30,9 @@ export class EventsService {
 
   async create(dto: CreateEventDto) {
     const base = slugify(dto.name);
-    let slug = base;
-    let n = 1;
+    let slug = `${base}-${randomBytes(4).toString('hex')}`;
     while (await this.prisma.event.findUnique({ where: { slug } })) {
-      n += 1;
-      slug = `${base}-${n}`;
+      slug = `${base}-${randomBytes(4).toString('hex')}`;
     }
     return this.prisma.event.create({ data: { barId: dto.barId, name: dto.name, date: dto.date, slug } });
   }

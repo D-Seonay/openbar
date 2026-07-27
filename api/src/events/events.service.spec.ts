@@ -1,6 +1,9 @@
 import { Test } from '@nestjs/testing';
+import { randomBytes } from 'crypto';
 import { EventsService } from './events.service';
 import { PrismaService } from '../prisma/prisma.service';
+
+jest.mock('crypto', () => ({ randomBytes: jest.fn() }));
 
 describe('EventsService', () => {
   let service: EventsService;
@@ -21,24 +24,29 @@ describe('EventsService', () => {
     service = moduleRef.get(EventsService);
   });
 
-  it('slugifies the event name, stripping accents and spaces', async () => {
+  it('slugifies the event name, stripping accents and spaces, and appends a random suffix', async () => {
     prisma.event.findUnique.mockResolvedValue(null);
     prisma.event.create.mockImplementation(({ data }) => Promise.resolve(data));
+    (randomBytes as jest.Mock).mockReturnValue(Buffer.from('a1b2c3d4', 'hex'));
 
     const event = await service.create({ barId: 'bar-1', name: 'Apéro du samedi', date: '2026-07-11' });
 
-    expect(event.slug).toBe('apero-du-samedi');
+    expect(event.slug).toBe('apero-du-samedi-a1b2c3d4');
+    expect(event.slug).not.toBe('apero-du-samedi');
   });
 
-  it('appends a numeric suffix when the slug already exists', async () => {
+  it('retries with a new random suffix when a collision occurs', async () => {
     prisma.event.findUnique
-      .mockResolvedValueOnce({ slug: 'apero-du-samedi' })
+      .mockResolvedValueOnce({ slug: 'apero-du-samedi-a1b2c3d4' })
       .mockResolvedValueOnce(null);
     prisma.event.create.mockImplementation(({ data }) => Promise.resolve(data));
+    (randomBytes as jest.Mock)
+      .mockReturnValueOnce(Buffer.from('a1b2c3d4', 'hex'))
+      .mockReturnValueOnce(Buffer.from('deadbeef', 'hex'));
 
     const event = await service.create({ barId: 'bar-1', name: 'Apéro du samedi', date: '2026-07-18' });
 
-    expect(event.slug).toBe('apero-du-samedi-2');
+    expect(event.slug).toBe('apero-du-samedi-deadbeef');
   });
 
   it('scopes findAll to the given bar', async () => {
