@@ -58,4 +58,21 @@ export class AuthService {
     const user = await this.usersService.create({ username, password });
     return this.issueToken(user);
   }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new UnauthorizedException('Utilisateur introuvable');
+
+    const matches = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!matches) throw new UnauthorizedException('Mot de passe actuel incorrect');
+
+    await this.usersService.update(userId, { password: newPassword, mustChangePassword: false });
+    return this.issueToken({
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      vip: user.vip,
+      mustChangePassword: false,
+    });
+  }
 }
