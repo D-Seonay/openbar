@@ -12,6 +12,8 @@ import type {
   PendingJoinRequest,
   UserSearchResult,
   InviteLinkPreview,
+  BarAdminSummary,
+  BarAdminDetail,
 } from "./types";
 import type { CocktailRecipe, RecipeAvailability } from "./cocktail-types";
 
@@ -316,4 +318,12 @@ export function updateBarVisibility(barId: string, isPublic: boolean): Promise<{
 
 export function renameBar(barId: string, name: string): Promise<{ id: string; name: string }> {
   return request(`/bars/${barId}/name`, { method: "PATCH", body: JSON.stringify({ name }) });
+}
+
+export function listAllBars(): Promise<BarAdminSummary[]> {
+  return request<BarAdminSummary[]>("/bars/all");
+}
+
+export function getBarById(barId: string): Promise<BarAdminDetail> {
+  return request<BarAdminDetail>(`/bars/${barId}`);
 }

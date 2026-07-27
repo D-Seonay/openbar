@@ -115,3 +115,21 @@ export interface UserSearchResult {
 export interface InviteLinkPreview {
   barName: string;
 }
+
+export interface BarAdminSummary {
+  id: string;
+  name: string;
+  ownerUsername: string;
+  memberCount: number;
+  isPublic: boolean;
+  createdAt: string;
+}
+
+export interface BarAdminDetail {
+  id: string;
+  name: string;
+  isPublic: boolean;
+  inviteToken: string | null;
+  memberCount: number;
+  ownerUsername: string;
+}
