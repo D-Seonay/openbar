@@ -7,6 +7,7 @@ const NAV = [
   { href: "/stock", label: "Cave & Stock" },
   { href: "/cocktails", label: "Cocktails" },
   { href: "/soirees", label: "Soirées" },
+  { href: "/annuaire", label: "Annuaire" },
 ];
 
 const ADMIN_NAV = [
