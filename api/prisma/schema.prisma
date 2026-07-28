@@ -50,6 +50,10 @@ model User {
   role               Role           @default(USER)
   vip                Boolean        @default(false)
   mustChangePassword Boolean        @default(false)
+  birthday           DateTime?
+  favoriteDrink      String?
+  allergies          String?
+  avatarUrl          String?
   createdAt          DateTime       @default(now())
   contributions      Contribution[]
   recipes            Recipe[]
