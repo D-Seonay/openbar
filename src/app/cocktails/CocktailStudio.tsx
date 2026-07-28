@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, useMemo, useTransition } from "react";
+import { useState, useMemo, useTransition, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { RecipeAvailability, CocktailRecipe } from "@/lib/cocktail-types";
 import { deleteRecipeAction } from "@/app/actions";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import CreateRecipeModal from "./CreateRecipeModal";
+import Pagination from "@/components/Pagination";
+
+const ITEMS_PER_PAGE = 20;
 
 interface CocktailStudioProps {
   initialResults: RecipeAvailability[];
@@ -32,6 +35,11 @@ export default function CocktailStudio({
   const [formModal, setFormModal] = useState<FormModalState>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [isDeletePending, startDeleteTransition] = useTransition();
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchQuery]);
 
   const accessibleResults = useMemo(() => {
     return isVip ? initialResults : initialResults.filter((r) => !r.usesVip);
@@ -54,6 +62,12 @@ export default function CocktailStudio({
       }
     });
   }, [accessibleResults, activeTab, searchQuery, isVip]);
+
+  const paginatedResults = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredResults.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredResults, currentPage]);
+  const totalPages = Math.ceil(filteredResults.length / ITEMS_PER_PAGE);
 
   const selectedItem = useMemo(() => {
     if (!selectedRecipeId) return null;
@@ -145,8 +159,9 @@ export default function CocktailStudio({
           </div>
         ) : (
           <div className="divide-y divide-white/[0.06]">
-            {filteredResults.map((item) => {
+            {paginatedResults.map((item) => {
               const isSelected = selectedRecipeId === item.recipe.id;
+
               return (
                 <div
                   key={item.recipe.id}
@@ -214,6 +229,12 @@ export default function CocktailStudio({
           </div>
         )}
       </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
 
       {/* Slide-Over Warm Orange / Cream Recipe Spec Sheet Inspector */}
       <AnimatePresence>

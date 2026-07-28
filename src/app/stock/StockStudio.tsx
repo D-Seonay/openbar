@@ -8,6 +8,9 @@ import { updateBottleQuantity, deleteBottleAction } from "@/app/actions";
 import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import AddBottleForm from "./AddBottleForm";
+import Pagination from "@/components/Pagination";
+
+const ITEMS_PER_PAGE = 20;
 
 interface StockStudioProps {
   normalBottles: Bottle[];
@@ -32,6 +35,12 @@ export default function StockStudio({
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [, startTransition] = useTransition();
   const [isDeletePending, startDeleteTransition] = useTransition();
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeUniverse, selectedCategory, searchQuery]);
 
   // The drawer below is `position: fixed`, but the page content is wrapped by
   // <PageTransition> (a framer-motion div that keeps a non-"none" inline
@@ -83,6 +92,12 @@ export default function StockStudio({
       return matchesCat && matchesSearch;
     });
   }, [activeUniverse, currentList, shoppingList, selectedCategory, searchQuery]);
+
+  const paginatedBottles = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredBottles.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredBottles, currentPage]);
+  const totalPages = Math.ceil(filteredBottles.length / ITEMS_PER_PAGE);
 
   const selectedBottle = useMemo(() => {
     if (!selectedBottleId) return null;
@@ -268,7 +283,7 @@ export default function StockStudio({
           </div>
         ) : (
           <div className="divide-y divide-white/[0.06]">
-            {filteredBottles.map((bottle) => {
+            {paginatedBottles.map((bottle) => {
               const isLow =
                 bottle.lowStockThreshold != null && bottle.quantity <= bottle.lowStockThreshold;
               const totalLiters = calculateBottleTotalLiters(bottle);
@@ -349,6 +364,12 @@ export default function StockStudio({
           </div>
         )}
       </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
 
       {/* Slide-Over Warm Orange / Cream Inspector Pane, portaled to <body> so its
           `position: fixed` resolves against the real viewport instead of the
