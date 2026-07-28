@@ -13,6 +13,10 @@ const PUBLIC_SELECT = {
   vip: true,
   createdAt: true,
   mustChangePassword: true,
+  birthday: true,
+  favoriteDrink: true,
+  allergies: true,
+  avatarUrl: true,
 } as const;
 
 @Injectable()
@@ -44,6 +48,10 @@ export class UsersService {
 
   findById(id: string) {
     return this.prisma.user.findUnique({ where: { id } });
+  }
+
+  findPublicById(id: string) {
+    return this.prisma.user.findUnique({ where: { id }, select: PUBLIC_SELECT });
   }
 
   findAll() {
@@ -84,6 +92,22 @@ export class UsersService {
     }
 
     return this.prisma.user.update({ where: { id }, data, select: PUBLIC_SELECT });
+  }
+
+  async updateProfile(
+    id: string,
+    input: { birthday?: string; favoriteDrink?: string; allergies?: string; avatarUrl?: string },
+  ) {
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        birthday: input.birthday ? new Date(input.birthday) : null,
+        favoriteDrink: input.favoriteDrink || null,
+        allergies: input.allergies || null,
+        avatarUrl: input.avatarUrl || null,
+      },
+      select: PUBLIC_SELECT,
+    });
   }
 
   async remove(id: string) {

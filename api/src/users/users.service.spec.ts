@@ -138,4 +138,60 @@ describe('UsersService', () => {
     expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { id: '1' } });
     expect(result).toEqual({ id: '1', username: 'noa' });
   });
+
+  it('returns the full public profile by id', async () => {
+    prisma.user.findUnique.mockResolvedValue({
+      id: '1',
+      username: 'noa',
+      birthday: null,
+      favoriteDrink: null,
+      allergies: null,
+      avatarUrl: null,
+    });
+
+    const result = await service.findPublicById('1');
+
+    expect(prisma.user.findUnique).toHaveBeenCalledWith({
+      where: { id: '1' },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+        vip: true,
+        createdAt: true,
+        mustChangePassword: true,
+        birthday: true,
+        favoriteDrink: true,
+        allergies: true,
+        avatarUrl: true,
+      },
+    });
+    expect(result?.username).toBe('noa');
+  });
+
+  it('sets profile fields to null when cleared, and parses birthday to a Date when provided', async () => {
+    prisma.user.update.mockImplementation(({ data }) => Promise.resolve({ id: '1', ...data }));
+
+    await service.updateProfile('1', {
+      birthday: '1995-08-15',
+      favoriteDrink: 'Mojito',
+      allergies: '',
+      avatarUrl: '',
+    });
+
+    const updateArgs = prisma.user.update.mock.calls[0][0];
+    expect(updateArgs.data.birthday).toEqual(new Date('1995-08-15'));
+    expect(updateArgs.data.favoriteDrink).toBe('Mojito');
+    expect(updateArgs.data.allergies).toBeNull();
+    expect(updateArgs.data.avatarUrl).toBeNull();
+  });
+
+  it('clears birthday to null when not provided', async () => {
+    prisma.user.update.mockImplementation(({ data }) => Promise.resolve({ id: '1', ...data }));
+
+    await service.updateProfile('1', {});
+
+    const updateArgs = prisma.user.update.mock.calls[0][0];
+    expect(updateArgs.data.birthday).toBeNull();
+  });
 });
