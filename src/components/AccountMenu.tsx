@@ -93,20 +93,53 @@ export default function AccountMenu({ session, avatarUrl }: AccountMenuProps) {
               <Link
                 href="/profil"
                 onClick={() => setOpen(false)}
-                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full"
+                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full mb-1"
               >
                 <span>Mon profil</span>
                 <span className="text-orange">→</span>
               </Link>
 
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={handleLogout}
-                className="mt-1 flex items-center justify-between w-full px-2.5 py-2 rounded-xl text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
-              >
-                <span>{isPending ? "Déconnexion..." : "Se déconnecter"}</span>
-              </button>
+              {isAdmin && (
+                <>
+                  <div className="px-2 py-1.5 border-t border-white/[0.08] mt-1 mb-1">
+                    <span className="text-[10px] uppercase tracking-caps text-gold block font-semibold">
+                      Administration
+                    </span>
+                  </div>
+                  <Link
+                    href="/admin"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full"
+                  >
+                    <span>Tableau de bord</span>
+                  </Link>
+                  <Link
+                    href="/comptes"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full"
+                  >
+                    <span>Comptes</span>
+                  </Link>
+                  <Link
+                    href="/admin/bars"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full mb-1"
+                  >
+                    <span>Tous les bars</span>
+                  </Link>
+                </>
+              )}
+
+              <div className="border-t border-white/[0.08] mt-1 pt-1">
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={handleLogout}
+                  className="flex items-center justify-between w-full px-2.5 py-2 rounded-xl text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                >
+                  <span>{isPending ? "Déconnexion..." : "Se déconnecter"}</span>
+                </button>
+              </div>
             </motion.div>
           </>
         )}

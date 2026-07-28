@@ -70,7 +70,7 @@ export default async function RootLayout({
                 </Link>
               )}
               {activeBar && bars.length > 1 && <BarSwitcher bars={bars} activeBarId={activeBar.id} />}
-              <Navigation isAdmin={isAdmin} isBarOwner={activeBar?.myRole === "OWNER"} isLoggedIn={!!session} />
+              <Navigation isBarOwner={activeBar?.myRole === "OWNER"} isLoggedIn={!!session} />
               <div className="pl-2 border-l border-white/[0.1] ml-1 flex items-center">
                 <AccountMenu session={session} avatarUrl={profile?.avatarUrl ?? null} />
               </div>
