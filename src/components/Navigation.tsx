@@ -10,13 +10,14 @@ const NAV = [
 ];
 
 const ADMIN_NAV = [
+  { href: "/admin", label: "Tableau de bord", exact: true },
   { href: "/comptes", label: "Comptes" },
   { href: "/admin/bars", label: "Tous les bars" },
 ];
 const OWNER_NAV = [{ href: "/membres", label: "Membres" }];
 
-function navLink(item: { href: string; label: string }, pathname: string) {
-  const isActive = pathname.startsWith(item.href);
+function navLink(item: { href: string; label: string; exact?: boolean }, pathname: string) {
+  const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
   return (
     <Link
       key={item.href}
