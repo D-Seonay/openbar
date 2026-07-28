@@ -55,6 +55,7 @@ model User {
   allergies          String?
   avatarUrl          String?
   createdAt          DateTime       @default(now())
+  isArchived         Boolean        @default(false)
   contributions      Contribution[]
   recipes            Recipe[]
   barMemberships     BarMembership[]
@@ -144,6 +145,7 @@ model Bar {
   name         String
   isPublic     Boolean         @default(true)
   inviteToken  String?         @unique
+  isArchived   Boolean         @default(false)
   createdAt    DateTime        @default(now())
   memberships  BarMembership[]
   bottles      Bottle[]

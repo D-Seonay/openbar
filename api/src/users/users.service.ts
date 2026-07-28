@@ -17,6 +17,7 @@ const PUBLIC_SELECT = {
   favoriteDrink: true,
   allergies: true,
   avatarUrl: true,
+  isArchived: true,
 } as const;
 
 @Injectable()
@@ -111,18 +112,50 @@ export class UsersService {
   }
 
   async remove(id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        barMemberships: {
+          where: { role: 'OWNER' },
+          include: {
+            bar: {
+              include: {
+                _count: {
+                  select: { memberships: { where: { role: 'OWNER' } } },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
     if (!user) throw new NotFoundException('Utilisateur introuvable');
-    try {
-      await this.prisma.user.delete({ where: { id } });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
-        throw new ConflictException(
-          "Impossible de supprimer cet utilisateur : il a des contributions associées",
-        );
+
+    const barsToArchive = user.barMemberships
+      .filter((m) => m.bar._count.memberships === 1)
+      .map((m) => m.barId);
+
+    await this.prisma.$transaction(async (tx) => {
+      if (barsToArchive.length > 0) {
+        await tx.bar.updateMany({
+          where: { id: { in: barsToArchive } },
+          data: { isArchived: true, isPublic: false, inviteToken: null },
+        });
       }
-      throw error;
-    }
+
+      const archivedUsername = `${user.username}_archived_${Date.now()}`;
+
+      await tx.user.update({
+        where: { id },
+        data: {
+          isArchived: true,
+          username: archivedUsername,
+          passwordHash: 'ARCHIVED',
+        },
+      });
+    });
+
     return { success: true };
   }
 }

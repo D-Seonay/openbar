@@ -47,7 +47,7 @@ export class BarsService {
 
   async findMine(userId: string) {
     const bars = await this.prisma.bar.findMany({
-      where: { memberships: { some: { userId } } },
+      where: { memberships: { some: { userId } }, isArchived: false },
       include: { memberships: { where: { userId } } },
       orderBy: { name: 'asc' },
     });
@@ -217,6 +217,7 @@ export class BarsService {
 
   async findAll() {
     const bars = await this.prisma.bar.findMany({
+      where: { isArchived: false },
       include: {
         memberships: {
           select: { role: true, user: { select: { username: true } } },
@@ -386,7 +387,7 @@ export class BarsService {
 
   private async getBar(barId: string) {
     const bar = await this.prisma.bar.findUnique({ where: { id: barId } });
-    if (!bar) throw new NotFoundException('Bar introuvable');
+    if (!bar || bar.isArchived) throw new NotFoundException('Bar introuvable');
     return bar;
   }
 

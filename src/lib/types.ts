@@ -68,6 +68,7 @@ export interface AccountUser {
   role: "ADMIN" | "USER";
   vip: boolean;
   createdAt: string;
+  isArchived: boolean;
 }
 
 export interface Bar {
