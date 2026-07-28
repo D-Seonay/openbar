@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import type { Bottle, BottleVolume } from "@/lib/types";
-import { updateBottleVolumes, updateBottleThreshold, deleteBottleAction } from "@/app/actions";
+import { updateBottleVolumes, updateBottleThreshold, deleteBottleAction, uploadBottleImage } from "@/app/actions";
 import { calculateBottleTotalLiters, calculateTotalBottlesCount, formatLiters } from "@/lib/volumeUtils";
 import BottlePreview from "./BottlePreview";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
@@ -221,6 +221,7 @@ export default function BottleDetailModal({ bottle, onClose, isAdmin = false }: 
           <ImagePicker
             value={imageUrl}
             onChange={handleImageChange}
+            onUpload={uploadBottleImage}
             label="Modifier la photo (Fichier local ou URL)"
           />
         </div>

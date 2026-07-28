@@ -234,3 +234,22 @@ export async function uploadBottleImage(formData: FormData): Promise<string | nu
   await fs.writeFile(filePath, buffer);
   return `/uploads/${filename}`;
 }
+
+export async function uploadProfileImage(formData: FormData): Promise<string | null> {
+  await requireLoggedIn();
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) return null;
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  const uploadsDir = path.join(process.cwd(), "public", "uploads");
+  await fs.mkdir(uploadsDir, { recursive: true });
+
+  const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "png";
+  const filename = `avatar-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const filePath = path.join(uploadsDir, filename);
+
+  await fs.writeFile(filePath, buffer);
+  return `/uploads/${filename}`;
+}

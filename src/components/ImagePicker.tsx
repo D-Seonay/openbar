@@ -1,17 +1,18 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
-import { uploadBottleImage } from "@/app/actions";
 
 interface ImagePickerProps {
   value: string;
   onChange: (url: string) => void;
+  onUpload: (formData: FormData) => Promise<string | null>;
   label?: string;
 }
 
 export default function ImagePicker({
   value,
   onChange,
+  onUpload,
   label = "Photo de la bouteille",
 }: ImagePickerProps) {
   const [mode, setMode] = useState<"local" | "url">("local");
@@ -27,7 +28,7 @@ export default function ImagePicker({
       const formData = new FormData();
       formData.append("file", file);
       try {
-        const uploadedUrl = await uploadBottleImage(formData);
+        const uploadedUrl = await onUpload(formData);
         if (uploadedUrl) {
           onChange(uploadedUrl);
         } else {

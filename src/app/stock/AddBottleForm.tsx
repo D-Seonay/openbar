@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { createBottle } from "@/app/actions";
+import { createBottle, uploadBottleImage } from "@/app/actions";
 import type { BottleVolume } from "@/lib/types";
 import ImagePicker from "@/components/ImagePicker";
 
@@ -102,7 +102,7 @@ export default function AddBottleForm({
 
       <div className="sm:col-span-2">
         <input type="hidden" name="imageUrl" value={imageUrl} />
-        <ImagePicker value={imageUrl} onChange={setImageUrl} label="Photo du produit (Fichier local ou URL)" />
+        <ImagePicker value={imageUrl} onChange={setImageUrl} onUpload={uploadBottleImage} label="Photo du produit (Fichier local ou URL)" />
       </div>
 
       {/* Volumes and quantities editor */}
