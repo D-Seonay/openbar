@@ -8,7 +8,17 @@ import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
 
-const MEMBER_INCLUDE = { user: { select: { username: true } } } as const;
+const MEMBER_INCLUDE = {
+  user: {
+    select: {
+      username: true,
+      birthday: true,
+      favoriteDrink: true,
+      allergies: true,
+      avatarUrl: true,
+    },
+  },
+} as const;
 
 @Injectable()
 export class BarsService {

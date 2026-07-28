@@ -87,7 +87,13 @@ export interface BarMember {
   role: "OWNER" | "MEMBER";
   vip: boolean;
   createdAt: string;
-  user: { username: string };
+  user: {
+    username: string;
+    birthday: string | null;
+    favoriteDrink: string | null;
+    allergies: string | null;
+    avatarUrl: string | null;
+  };
 }
 
 export interface BarDirectoryEntry {
