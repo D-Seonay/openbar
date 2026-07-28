@@ -21,6 +21,16 @@ export default function BottleRow({ bottle }: { bottle: Bottle }) {
 
   function change(delta: number) {
     const next = Math.max(0, Math.round((quantity + delta) * 10) / 10);
+
+    if (next === 0 && quantity > 0) {
+      if (window.confirm(`La bouteille "${bottle.name}" est maintenant vide.\nVoulez-vous la supprimer définitivement du stock ?\n(Cliquez sur "Annuler" pour la conserver grisée dans votre inventaire)`)) {
+        startTransition(() => {
+          deleteBottleAction(bottle.id);
+        });
+        return;
+      }
+    }
+
     setQuantity(next);
     startTransition(() => {
       // If we have detailed volumes, adjust the first one or clear volumes if quantity reaches 0
@@ -44,6 +54,16 @@ export default function BottleRow({ bottle }: { bottle: Bottle }) {
     const nextVols = [...volumes];
     nextVols[idx].quantity = Math.max(0, nextVols[idx].quantity + delta);
     const totalQty = nextVols.reduce((sum, v) => sum + v.quantity, 0);
+
+    if (totalQty === 0 && quantity > 0) {
+      if (window.confirm(`La bouteille "${bottle.name}" est maintenant vide.\nVoulez-vous la supprimer définitivement du stock ?\n(Cliquez sur "Annuler" pour la conserver grisée dans votre inventaire)`)) {
+        startTransition(() => {
+          deleteBottleAction(bottle.id);
+        });
+        return;
+      }
+    }
+
     setVolumes(nextVols);
     setQuantity(totalQty);
     startTransition(() => {
@@ -67,6 +87,16 @@ export default function BottleRow({ bottle }: { bottle: Bottle }) {
   function removeFormat(idx: number) {
     const nextVols = volumes.filter((_, i) => i !== idx);
     const totalQty = nextVols.reduce((sum, v) => sum + v.quantity, 0);
+
+    if (totalQty === 0 && quantity > 0) {
+      if (window.confirm(`La bouteille "${bottle.name}" est maintenant vide.\nVoulez-vous la supprimer définitivement du stock ?\n(Cliquez sur "Annuler" pour la conserver grisée dans votre inventaire)`)) {
+        startTransition(() => {
+          deleteBottleAction(bottle.id);
+        });
+        return;
+      }
+    }
+
     setVolumes(nextVols);
     setQuantity(totalQty);
     startTransition(() => {
@@ -91,15 +121,17 @@ export default function BottleRow({ bottle }: { bottle: Bottle }) {
 
   return (
     <div className={`relative group rounded-xl border p-4 transition-all duration-300 flex flex-col justify-between ${
-      bottle.vip 
-        ? "border-gold/25 bg-brick-dark/15 hover:border-gold/45" 
-        : isLow && quantity === 0
-        ? "border-red-500/25 bg-red-950/10 hover:border-red-500/40"
-        : "border-orange/15 bg-ink-2/30 hover:border-orange/35"
-    } box-orange-glow-hover`}>
+      quantity === 0
+        ? "border-white/10 bg-ink-2/10 hover:border-white/20 opacity-60 grayscale-[0.7]" 
+        : bottle.vip 
+        ? "border-gold/25 bg-brick-dark/15 hover:border-gold/45 box-orange-glow-hover" 
+        : isLow
+        ? "border-red-500/25 bg-red-950/10 hover:border-red-500/40 box-orange-glow-hover"
+        : "border-orange/15 bg-ink-2/30 hover:border-orange/35 box-orange-glow-hover"
+    }`}>
       <div className="flex gap-4 items-start">
         {/* Visual bottle preview or custom image */}
-        <div className="flex-shrink-0 w-16 h-28 flex items-center justify-center bg-ink-2/65 rounded-lg border border-orange/5 overflow-hidden relative">
+        <div className={`flex-shrink-0 w-16 h-28 flex items-center justify-center bg-ink-2/65 rounded-lg border overflow-hidden relative ${quantity === 0 ? "border-white/5" : "border-orange/5"}`}>
           {bottle.imageUrl ? (
             <img 
               src={bottle.imageUrl} 
@@ -113,7 +145,7 @@ export default function BottleRow({ bottle }: { bottle: Bottle }) {
           {/* Numerical Total Badge */}
           <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-mono font-bold ${
             quantity === 0
-              ? "bg-red-600 text-white"
+              ? "bg-zinc-700 text-zinc-300 border border-zinc-600"
               : bottle.vip
               ? "bg-gold text-ink"
               : "bg-orange text-white"
@@ -129,18 +161,20 @@ export default function BottleRow({ bottle }: { bottle: Bottle }) {
               <h3 className="font-display text-base text-cream font-medium truncate max-w-[130px] sm:max-w-none" title={bottle.name}>
                 {bottle.name}
               </h3>
-              {bottle.vip && (
+              {bottle.vip && quantity > 0 && (
                 <span className="text-[8px] uppercase tracking-wide bg-gold text-ink px-1.5 py-0.5 rounded font-bold">
                   VIP
                 </span>
               )}
-              {isLow && (
-                <span className={`text-[8px] uppercase tracking-wide px-1.5 py-0.5 rounded font-bold ${
-                  quantity === 0 ? "bg-red-500 text-white animate-pulse" : "bg-red-500/20 text-red-400"
-                }`}>
-                  {quantity === 0 ? "Épuisé" : "Stock bas"}
+              {quantity === 0 ? (
+                <span className="text-[8px] uppercase tracking-wide bg-zinc-800 text-zinc-400 border border-zinc-700 px-1.5 py-0.5 rounded font-bold">
+                  Épuisé
                 </span>
-              )}
+              ) : isLow ? (
+                <span className="text-[8px] uppercase tracking-wide px-1.5 py-0.5 rounded font-bold bg-red-500/20 text-red-400">
+                  Stock bas
+                </span>
+              ) : null}
             </div>
             
             <p className="text-[9px] text-orange uppercase tracking-wider font-mono capitalize mt-0.5">

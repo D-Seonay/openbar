@@ -39,6 +39,18 @@ export default function BottleDetailModal({ bottle, onClose, isAdmin = false }: 
   const changeVolumeQty = (idx: number, delta: number) => {
     const nextVols = [...volumes];
     nextVols[idx].quantity = Math.max(0, nextVols[idx].quantity + delta);
+    const totalQty = nextVols.reduce((sum, v) => sum + v.quantity, 0);
+
+    if (totalQty === 0 && totalBottles > 0) {
+      if (window.confirm(`La bouteille "${bottle.name}" est maintenant vide.\nVoulez-vous la supprimer définitivement du stock ?\n(Cliquez sur "Annuler" pour la conserver grisée dans votre inventaire)`)) {
+        startTransition(() => {
+          deleteBottleAction(bottle.id);
+          onClose();
+        });
+        return;
+      }
+    }
+
     setVolumes(nextVols);
     startTransition(() => {
       updateBottleVolumes(bottle.id, nextVols, imageUrl);
@@ -47,6 +59,18 @@ export default function BottleDetailModal({ bottle, onClose, isAdmin = false }: 
 
   const removeFormat = (idx: number) => {
     const nextVols = volumes.filter((_, i) => i !== idx);
+    const totalQty = nextVols.reduce((sum, v) => sum + v.quantity, 0);
+
+    if (totalQty === 0 && totalBottles > 0) {
+      if (window.confirm(`La bouteille "${bottle.name}" est maintenant vide.\nVoulez-vous la supprimer définitivement du stock ?\n(Cliquez sur "Annuler" pour la conserver grisée dans votre inventaire)`)) {
+        startTransition(() => {
+          deleteBottleAction(bottle.id);
+          onClose();
+        });
+        return;
+      }
+    }
+
     setVolumes(nextVols);
     startTransition(() => {
       updateBottleVolumes(bottle.id, nextVols, imageUrl);
