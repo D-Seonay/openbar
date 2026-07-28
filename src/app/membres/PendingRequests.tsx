@@ -20,7 +20,18 @@ export default function PendingRequests({ barId, requests }: { barId: string; re
           key={request.id}
           className="flex items-center justify-between p-3 rounded-xl bg-ink border border-white/[0.08]"
         >
-          <span className="text-sm text-cream font-semibold">{request.user.username}</span>
+          <div className="flex flex-col">
+            <span className="text-sm text-cream font-semibold">{request.user.username}</span>
+            <span className="text-[10px] text-muted mt-0.5">
+              Le {new Date(request.createdAt).toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             <button
               disabled={isPending}
