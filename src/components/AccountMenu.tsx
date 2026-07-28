@@ -83,6 +83,15 @@ export default function AccountMenu({ session }: AccountMenuProps) {
                 </span>
               </div>
 
+              <Link
+                href="/profil"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full"
+              >
+                <span>Mon profil</span>
+                <span className="text-orange">→</span>
+              </Link>
+
               {isAdmin && (
                 <Link
                   href="/comptes"

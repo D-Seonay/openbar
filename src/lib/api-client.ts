@@ -14,6 +14,7 @@ import type {
   InviteLinkPreview,
   BarAdminSummary,
   BarAdminDetail,
+  MyProfile,
 } from "./types";
 import type { CocktailRecipe, RecipeAvailability } from "./cocktail-types";
 
@@ -253,6 +254,19 @@ export function updateUser(
 
 export function deleteUser(id: string): Promise<{ success: boolean }> {
   return request(`/users/${id}`, { method: "DELETE" });
+}
+
+export function getMyProfile(): Promise<MyProfile> {
+  return request<MyProfile>("/auth/profile");
+}
+
+export function updateMyProfile(input: {
+  birthday?: string;
+  favoriteDrink?: string;
+  allergies?: string;
+  avatarUrl?: string;
+}): Promise<MyProfile> {
+  return request<MyProfile>("/auth/profile", { method: "PATCH", body: JSON.stringify(input) });
 }
 
 // Bars

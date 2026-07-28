@@ -96,6 +96,15 @@ export interface BarMember {
   };
 }
 
+export interface MyProfile {
+  id: string;
+  username: string;
+  birthday: string | null;
+  favoriteDrink: string | null;
+  allergies: string | null;
+  avatarUrl: string | null;
+}
+
 export interface BarDirectoryEntry {
   id: string;
   name: string;
