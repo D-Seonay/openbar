@@ -75,4 +75,19 @@ export class AuthService {
       mustChangePassword: false,
     });
   }
+
+  async getProfile(userId: string) {
+    const user = await this.usersService.findPublicById(userId);
+    if (!user) throw new UnauthorizedException('Utilisateur introuvable');
+    return user;
+  }
+
+  async updateProfile(
+    userId: string,
+    input: { birthday?: string; favoriteDrink?: string; allergies?: string; avatarUrl?: string },
+  ) {
+    const user = await this.usersService.findPublicById(userId);
+    if (!user) throw new UnauthorizedException('Utilisateur introuvable');
+    return this.usersService.updateProfile(userId, input);
+  }
 }

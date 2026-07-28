@@ -7,7 +7,14 @@ import { UsersService } from '../users/users.service';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let usersService: { findByUsername: jest.Mock; create: jest.Mock; findById: jest.Mock; update: jest.Mock };
+  let usersService: {
+    findByUsername: jest.Mock;
+    create: jest.Mock;
+    findById: jest.Mock;
+    update: jest.Mock;
+    findPublicById?: jest.Mock;
+    updateProfile?: jest.Mock;
+  };
   let jwtService: { sign: jest.Mock };
 
   beforeEach(async () => {
@@ -206,6 +213,49 @@ describe('AuthService', () => {
       await expect(service.changePassword('ghost', 'whatever', 'newsecret123')).rejects.toThrow(
         UnauthorizedException,
       );
+    });
+  });
+
+  describe('getProfile / updateProfile', () => {
+    it('returns the full public profile', async () => {
+      usersService.findPublicById = jest.fn().mockResolvedValue({
+        id: '1',
+        username: 'noa',
+        birthday: null,
+        favoriteDrink: null,
+        allergies: null,
+        avatarUrl: null,
+      });
+
+      const result = await service.getProfile('1');
+
+      expect(result.username).toBe('noa');
+    });
+
+    it('rejects getProfile with UnauthorizedException when the user does not exist', async () => {
+      usersService.findPublicById = jest.fn().mockResolvedValue(null);
+
+      await expect(service.getProfile('ghost')).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('updates the profile fields when the user exists', async () => {
+      usersService.findPublicById = jest.fn().mockResolvedValue({ id: '1', username: 'noa' });
+      usersService.updateProfile = jest.fn().mockResolvedValue({
+        id: '1',
+        username: 'noa',
+        favoriteDrink: 'Mojito',
+      });
+
+      const result = await service.updateProfile('1', { favoriteDrink: 'Mojito' });
+
+      expect(usersService.updateProfile).toHaveBeenCalledWith('1', { favoriteDrink: 'Mojito' });
+      expect(result.favoriteDrink).toBe('Mojito');
+    });
+
+    it('rejects updateProfile with UnauthorizedException when the user does not exist', async () => {
+      usersService.findPublicById = jest.fn().mockResolvedValue(null);
+
+      await expect(service.updateProfile('ghost', {})).rejects.toThrow(UnauthorizedException);
     });
   });
 });

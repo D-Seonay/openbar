@@ -1,10 +1,11 @@
-import { Body, Controller, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import type { JwtPayload } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { SESSION_COOKIE } from './jwt.strategy';
 
@@ -60,5 +61,20 @@ export class AuthController {
     );
     this.setSessionCookie(res, token);
     return { user };
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@Req() req: Request) {
+    const currentUser = req.user as JwtPayload;
+    return this.authService.getProfile(currentUser.sub);
+  }
+
+  @Patch('profile')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(@Req() req: Request, @Body() dto: UpdateProfileDto) {
+    const currentUser = req.user as JwtPayload;
+    return this.authService.updateProfile(currentUser.sub, dto);
   }
 }
