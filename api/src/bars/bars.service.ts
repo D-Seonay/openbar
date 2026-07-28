@@ -98,11 +98,11 @@ export class BarsService {
     });
   }
 
-  async updateMemberVip(
+  async updateMember(
     barId: string,
     requesterId: string,
     membershipId: string,
-    vip: boolean,
+    data: { vip?: boolean; role?: 'OWNER' | 'MEMBER' },
   ) {
     await this.assertOwner(barId, requesterId);
 
@@ -111,15 +111,21 @@ export class BarsService {
     });
     if (!membership || membership.barId !== barId)
       throw new NotFoundException('Membre introuvable');
-    if (membership.role === 'OWNER') {
-      throw new ForbiddenException(
-        'Impossible de modifier le statut du propriétaire',
-      );
+
+    if (membership.role === 'OWNER' && data.role === 'MEMBER') {
+      const ownerCount = await this.prisma.barMembership.count({
+        where: { barId, role: 'OWNER' },
+      });
+      if (ownerCount <= 1) {
+        throw new ForbiddenException(
+          'Impossible de retirer le dernier propriétaire du bar',
+        );
+      }
     }
 
     return this.prisma.barMembership.update({
       where: { id: membershipId },
-      data: { vip },
+      data,
       include: MEMBER_INCLUDE,
     });
   }
@@ -133,9 +139,14 @@ export class BarsService {
     if (!membership || membership.barId !== barId)
       throw new NotFoundException('Membre introuvable');
     if (membership.role === 'OWNER') {
-      throw new ForbiddenException(
-        'Impossible de retirer le propriétaire du bar',
-      );
+      const ownerCount = await this.prisma.barMembership.count({
+        where: { barId, role: 'OWNER' },
+      });
+      if (ownerCount <= 1) {
+        throw new ForbiddenException(
+          'Impossible de retirer le dernier propriétaire du bar',
+        );
+      }
     }
 
     const requesterMembership = await this.getMembership(barId, requesterId);

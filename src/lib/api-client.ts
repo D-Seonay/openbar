@@ -289,10 +289,14 @@ export function inviteBarMember(barId: string, username: string, vip: boolean): 
   });
 }
 
-export function updateBarMemberVip(barId: string, membershipId: string, vip: boolean): Promise<BarMember> {
+export function updateBarMember(
+  barId: string,
+  membershipId: string,
+  data: { vip?: boolean; role?: "OWNER" | "MEMBER" }
+): Promise<BarMember> {
   return request<BarMember>(`/bars/${barId}/members/${membershipId}`, {
     method: "PATCH",
-    body: JSON.stringify({ vip }),
+    body: JSON.stringify(data),
   });
 }
 
