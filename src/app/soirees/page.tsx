@@ -5,6 +5,7 @@ import { createEvent } from "@/app/actions";
 import { getSession } from "@/lib/session";
 import { resolveActiveBar } from "@/lib/active-bar";
 import CopyLink from "./CopyLink";
+import ShareButton from "./ShareButton";
 import DeleteEventButton from "./DeleteEventButton";
 import PageTransition from "@/components/PageTransition";
 
@@ -100,6 +101,7 @@ export default async function SoireesPage() {
                   </div>
                   <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-0 border-orange/5 pt-2 sm:pt-0 shrink-0">
                     <CopyLink path={`/soirees/${event.slug}`} />
+                    <ShareButton path={`/soirees/${event.slug}`} title={event.name} />
                     <DeleteEventButton slug={event.slug} name={event.name} />
                   </div>
                 </div>
