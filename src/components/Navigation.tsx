@@ -32,16 +32,18 @@ function navLink(item: { href: string; label: string; exact?: boolean }, pathnam
 export default function Navigation({
   isBarOwner = false,
   isLoggedIn,
+  hasActiveBar = false,
 }: {
   isBarOwner?: boolean;
   isLoggedIn: boolean;
+  hasActiveBar?: boolean;
 }) {
   const pathname = usePathname();
 
   return (
     <nav className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-      {isLoggedIn && NAV.map((item) => navLink(item, pathname))}
-      {isBarOwner && OWNER_NAV.map((item) => navLink(item, pathname))}
+      {isLoggedIn && hasActiveBar && NAV.map((item) => navLink(item, pathname))}
+      {isBarOwner && hasActiveBar && OWNER_NAV.map((item) => navLink(item, pathname))}
     </nav>
   );
 }

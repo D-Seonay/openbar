@@ -41,7 +41,7 @@ export async function signup(formData: FormData) {
     redirect("/");
   }
 
-  redirect("/creer");
+  redirect("/");
 }
 
 async function requireSession() {

@@ -15,7 +15,7 @@ export default async function SoireesPage() {
 
   const bars = await listMyBars();
   const activeBar = await resolveActiveBar(bars);
-  if (!activeBar) redirect("/creer");
+  if (!activeBar) redirect("/");
 
   const events = await listEvents(activeBar.id);
   const sorted = [...events].sort((a, b) => b.date.localeCompare(a.date));

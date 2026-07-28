@@ -15,7 +15,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
   const bars = await listMyBars();
   const activeBar = await resolveActiveBar(bars);
-  if (!activeBar) redirect("/creer");
+  if (!activeBar) redirect("/");
 
   const [bottles, adjustments, availability, contributions] = await Promise.all([
     listBottles(activeBar.id),

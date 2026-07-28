@@ -14,7 +14,33 @@ export default async function HomePage() {
 
   const bars = await listMyBars();
   const activeBar = await resolveActiveBar(bars);
-  if (!activeBar) redirect("/creer");
+  
+  if (!activeBar) {
+    const directory = await listBarsDirectory();
+    return (
+      <PageTransition className="space-y-8">
+        <div className="py-12 text-center border-b border-orange/15">
+          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-caps text-gold mb-2">
+            <span className="w-2 h-2 rounded-full bg-orange animate-pulse" />
+            <span>Bienvenue sur OpenBar</span>
+          </div>
+          <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-cream tracking-tight mb-4 mt-2">
+            L&apos;Art du Cocktail Privé
+          </h1>
+          <p className="text-muted max-w-lg mx-auto mb-8">
+            Vous n&apos;avez pas encore de bar. Vous pouvez en créer un ou rejoindre un bar existant pour accéder aux fonctionnalités.
+          </p>
+          <Link
+            href="/creer"
+            className="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-orange to-orange-hover text-ink font-extrabold text-sm uppercase tracking-wider box-orange-glow transition-all hover:brightness-110"
+          >
+            Créer mon premier bar
+          </Link>
+        </div>
+        <BarDirectory entries={directory} />
+      </PageTransition>
+    );
+  }
 
   const [bottles, availability, directory, events, eventsByBar] = await Promise.all([
     listBottles(activeBar.id),

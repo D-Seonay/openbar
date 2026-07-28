@@ -14,7 +14,7 @@ export default async function AnnuairePage() {
 
   const bars = await listMyBars();
   const activeBar = await resolveActiveBar(bars);
-  if (!activeBar) redirect("/creer");
+  if (!activeBar) redirect("/");
 
   const members = await listBarMembers(activeBar.id);
 

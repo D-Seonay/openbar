@@ -14,7 +14,7 @@ export default async function BilanPage({ params }: { params: Promise<{ slug: st
 
   const bars = await listMyBars();
   const activeBar = await resolveActiveBar(bars);
-  if (!activeBar) redirect("/creer");
+  if (!activeBar) redirect("/");
 
   const bottles = await listBottles(activeBar.id);
   // Sort alphabetically so it is predictable
