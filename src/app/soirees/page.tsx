@@ -20,6 +20,9 @@ export default async function SoireesPage() {
   const events = await listEvents(activeBar.id);
   const sorted = [...events].sort((a, b) => b.date.localeCompare(a.date));
 
+  const activeEvents = sorted.filter((e) => !e.isClosed);
+  const historyEvents = sorted.filter((e) => e.isClosed);
+
   return (
     <PageTransition className="space-y-8">
       <div>
@@ -66,46 +69,96 @@ export default async function SoireesPage() {
         </section>
 
         {/* Events list */}
-        <section className="md:col-span-2 space-y-4">
-          <div className="flex items-center gap-3 border-b border-orange/10 pb-2">
-            <span className="w-1.5 h-3 bg-orange rounded-full" />
-            <h2 className="font-display text-xl text-cream">Historique & Événements à venir</h2>
+        <section className="md:col-span-2 space-y-8">
+          {/* Active Events */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 border-b border-orange/10 pb-2">
+              <span className="w-1.5 h-3 bg-orange rounded-full" />
+              <h2 className="font-display text-xl text-cream">Événements en cours & à venir</h2>
+            </div>
+
+            {activeEvents.length === 0 ? (
+              <div className="text-center py-8 rounded-xl border border-dashed border-orange/10 bg-ink-2/20">
+                <span className="text-2xl block mb-2">📅</span>
+                <p className="text-muted text-sm">Aucune soirée de planifiée pour le moment.</p>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {activeEvents.map((event) => (
+                  <div
+                    key={event.slug}
+                    className="rounded-xl border border-orange/10 bg-ink-2/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-orange/20 transition-all box-orange-glow-hover"
+                  >
+                    <div>
+                      <Link href={`/soirees/${event.slug}`} className="font-display text-lg text-cream hover:text-orange transition-colors">
+                        {event.name}
+                      </Link>
+                      <p className="text-xs text-muted mt-1 flex flex-wrap gap-2 items-center">
+                        <span className="text-orange-dim capitalize font-mono text-[10px]">
+                          {new Date(event.date).toLocaleDateString("fr-FR", {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-0 border-orange/5 pt-2 sm:pt-0 shrink-0">
+                      <CopyLink path={`/soirees/${event.slug}`} />
+                      <ShareButton path={`/soirees/${event.slug}`} title={event.name} />
+                      <DeleteEventButton slug={event.slug} name={event.name} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {sorted.length === 0 ? (
-            <div className="text-center py-12 rounded-xl border border-dashed border-orange/10 bg-ink-2/20">
-              <span className="text-3xl block mb-2">📅</span>
-              <p className="text-muted text-sm">Aucune soirée de planifiée pour le moment.</p>
-            </div>
-          ) : (
-            <div className="grid gap-3">
-              {sorted.map((event) => (
-                <div
-                  key={event.slug}
-                  className="rounded-xl border border-orange/10 bg-ink-2/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-orange/20 transition-all box-orange-glow-hover"
-                >
-                  <div>
-                    <Link href={`/soirees/${event.slug}`} className="font-display text-lg text-cream hover:text-orange transition-colors">
-                      {event.name}
-                    </Link>
-                    <p className="text-xs text-muted mt-1 flex flex-wrap gap-2 items-center">
-                      <span className="text-orange-dim capitalize font-mono text-[10px]">
-                        {new Date(event.date).toLocaleDateString("fr-FR", {
-                          weekday: "long",
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })}
-                      </span>
-                    </p>
+          {/* History Events */}
+          {historyEvents.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 border-b border-white/[0.08] pb-2">
+                <span className="w-1.5 h-3 bg-white/[0.2] rounded-full" />
+                <h2 className="font-display text-xl text-muted">Historique des soirées clôturées</h2>
+              </div>
+
+              <div className="grid gap-3">
+                {historyEvents.map((event) => (
+                  <div
+                    key={event.slug}
+                    className="rounded-xl border border-white/[0.05] bg-ink/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 opacity-70 hover:opacity-100 transition-opacity"
+                  >
+                    <div>
+                      <Link href={`/soirees/${event.slug}`} className="font-display text-lg text-cream hover:text-orange transition-colors">
+                        {event.name}
+                      </Link>
+                      <p className="text-xs text-muted mt-1 flex flex-wrap gap-2 items-center">
+                        <span className="capitalize font-mono text-[10px]">
+                          {new Date(event.date).toLocaleDateString("fr-FR", {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })}
+                        </span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] text-white/50 border border-white/[0.1] font-bold">
+                          ✓ Bilan fait
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-0 border-white/[0.05] pt-2 sm:pt-0 shrink-0">
+                      <Link 
+                        href={`/soirees/${event.slug}`}
+                        className="text-[10px] uppercase font-bold text-muted hover:text-cream px-3 py-1.5 rounded-lg bg-white/[0.05] transition-colors"
+                      >
+                        Consulter
+                      </Link>
+                      <DeleteEventButton slug={event.slug} name={event.name} />
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-0 border-orange/5 pt-2 sm:pt-0 shrink-0">
-                    <CopyLink path={`/soirees/${event.slug}`} />
-                    <ShareButton path={`/soirees/${event.slug}`} title={event.name} />
-                    <DeleteEventButton slug={event.slug} name={event.name} />
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </section>

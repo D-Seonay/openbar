@@ -83,6 +83,11 @@ export class StockAdjustmentsService {
       created.push(adjustment);
     }
 
+    await this.prisma.event.update({
+      where: { id: event.id },
+      data: { isClosed: true },
+    });
+
     return created;
   }
 }

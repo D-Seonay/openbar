@@ -35,7 +35,11 @@ export interface EventItem {
   slug: string;
   name: string;
   date: string;
+  isClosed: boolean;
   createdAt: string;
+  _count?: {
+    stockAdjustments: number;
+  };
 }
 
 export interface ContributionUser {

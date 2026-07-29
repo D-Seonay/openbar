@@ -92,6 +92,7 @@ model Event {
   slug             String            @unique
   name             String
   date             String
+  isClosed         Boolean           @default(false)
   barId            String
   bar              Bar               @relation(fields: [barId], references: [id], onDelete: Cascade)
   createdAt        DateTime          @default(now())

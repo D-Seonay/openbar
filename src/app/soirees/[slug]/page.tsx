@@ -51,7 +51,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-orange/15 pb-4">
         <div>
           <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">
-            {adjustments.length > 0 ? "Soirée clôturée" : "Soirée en cours"}
+            {event.isClosed ? "Soirée clôturée" : "Soirée en cours"}
           </span>
           <h1 className="font-display text-4xl text-cream mt-1">{event.name}</h1>
           <p className="text-muted text-xs mt-2 capitalize font-mono text-orange-dim">
