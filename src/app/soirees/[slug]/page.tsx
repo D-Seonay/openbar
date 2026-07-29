@@ -35,12 +35,23 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const readyCocktails = availability.filter((a) => a.makeable && !a.usesVip);
   const vipCocktails = availability.filter((a) => a.makeable && a.usesVip);
 
+  const netAdjustments = Object.values(
+    adjustments.reduce((acc, adj) => {
+      if (!acc[adj.bottleId]) {
+        acc[adj.bottleId] = { ...adj };
+      } else {
+        acc[adj.bottleId].quantityAfter = adj.quantityAfter;
+      }
+      return acc;
+    }, {} as Record<string, typeof adjustments[0]>)
+  ).filter((adj) => adj.quantityBefore !== adj.quantityAfter);
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-orange/15 pb-4">
         <div>
           <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">
-            Soirée en cours
+            {adjustments.length > 0 ? "Soirée clôturée" : "Soirée en cours"}
           </span>
           <h1 className="font-display text-4xl text-cream mt-1">{event.name}</h1>
           <p className="text-muted text-xs mt-2 capitalize font-mono text-orange-dim">
@@ -60,7 +71,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </Link>
       </div>
 
-      {adjustments.length > 0 && (
+      {netAdjustments.length > 0 && (
         <div className="rounded-2xl border border-orange/30 bg-ink-2/90 p-5 shadow-xl box-orange-glow space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -72,18 +83,18 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                   Bilan de la Soirée enregistré
                 </h3>
                 <p className="text-xs text-muted">
-                  {adjustments.length} référence(s) ajustée(s) lors du bilan
+                  {netAdjustments.length} référence(s) ajustée(s) lors du bilan
                 </p>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-2">
-            {adjustments.map((adj) => {
+            {netAdjustments.map((adj) => {
               const diff = adj.quantityAfter - adj.quantityBefore;
               return (
                 <div
-                  key={adj.id}
+                  key={adj.bottleId}
                   className="flex items-center justify-between p-3 rounded-xl bg-ink border border-white/[0.06] text-xs"
                 >
                   <span className="font-semibold text-cream truncate max-w-[170px]">
