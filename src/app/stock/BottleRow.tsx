@@ -24,8 +24,9 @@ export default function BottleRow({ bottle }: { bottle: Bottle }) {
 
     if (next === 0 && quantity > 0) {
       if (window.confirm(`La bouteille "${bottle.name}" est maintenant vide.\nVoulez-vous la supprimer définitivement du stock ?\n(Cliquez sur "Annuler" pour la conserver grisée dans votre inventaire)`)) {
-        startTransition(() => {
-          deleteBottleAction(bottle.id);
+        startTransition(async () => {
+          const res = await deleteBottleAction(bottle.id);
+          if (res?.error) alert(res.error);
         });
         return;
       }
@@ -57,8 +58,9 @@ export default function BottleRow({ bottle }: { bottle: Bottle }) {
 
     if (totalQty === 0 && quantity > 0) {
       if (window.confirm(`La bouteille "${bottle.name}" est maintenant vide.\nVoulez-vous la supprimer définitivement du stock ?\n(Cliquez sur "Annuler" pour la conserver grisée dans votre inventaire)`)) {
-        startTransition(() => {
-          deleteBottleAction(bottle.id);
+        startTransition(async () => {
+          const res = await deleteBottleAction(bottle.id);
+          if (res?.error) alert(res.error);
         });
         return;
       }
@@ -90,8 +92,9 @@ export default function BottleRow({ bottle }: { bottle: Bottle }) {
 
     if (totalQty === 0 && quantity > 0) {
       if (window.confirm(`La bouteille "${bottle.name}" est maintenant vide.\nVoulez-vous la supprimer définitivement du stock ?\n(Cliquez sur "Annuler" pour la conserver grisée dans votre inventaire)`)) {
-        startTransition(() => {
-          deleteBottleAction(bottle.id);
+        startTransition(async () => {
+          const res = await deleteBottleAction(bottle.id);
+          if (res?.error) alert(res.error);
         });
         return;
       }
@@ -315,7 +318,10 @@ export default function BottleRow({ bottle }: { bottle: Bottle }) {
             <button
               onClick={() => {
                 if (confirm(`Supprimer ${bottle.name} du stock ?`)) {
-                  startTransition(() => deleteBottleAction(bottle.id));
+                  startTransition(async () => {
+                    const res = await deleteBottleAction(bottle.id);
+                    if (res?.error) alert(res.error);
+                  });
                 }
               }}
               className="text-red-400 hover:text-red-300 font-medium px-2 py-0.5 rounded hover:bg-red-950/20 transition-colors text-[10px]"

@@ -109,11 +109,15 @@ export async function updateBottleThreshold(id: string, threshold: number | null
 }
 
 export async function deleteBottleAction(id: string) {
-  await requireLoggedIn();
-  await api.deleteBottle(id);
-  revalidatePath("/stock");
-  revalidatePath("/cocktails");
-  revalidatePath("/");
+  try {
+    await requireLoggedIn();
+    await api.deleteBottle(id);
+    revalidatePath("/stock");
+    revalidatePath("/cocktails");
+    revalidatePath("/");
+  } catch (err: any) {
+    return { error: err.message || "Erreur lors de la suppression de la bouteille." };
+  }
 }
 
 function parseJsonStringArray(raw: FormDataEntryValue | null): string[] {

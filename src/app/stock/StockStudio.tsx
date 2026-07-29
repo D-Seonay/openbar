@@ -519,11 +519,15 @@ export default function StockStudio({
         onConfirm={() => {
           if (!deleteTarget) return;
           const id = deleteTarget.id;
-          startDeleteTransition(() => {
-            deleteBottleAction(id);
+          startDeleteTransition(async () => {
+            const res = await deleteBottleAction(id);
+            if (res?.error) {
+              alert(res.error);
+            } else {
+              setDeleteTarget(null);
+              handleCloseDrawer();
+            }
           });
-          setDeleteTarget(null);
-          handleCloseDrawer();
         }}
       />
     </div>

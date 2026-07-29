@@ -372,9 +372,14 @@ export default function BottleDetailModal({ bottle, onClose, isAdmin = false }: 
           isPending={isPending}
           onCancel={() => setConfirmDeleteOpen(false)}
           onConfirm={() => {
-            startTransition(() => {
-              deleteBottleAction(bottle.id);
-              onClose();
+            startTransition(async () => {
+              const res = await deleteBottleAction(bottle.id);
+              if (res?.error) {
+                alert(res.error);
+              } else {
+                setConfirmDeleteOpen(false);
+                onClose();
+              }
             });
           }}
         />
