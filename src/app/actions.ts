@@ -253,3 +253,16 @@ export async function uploadProfileImage(formData: FormData): Promise<string | n
   await fs.writeFile(filePath, buffer);
   return `/uploads/${filename}`;
 }
+
+export async function editBottleAction(id: string, data: { name: string; type: BottleType; notes?: string; vip: boolean }) {
+  await requireLoggedIn();
+  try {
+    await api.updateBottle(id, data);
+    revalidatePath("/stock");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
