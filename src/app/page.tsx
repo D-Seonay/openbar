@@ -69,13 +69,13 @@ export default async function HomePage() {
 
   const today = new Date().toISOString().slice(0, 10);
   const upcoming = events
-    .filter((e) => e.date >= today)
+    .filter((e) => e.date >= today && !e.isClosed)
     .sort((a, b) => a.date.localeCompare(b.date));
   const nextEvent = upcoming[0];
 
   const upcomingAcrossBars = eventsByBar
     .flat()
-    .filter((e) => e.date >= today)
+    .filter((e) => e.date >= today && !e.isClosed)
     .sort((a, b) => a.date.localeCompare(b.date));
   const nextEventAcrossAll = upcomingAcrossBars[0];
 
