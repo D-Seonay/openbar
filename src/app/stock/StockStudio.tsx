@@ -8,6 +8,7 @@ import { updateBottleQuantity, deleteBottleAction } from "@/app/actions";
 import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import AddBottleForm from "./AddBottleForm";
+import BottleImage from "@/components/BottleImage";
 
 interface StockStudioProps {
   normalBottles: Bottle[];
@@ -284,8 +285,8 @@ export default function StockStudio({
                   }`}
                 >
                   <div className="flex items-start sm:items-center gap-4">
-                    <div className="w-16 shrink-0 text-[10px] font-bold uppercase tracking-caps text-gold-dim">
-                      {bottle.type}
+                    <div className="w-14 h-16 flex-shrink-0 bg-ink rounded-xl border border-white/[0.09] flex items-center justify-center overflow-hidden p-1.5 relative shadow-inner">
+                      <BottleImage bottle={bottle} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2.5">
@@ -304,6 +305,8 @@ export default function StockStudio({
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-xs text-muted">
+                        <span className="text-[10px] uppercase tracking-caps text-gold-dim font-semibold">{bottle.type}</span>
+                        <span>·</span>
                         <span>{formatLiters(totalLiters)} en cave</span>
                         <span>·</span>
                         <span className="truncate max-w-xs sm:max-w-md">
@@ -401,6 +404,13 @@ export default function StockStudio({
 
                     {drawerMode === "inspect" && selectedBottle && (
                       <div className="space-y-6 text-sm">
+                        {selectedBottle.imageUrl && (
+                          <div className="flex justify-center p-4 rounded-xl bg-ink border border-white/[0.08]">
+                            <div className="w-32 h-40 flex items-center justify-center overflow-hidden">
+                              <BottleImage bottle={selectedBottle} />
+                            </div>
+                          </div>
+                        )}
                         <div className="grid grid-cols-2 gap-4">
                           <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
                             <span className="text-[10px] uppercase tracking-caps text-muted block">Catégorie</span>

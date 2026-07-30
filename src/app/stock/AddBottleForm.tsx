@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { createBottle } from "@/app/actions";
+import { createBottle, uploadBottleImage } from "@/app/actions";
 import type { BottleVolume } from "@/lib/types";
 import ImagePicker from "@/components/ImagePicker";
 
@@ -102,7 +102,37 @@ export default function AddBottleForm({
 
       <div className="sm:col-span-2">
         <input type="hidden" name="imageUrl" value={imageUrl} />
-        <ImagePicker value={imageUrl} onChange={setImageUrl} label="Photo du produit (Fichier local ou URL)" />
+        <ImagePicker value={imageUrl} onChange={setImageUrl} onUpload={uploadBottleImage} label="Photo du produit (Fichier local ou URL)" />
+        {imageUrl && (
+          <div className="mt-3 flex items-center justify-between p-2.5 rounded-xl bg-ink/80 border border-white/[0.08]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-11 bg-ink rounded-lg p-1 border border-white/[0.08] overflow-hidden">
+                <img 
+                  src={
+                    imageUrl.startsWith('/uploads/') 
+                      ? `${process.env.NEXT_PUBLIC_NEST_API_URL || 'http://localhost:3001'}${imageUrl}`
+                      : imageUrl
+                  } 
+                  alt="Aperçu" 
+                  className="w-full h-full object-contain" 
+                />
+              </div>
+              <div>
+                <span className="text-xs font-medium text-cream block">Aperçu de l&apos;image sélectionnée</span>
+                <span className="text-[10px] text-orange font-mono truncate max-w-[200px] block">
+                  {imageUrl.startsWith("data:") ? "Image locale convertie" : imageUrl}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setImageUrl("")}
+              className="text-xs text-red-400 hover:text-red-300 bg-red-500/10 px-2.5 py-1 rounded-lg border border-red-500/20 cursor-pointer"
+            >
+              Retirer
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Volumes and quantities editor */}

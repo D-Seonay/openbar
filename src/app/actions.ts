@@ -1,12 +1,12 @@
 "use server";
 
-import fs from "node:fs/promises";
-import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import * as api from "@/lib/api-client";
-import { isAdminLoggedIn, getSession } from "@/lib/session";
+import { isAdminLoggedIn, getSession, SESSION_COOKIE } from "@/lib/session";
 import type { BottleType, BottleVolume } from "@/lib/types";
+import { getBaseApiUrl } from "@/lib/api";
 
 async function requireAdmin() {
   if (!(await isAdminLoggedIn())) {
@@ -216,21 +216,36 @@ export async function submitBilan(slug: string, formData: FormData) {
   redirect(`/soirees/${slug}`);
 }
 
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
 export async function uploadBottleImage(formData: FormData): Promise<string | null> {
-  await requireAdmin();
+  await requireLoggedIn();
   const file = formData.get("file") as File | null;
   if (!file || file.size === 0) return null;
+  if (file.size > MAX_IMAGE_SIZE) {
+    throw new Error(`L'image dépasse la limite de ${MAX_IMAGE_SIZE / 1024 / 1024} Mo`);
+  }
 
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  await fs.mkdir(uploadsDir, { recursive: true });
+  const apiFormData = new FormData();
+  apiFormData.append("file", file);
 
-  const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "png";
-  const filename = `bottle-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const filePath = path.join(uploadsDir, filename);
+  const res = await fetch(`${getBaseApiUrl()}/bottles/upload`, {
+    method: "POST",
+    headers: {
+      ...(token ? { Cookie: `${SESSION_COOKIE}=${token}` } : {}),
+    },
+    body: apiFormData,
+    cache: "no-store",
+  });
 
-  await fs.writeFile(filePath, buffer);
-  return `/uploads/${filename}`;
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    throw new Error(body.message ?? `Erreur API (${res.status})`);
+  }
+
+  const data = await res.json();
+  return (data as { imageUrl: string }).imageUrl ?? null;
 }

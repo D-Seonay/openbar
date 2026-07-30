@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { updateBottleQuantity, updateBottleThreshold, deleteBottleAction, updateBottleVolumes } from "@/app/actions";
 import type { Bottle, BottleVolume } from "@/lib/types";
-import BottlePreview from "./BottlePreview";
+import BottleImage from "@/components/BottleImage";
 
 export default function BottleRow({ bottle }: { bottle: Bottle }) {
   const [quantity, setQuantity] = useState(bottle.quantity);
@@ -99,16 +99,8 @@ export default function BottleRow({ bottle }: { bottle: Bottle }) {
     } box-orange-glow-hover`}>
       <div className="flex gap-4 items-start">
         {/* Visual bottle preview or custom image */}
-        <div className="flex-shrink-0 w-16 h-28 flex items-center justify-center bg-ink-2/65 rounded-lg border border-orange/5 overflow-hidden relative">
-          {bottle.imageUrl ? (
-            <img 
-              src={bottle.imageUrl} 
-              alt={bottle.name} 
-              className="w-full h-full object-contain p-1 filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.5)]" 
-            />
-          ) : (
-            <BottlePreview type={bottle.type} quantity={quantity} vip={bottle.vip} />
-          )}
+        <div className={`flex-shrink-0 w-16 h-28 flex items-center justify-center bg-ink-2/65 rounded-lg border overflow-hidden relative ${quantity === 0 ? "border-white/5" : "border-orange/5"}`}>
+          <BottleImage bottle={bottle} />
 
           {/* Numerical Total Badge */}
           <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-mono font-bold ${
