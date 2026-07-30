@@ -253,7 +253,7 @@ export default function CocktailStudio({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.22, ease: "easeOut" }}
-              className="fixed top-0 right-0 h-full w-full max-w-lg bg-ink-2 border-l border-white/[0.1] z-50 p-6 sm:p-8 overflow-y-auto flex flex-col justify-between shadow-2xl"
+              className="fixed top-0 right-0 h-dvh w-full max-w-lg bg-ink-2 border-l border-white/[0.1] z-50 p-6 sm:p-8 overflow-y-auto flex flex-col justify-between shadow-2xl"
             >
               <div className="space-y-6">
                 <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
