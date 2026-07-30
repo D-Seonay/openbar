@@ -124,29 +124,6 @@ export default function ImagePicker({
         />
       )}
 
-      {/* Preview selected image */}
-      {value && (
-        <div className="flex items-center justify-between p-2.5 rounded-xl bg-ink/80 border border-white/[0.08]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-11 bg-ink rounded-lg p-1 border border-white/[0.08] overflow-hidden">
-              <img src={value} alt="Aperçu" className="w-full h-full object-contain" />
-            </div>
-            <div>
-              <span className="text-xs font-medium text-cream block">Aperçu de l&apos;image sélectionnée</span>
-              <span className="text-[10px] text-orange font-mono truncate max-w-[200px] block">
-                {value.startsWith("data:") ? "Image locale convertie" : value}
-              </span>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => onChange("")}
-            className="text-xs text-red-400 hover:text-red-300 bg-red-500/10 px-2.5 py-1 rounded-lg border border-red-500/20 cursor-pointer"
-          >
-            Retirer
-          </button>
-        </div>
-      )}
     </div>
   );
 }

@@ -9,10 +9,8 @@ interface BottlePreviewProps {
 }
 
 export default function BottlePreview({ type, quantity, vip = false }: BottlePreviewProps) {
-  // Determine color matching for the liquid inside
   let liquidColor = "rgba(255, 99, 43, 0.6)"; // default orange
-  let bottleShape = "standard"; // standard, decanter, flask, tall
-
+  let bottleShape = "standard";
   switch (type) {
     case "whisky":
       liquidColor = "url(#whiskyGrad)";
@@ -59,7 +57,6 @@ export default function BottlePreview({ type, quantity, vip = false }: BottlePre
       bottleShape = "standard";
   }
 
-  // Calculate percentage of liquid. 0 = 0%, 1 bottle = 80% (top of body), 2+ = 95% (full neck)
   const fillPct = Math.min(100, Math.max(0, quantity === 0 ? 0 : 25 + Math.min(quantity, 1.5) * 45));
 
   return (

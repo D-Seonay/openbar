@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import type { Bottle } from "@/lib/types";
 import { calculateBottleTotalLiters, calculateTotalBottlesCount, formatLiters } from "@/lib/volumeUtils";
 import { updateBottleQuantity } from "@/app/actions";
-import BottlePreview from "./BottlePreview";
+import BottleImage from "@/components/BottleImage";
 import BottleDetailModal from "./BottleDetailModal";
 
 export default function BottleListRow({
@@ -44,11 +44,7 @@ export default function BottleListRow({
         {/* Left: Fresh Grocery Shelf Product & Info */}
         <div className="flex items-center gap-4 min-w-0">
           <div className="w-14 h-16 flex-shrink-0 bg-ink rounded-xl border border-white/[0.09] flex items-center justify-center overflow-hidden p-1.5 relative shadow-inner">
-            {bottle.imageUrl ? (
-              <img src={bottle.imageUrl} alt={bottle.name} className="w-full h-full object-contain" />
-            ) : (
-              <BottlePreview type={bottle.type} quantity={totalBottles} vip={bottle.vip} />
-            )}
+            <BottleImage bottle={bottle} />
             {totalBottles === 0 && (
               <span className="absolute inset-0 bg-ink/90 flex items-center justify-center text-[9px] font-bold uppercase tracking-wider text-red-400">
                 Rupture
