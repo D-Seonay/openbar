@@ -41,7 +41,7 @@ export async function signup(formData: FormData) {
     redirect("/");
   }
 
-  redirect("/creer");
+  redirect("/");
 }
 
 async function requireSession() {
@@ -88,8 +88,19 @@ export async function inviteMemberAction(barId: string, formData: FormData): Pro
 
 export async function toggleMemberVipAction(barId: string, membershipId: string, vip: boolean) {
   await requireSession();
-  await api.updateBarMemberVip(barId, membershipId, vip);
+  await api.updateBarMember(barId, membershipId, { vip });
   revalidatePath("/membres");
+}
+
+export async function changeMemberRoleAction(barId: string, membershipId: string, role: "OWNER" | "MEMBER"): Promise<{ error?: string }> {
+  await requireSession();
+  try {
+    await api.updateBarMember(barId, membershipId, { role });
+    revalidatePath("/membres");
+    return {};
+  } catch (err) {
+    return { error: err instanceof api.ApiError ? err.message : "Erreur lors de la modification du rôle" };
+  }
 }
 
 export async function removeMemberAction(barId: string, membershipId: string): Promise<{ error?: string }> {

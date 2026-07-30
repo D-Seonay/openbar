@@ -17,13 +17,20 @@ export default function UserRow({ user }: { user: AccountUser }) {
         </div>
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="font-semibold text-sm text-cream">{user.username}</span>
+            <span className={`font-semibold text-sm ${user.isArchived ? "text-muted line-through" : "text-cream"}`}>
+              {user.isArchived ? "Compte archivé" : user.username}
+            </span>
             <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded bg-white/[0.05] text-muted">
               {user.role}
             </span>
             {user.vip && (
               <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-gold text-ink shadow-sm">
                 VIP
+              </span>
+            )}
+            {user.isArchived && (
+              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-red-500/20 text-red-400 shadow-sm border border-red-500/30">
+                Archivé
               </span>
             )}
           </div>
@@ -38,18 +45,18 @@ export default function UserRow({ user }: { user: AccountUser }) {
 
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <button
-          disabled={isPending}
+          disabled={isPending || user.isArchived}
           onClick={() =>
             startTransition(() => toggleRoleAction(user.id, user.role === "ADMIN" ? "USER" : "ADMIN"))
           }
-          className="px-3 py-1.5 rounded-xl bg-ink hover:bg-white/[0.06] border border-white/[0.08] text-cream transition-colors cursor-pointer"
+          className="px-3 py-1.5 rounded-xl bg-ink hover:bg-white/[0.06] border border-white/[0.08] text-cream transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {user.role === "ADMIN" ? "Rétrograder User" : "Promouvoir Admin"}
         </button>
         <button
-          disabled={isPending}
+          disabled={isPending || user.isArchived}
           onClick={() => startTransition(() => toggleVipAction(user.id, !user.vip))}
-          className={`px-3 py-1.5 rounded-xl border transition-colors cursor-pointer font-semibold ${
+          className={`px-3 py-1.5 rounded-xl border transition-colors cursor-pointer font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${
             user.vip
               ? "bg-gold/15 border-gold/40 text-gold hover:bg-gold/25"
               : "bg-ink border-white/[0.08] text-muted hover:text-gold"
@@ -58,29 +65,30 @@ export default function UserRow({ user }: { user: AccountUser }) {
           {user.vip ? "Retirer accès VIP" : "Accorder VIP"}
         </button>
         <button
-          disabled={isPending}
+          disabled={isPending || user.isArchived}
           onClick={() =>
             startTransition(async () => {
               const password = await resetPasswordAction(user.id);
               setResetResult(password);
             })
           }
-          className="px-3 py-1.5 rounded-xl bg-ink hover:bg-white/[0.06] border border-white/[0.08] text-muted hover:text-cream transition-colors cursor-pointer"
+          className="px-3 py-1.5 rounded-xl bg-ink hover:bg-white/[0.06] border border-white/[0.08] text-muted hover:text-cream transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Réinitialiser MDP
         </button>
         <button
-          disabled={isPending}
-          onClick={() =>
+          disabled={isPending || user.isArchived}
+          onClick={() => {
+            if (!window.confirm(`Voulez-vous vraiment archiver le compte de ${user.username} ?\nLes bars dont il est l'unique propriétaire seront désactivés.`)) return;
             startTransition(async () => {
               setDeleteError(null);
               const result = await deleteUserAction(user.id);
               if (result.error) setDeleteError(result.error);
-            })
-          }
-          className="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 transition-colors cursor-pointer"
+            });
+          }}
+          className="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Supprimer
+          Archiver
         </button>
       </div>
     </div>

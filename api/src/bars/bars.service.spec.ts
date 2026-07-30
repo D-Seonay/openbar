@@ -266,7 +266,17 @@ describe('BarsService', () => {
 
       expect(prisma.barMembership.create).toHaveBeenCalledWith({
         data: { barId: BAR_ID, userId: OTHER_ID, role: 'MEMBER', vip: true },
-        include: { user: { select: { username: true } } },
+        include: {
+          user: {
+            select: {
+              username: true,
+              birthday: true,
+              favoriteDrink: true,
+              allergies: true,
+              avatarUrl: true,
+            },
+          },
+        },
       });
       expect(result).toEqual({
         id: 'm2',
@@ -323,7 +333,17 @@ describe('BarsService', () => {
       expect(prisma.barMembership.update).toHaveBeenCalledWith({
         where: { id: 'm2' },
         data: { vip: true },
-        include: { user: { select: { username: true } } },
+        include: {
+          user: {
+            select: {
+              username: true,
+              birthday: true,
+              favoriteDrink: true,
+              allergies: true,
+              avatarUrl: true,
+            },
+          },
+        },
       });
       expect(result.vip).toBe(true);
     });

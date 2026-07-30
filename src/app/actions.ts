@@ -109,11 +109,15 @@ export async function updateBottleThreshold(id: string, threshold: number | null
 }
 
 export async function deleteBottleAction(id: string) {
-  await requireLoggedIn();
-  await api.deleteBottle(id);
-  revalidatePath("/stock");
-  revalidatePath("/cocktails");
-  revalidatePath("/");
+  try {
+    await requireLoggedIn();
+    await api.deleteBottle(id);
+    revalidatePath("/stock");
+    revalidatePath("/cocktails");
+    revalidatePath("/");
+  } catch (err: any) {
+    return { error: err.message || "Erreur lors de la suppression de la bouteille." };
+  }
 }
 
 function parseJsonStringArray(raw: FormDataEntryValue | null): string[] {
@@ -249,3 +253,35 @@ export async function uploadBottleImage(formData: FormData): Promise<string | nu
   const data = await res.json();
   return (data as { imageUrl: string }).imageUrl ?? null;
 }
+
+export async function uploadProfileImage(formData: FormData): Promise<string | null> {
+  await requireLoggedIn();
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) return null;
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  const uploadsDir = path.join(process.cwd(), "public", "uploads");
+  await fs.mkdir(uploadsDir, { recursive: true });
+
+  const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "png";
+  const filename = `avatar-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const filePath = path.join(uploadsDir, filename);
+
+  await fs.writeFile(filePath, buffer);
+  return `/uploads/${filename}`;
+}
+
+export async function editBottleAction(id: string, data: { name: string; type: BottleType; notes?: string; vip: boolean }) {
+  await requireLoggedIn();
+  try {
+    await api.updateBottle(id, data);
+    revalidatePath("/stock");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+

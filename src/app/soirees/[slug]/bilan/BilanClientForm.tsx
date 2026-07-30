@@ -20,9 +20,13 @@ const GROCERY_AISLES = [
   { id: "autre", label: "📦 Autres" },
 ] as const;
 
+interface EnrichedBottle extends Bottle {
+  originalQuantity?: number;
+}
+
 interface BilanClientFormProps {
   slug: string;
-  bottles: Bottle[];
+  bottles: EnrichedBottle[];
 }
 
 export default function BilanClientForm({ slug, bottles }: BilanClientFormProps) {
@@ -59,7 +63,8 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
   const modifiedBottlesCount = useMemo(() => {
     let count = 0;
     for (const b of bottles) {
-      if ((quantities[b.id] ?? b.quantity) !== b.quantity) {
+      const original = b.originalQuantity ?? b.quantity;
+      if ((quantities[b.id] ?? b.quantity) !== original) {
         count++;
       }
     }
@@ -69,9 +74,10 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
   const totalConsumedBottles = useMemo(() => {
     let consumed = 0;
     for (const b of bottles) {
+      const original = b.originalQuantity ?? b.quantity;
       const after = quantities[b.id] ?? b.quantity;
-      if (after < b.quantity) {
-        consumed += b.quantity - after;
+      if (after < original) {
+        consumed += original - after;
       }
     }
     return Number(consumed.toFixed(1));
@@ -83,8 +89,9 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
       const matchesQuery =
         !q || b.name.toLowerCase().includes(q) || b.tags.some((t) => t.includes(q));
       const matchesAisle = !selectedAisle || b.type === selectedAisle;
+      const original = b.originalQuantity ?? b.quantity;
       const matchesModified =
-        !onlyModified || (quantities[b.id] ?? b.quantity) !== b.quantity;
+        !onlyModified || (quantities[b.id] ?? b.quantity) !== original;
       return matchesQuery && matchesAisle && matchesModified;
     });
   }, [bottles, query, selectedAisle, onlyModified, quantities]);
@@ -163,8 +170,9 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
           </div>
         ) : (
           filteredBottles.map((b) => {
+            const original = b.originalQuantity ?? b.quantity;
             const currentQty = quantities[b.id] ?? b.quantity;
-            const diff = currentQty - b.quantity;
+            const diff = currentQty - original;
             const totalLiters = calculateBottleTotalLiters(b);
 
             return (
@@ -196,7 +204,7 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
                     </div>
                     <p className="text-xs text-muted mt-1">
                       Stock initial :{" "}
-                      <strong className="text-cream font-mono">{b.quantity} btl</strong> •{" "}
+                      <strong className="text-cream font-mono">{original} btl</strong> •{" "}
                       {formatLiters(totalLiters)}
                     </p>
                   </div>
@@ -243,7 +251,7 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
                   {diff !== 0 && (
                     <button
                       type="button"
-                      onClick={() => handleSetExact(b.id, b.quantity)}
+                      onClick={() => handleSetExact(b.id, original)}
                       className="text-[11px] text-muted hover:text-cream px-2 py-1 rounded-lg hover:bg-white/[0.05] transition-colors"
                       title="Annuler la modification pour cette bouteille"
                     >

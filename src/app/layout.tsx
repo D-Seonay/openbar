@@ -3,7 +3,7 @@ import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { getSession } from "@/lib/session";
-import { listMyBars } from "@/lib/api-client";
+import { listMyBars, getMyProfile } from "@/lib/api-client";
 import { resolveActiveBar } from "@/lib/active-bar";
 import Navigation from "@/components/Navigation";
 import AccountMenu from "@/components/AccountMenu";
@@ -35,6 +35,7 @@ export default async function RootLayout({
   const isAdmin = session?.role === "ADMIN";
   const bars = session ? await listMyBars() : [];
   const activeBar = session ? await resolveActiveBar(bars) : null;
+  const profile = session ? await getMyProfile() : null;
 
   return (
     <html lang="fr" className={`h-full ${outfit.variable} ${jakarta.variable}`}>
@@ -69,9 +70,9 @@ export default async function RootLayout({
                 </Link>
               )}
               {activeBar && bars.length > 1 && <BarSwitcher bars={bars} activeBarId={activeBar.id} />}
-              <Navigation isAdmin={isAdmin} isBarOwner={activeBar?.myRole === "OWNER"} isLoggedIn={!!session} />
+              <Navigation isBarOwner={activeBar?.myRole === "OWNER"} isLoggedIn={!!session} hasActiveBar={!!activeBar} />
               <div className="pl-2 border-l border-white/[0.1] ml-1 flex items-center">
-                <AccountMenu session={session} />
+                <AccountMenu session={session} avatarUrl={profile?.avatarUrl ?? null} />
               </div>
             </div>
           </div>

@@ -8,9 +8,10 @@ import type { SessionUser } from "@/lib/session";
 
 interface AccountMenuProps {
   session: SessionUser | null;
+  avatarUrl: string | null;
 }
 
-export default function AccountMenu({ session }: AccountMenuProps) {
+export default function AccountMenu({ session, avatarUrl }: AccountMenuProps) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -46,20 +47,26 @@ export default function AccountMenu({ session }: AccountMenuProps) {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className={`group flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold shadow-sm transition-all duration-200 cursor-pointer ${
+        className={`group relative flex items-center justify-center w-9 h-9 rounded-full border shadow-sm transition-all duration-200 cursor-pointer overflow-hidden ${
           isAdmin
-            ? "bg-gradient-to-r from-orange/20 to-gold/15 border-orange/40 hover:border-orange text-cream"
-            : "bg-white/[0.04] border-white/[0.08] hover:border-orange/40 text-muted hover:text-cream"
+            ? "border-orange/40 hover:border-orange"
+            : "border-white/[0.08] hover:border-orange/40"
         }`}
         title={isAdmin ? "Session Administrateur active" : "Session active"}
       >
         {isAdmin && (
-          <span className="relative flex h-2 w-2">
+          <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5 z-10">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-orange"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange border border-ink"></span>
           </span>
         )}
-        <span className="tracking-wide">{isAdmin ? "Mode Admin" : session.username}</span>
+        {avatarUrl ? (
+          <img src={avatarUrl} alt={session.username} className="w-full h-full object-cover" />
+        ) : (
+          <span className="flex items-center justify-center w-full h-full bg-white/[0.04] text-xs font-bold text-gold font-display">
+            {session.username.slice(0, 2).toUpperCase()}
+          </span>
+        )}
       </button>
 
       <AnimatePresence>
@@ -83,25 +90,56 @@ export default function AccountMenu({ session }: AccountMenuProps) {
                 </span>
               </div>
 
+              <Link
+                href="/profil"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full mb-1"
+              >
+                <span>Mon profil</span>
+                <span className="text-orange">→</span>
+              </Link>
+
               {isAdmin && (
-                <Link
-                  href="/comptes"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full"
-                >
-                  <span>Gestion des comptes</span>
-                  <span className="text-orange">→</span>
-                </Link>
+                <>
+                  <div className="px-2 py-1.5 border-t border-white/[0.08] mt-1 mb-1">
+                    <span className="text-[10px] uppercase tracking-caps text-gold block font-semibold">
+                      Administration
+                    </span>
+                  </div>
+                  <Link
+                    href="/admin"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full"
+                  >
+                    <span>Tableau de bord</span>
+                  </Link>
+                  <Link
+                    href="/comptes"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full"
+                  >
+                    <span>Comptes</span>
+                  </Link>
+                  <Link
+                    href="/admin/bars"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full mb-1"
+                  >
+                    <span>Tous les bars</span>
+                  </Link>
+                </>
               )}
 
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={handleLogout}
-                className="mt-1 flex items-center justify-between w-full px-2.5 py-2 rounded-xl text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
-              >
-                <span>{isPending ? "Déconnexion..." : "Se déconnecter"}</span>
-              </button>
+              <div className="border-t border-white/[0.08] mt-1 pt-1">
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={handleLogout}
+                  className="flex items-center justify-between w-full px-2.5 py-2 rounded-xl text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                >
+                  <span>{isPending ? "Déconnexion..." : "Se déconnecter"}</span>
+                </button>
+              </div>
             </motion.div>
           </>
         )}

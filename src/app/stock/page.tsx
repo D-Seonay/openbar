@@ -13,7 +13,7 @@ export default async function StockPage() {
 
   const bars = await listMyBars();
   const activeBar = await resolveActiveBar(bars);
-  if (!activeBar) redirect("/creer");
+  if (!activeBar) redirect("/");
 
   const bottles = await listBottles(activeBar.id);
 

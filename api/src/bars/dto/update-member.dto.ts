@@ -1,6 +1,11 @@
-import { IsBoolean } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class UpdateMemberDto {
+  @IsOptional()
   @IsBoolean()
-  vip: boolean;
+  vip?: boolean;
+
+  @IsOptional()
+  @IsString()
+  role?: 'OWNER' | 'MEMBER';
 }

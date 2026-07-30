@@ -87,7 +87,7 @@ export class BarsController {
     @Body() dto: UpdateMemberDto,
   ) {
     const user = req.user as JwtPayload;
-    return this.barsService.updateMemberVip(id, user.sub, membershipId, dto.vip);
+    return this.barsService.updateMember(id, user.sub, membershipId, dto);
   }
 
   @UseGuards(JwtAuthGuard)

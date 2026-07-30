@@ -35,7 +35,11 @@ export interface EventItem {
   slug: string;
   name: string;
   date: string;
+  isClosed: boolean;
   createdAt: string;
+  _count?: {
+    stockAdjustments: number;
+  };
 }
 
 export interface ContributionUser {
@@ -68,6 +72,7 @@ export interface AccountUser {
   role: "ADMIN" | "USER";
   vip: boolean;
   createdAt: string;
+  isArchived: boolean;
 }
 
 export interface Bar {
@@ -87,7 +92,22 @@ export interface BarMember {
   role: "OWNER" | "MEMBER";
   vip: boolean;
   createdAt: string;
-  user: { username: string };
+  user: {
+    username: string;
+    birthday: string | null;
+    favoriteDrink: string | null;
+    allergies: string | null;
+    avatarUrl: string | null;
+  };
+}
+
+export interface MyProfile {
+  id: string;
+  username: string;
+  birthday: string | null;
+  favoriteDrink: string | null;
+  allergies: string | null;
+  avatarUrl: string | null;
 }
 
 export interface BarDirectoryEntry {

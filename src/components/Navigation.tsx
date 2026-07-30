@@ -7,13 +7,9 @@ const NAV = [
   { href: "/stock", label: "Cave & Stock" },
   { href: "/cocktails", label: "Cocktails" },
   { href: "/soirees", label: "Soirées" },
+  { href: "/annuaire", label: "Annuaire" },
 ];
 
-const ADMIN_NAV = [
-  { href: "/admin", label: "Tableau de bord", exact: true },
-  { href: "/comptes", label: "Comptes" },
-  { href: "/admin/bars", label: "Tous les bars" },
-];
 const OWNER_NAV = [{ href: "/membres", label: "Membres" }];
 
 function navLink(item: { href: string; label: string; exact?: boolean }, pathname: string) {
@@ -34,21 +30,20 @@ function navLink(item: { href: string; label: string; exact?: boolean }, pathnam
 }
 
 export default function Navigation({
-  isAdmin,
   isBarOwner = false,
   isLoggedIn,
+  hasActiveBar = false,
 }: {
-  isAdmin: boolean;
   isBarOwner?: boolean;
   isLoggedIn: boolean;
+  hasActiveBar?: boolean;
 }) {
   const pathname = usePathname();
 
   return (
     <nav className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-      {isLoggedIn && NAV.map((item) => navLink(item, pathname))}
-      {isBarOwner && OWNER_NAV.map((item) => navLink(item, pathname))}
-      {isAdmin && ADMIN_NAV.map((item) => navLink(item, pathname))}
+      {isLoggedIn && hasActiveBar && NAV.map((item) => navLink(item, pathname))}
+      {isBarOwner && hasActiveBar && OWNER_NAV.map((item) => navLink(item, pathname))}
     </nav>
   );
 }

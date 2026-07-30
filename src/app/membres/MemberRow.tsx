@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import type { BarMember } from "@/lib/types";
-import { toggleMemberVipAction, removeMemberAction } from "@/app/bar-actions";
+import { toggleMemberVipAction, removeMemberAction, changeMemberRoleAction } from "@/app/bar-actions";
 
 export default function MemberRow({ barId, member }: { barId: string; member: BarMember }) {
   const [isPending, startTransition] = useTransition();
@@ -30,34 +30,46 @@ export default function MemberRow({ barId, member }: { barId: string; member: Ba
         </div>
       </div>
 
-      {member.role !== "OWNER" && (
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <button
-            disabled={isPending}
-            onClick={() => startTransition(() => toggleMemberVipAction(barId, member.id, !member.vip))}
-            className={`px-3 py-1.5 rounded-xl border transition-colors cursor-pointer font-semibold ${
-              member.vip
-                ? "bg-gold/15 border-gold/40 text-gold hover:bg-gold/25"
-                : "bg-ink border-white/[0.08] text-muted hover:text-gold"
-            }`}
-          >
-            {member.vip ? "Retirer accès VIP" : "Accorder VIP"}
-          </button>
-          <button
-            disabled={isPending}
-            onClick={() =>
-              startTransition(async () => {
-                setDeleteError(null);
-                const result = await removeMemberAction(barId, member.id);
-                if (result.error) setDeleteError(result.error);
-              })
-            }
-            className="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 transition-colors cursor-pointer"
-          >
-            Révoquer
-          </button>
-        </div>
-      )}
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <button
+          disabled={isPending}
+          onClick={() =>
+            startTransition(async () => {
+              setDeleteError(null);
+              const role = member.role === "OWNER" ? "MEMBER" : "OWNER";
+              const result = await changeMemberRoleAction(barId, member.id, role);
+              if (result.error) setDeleteError(result.error);
+            })
+          }
+          className="px-3 py-1.5 rounded-xl bg-ink border border-white/[0.08] text-cream transition-colors cursor-pointer hover:bg-ink-2 hover:border-white/[0.12]"
+        >
+          {member.role === "OWNER" ? "Rétrograder membre" : "Promouvoir proprio"}
+        </button>
+        <button
+          disabled={isPending}
+          onClick={() => startTransition(() => toggleMemberVipAction(barId, member.id, !member.vip))}
+          className={`px-3 py-1.5 rounded-xl border transition-colors cursor-pointer font-semibold ${
+            member.vip
+              ? "bg-gold/15 border-gold/40 text-gold hover:bg-gold/25"
+              : "bg-ink border-white/[0.08] text-muted hover:text-gold"
+          }`}
+        >
+          {member.vip ? "Retirer VIP" : "Accorder VIP"}
+        </button>
+        <button
+          disabled={isPending}
+          onClick={() =>
+            startTransition(async () => {
+              setDeleteError(null);
+              const result = await removeMemberAction(barId, member.id);
+              if (result.error) setDeleteError(result.error);
+            })
+          }
+          className="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 transition-colors cursor-pointer"
+        >
+          Révoquer
+        </button>
+      </div>
     </div>
   );
 }

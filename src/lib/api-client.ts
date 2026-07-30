@@ -14,6 +14,7 @@ import type {
   InviteLinkPreview,
   BarAdminSummary,
   BarAdminDetail,
+  MyProfile,
 } from "./types";
 import type { CocktailRecipe, RecipeAvailability } from "./cocktail-types";
 import { getBaseApiUrl } from "./api";
@@ -256,6 +257,19 @@ export function deleteUser(id: string): Promise<{ success: boolean }> {
   return request(`/users/${id}`, { method: "DELETE" });
 }
 
+export function getMyProfile(): Promise<MyProfile> {
+  return request<MyProfile>("/auth/profile");
+}
+
+export function updateMyProfile(input: {
+  birthday?: string;
+  favoriteDrink?: string;
+  allergies?: string;
+  avatarUrl?: string;
+}): Promise<MyProfile> {
+  return request<MyProfile>("/auth/profile", { method: "PATCH", body: JSON.stringify(input) });
+}
+
 // Bars
 export function listMyBars(): Promise<Bar[]> {
   return request<Bar[]>("/bars/mine");
@@ -276,10 +290,14 @@ export function inviteBarMember(barId: string, username: string, vip: boolean): 
   });
 }
 
-export function updateBarMemberVip(barId: string, membershipId: string, vip: boolean): Promise<BarMember> {
+export function updateBarMember(
+  barId: string,
+  membershipId: string,
+  data: { vip?: boolean; role?: "OWNER" | "MEMBER" }
+): Promise<BarMember> {
   return request<BarMember>(`/bars/${barId}/members/${membershipId}`, {
     method: "PATCH",
-    body: JSON.stringify({ vip }),
+    body: JSON.stringify(data),
   });
 }
 

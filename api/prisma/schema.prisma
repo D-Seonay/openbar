@@ -50,7 +50,12 @@ model User {
   role               Role           @default(USER)
   vip                Boolean        @default(false)
   mustChangePassword Boolean        @default(false)
+  birthday           DateTime?
+  favoriteDrink      String?
+  allergies          String?
+  avatarUrl          String?
   createdAt          DateTime       @default(now())
+  isArchived         Boolean        @default(false)
   contributions      Contribution[]
   recipes            Recipe[]
   barMemberships     BarMembership[]
@@ -87,6 +92,7 @@ model Event {
   slug             String            @unique
   name             String
   date             String
+  isClosed         Boolean           @default(false)
   barId            String
   bar              Bar               @relation(fields: [barId], references: [id], onDelete: Cascade)
   createdAt        DateTime          @default(now())
@@ -140,6 +146,7 @@ model Bar {
   name         String
   isPublic     Boolean         @default(true)
   inviteToken  String?         @unique
+  isArchived   Boolean         @default(false)
   createdAt    DateTime        @default(now())
   memberships  BarMembership[]
   bottles      Bottle[]

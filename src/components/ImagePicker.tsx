@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
-import { uploadBottleImage } from "@/app/actions";
 
 interface ImagePickerProps {
   value: string;
   onChange: (url: string) => void;
-  onUpload?: (formData: FormData) => Promise<string | null>;
+  onUpload: (formData: FormData) => Promise<string | null>;
   label?: string;
 }
 

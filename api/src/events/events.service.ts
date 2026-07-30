@@ -19,11 +19,26 @@ export class EventsService {
   constructor(private readonly prisma: PrismaService) {}
 
   findAll(barId: string) {
-    return this.prisma.event.findMany({ where: { barId }, orderBy: { date: 'asc' } });
+    return this.prisma.event.findMany({
+      where: { barId },
+      orderBy: { date: 'asc' },
+      include: {
+        _count: {
+          select: { stockAdjustments: true },
+        },
+      },
+    });
   }
 
   async findBySlug(slug: string) {
-    const event = await this.prisma.event.findUnique({ where: { slug } });
+    const event = await this.prisma.event.findUnique({
+      where: { slug },
+      include: {
+        _count: {
+          select: { stockAdjustments: true },
+        },
+      },
+    });
     if (!event) throw new NotFoundException('Soirée introuvable');
     return event;
   }

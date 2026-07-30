@@ -16,7 +16,7 @@ export default async function BarMembresPage() {
 
   const bars = await listMyBars();
   const activeBar = await resolveActiveBar(bars);
-  if (!activeBar) redirect("/creer");
+  if (!activeBar) redirect("/");
   if (activeBar.myRole !== "OWNER") redirect("/");
 
   const [members, pendingRequests] = await Promise.all([

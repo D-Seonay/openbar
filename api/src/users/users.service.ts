@@ -13,6 +13,11 @@ const PUBLIC_SELECT = {
   vip: true,
   createdAt: true,
   mustChangePassword: true,
+  birthday: true,
+  favoriteDrink: true,
+  allergies: true,
+  avatarUrl: true,
+  isArchived: true,
 } as const;
 
 @Injectable()
@@ -44,6 +49,10 @@ export class UsersService {
 
   findById(id: string) {
     return this.prisma.user.findUnique({ where: { id } });
+  }
+
+  findPublicById(id: string) {
+    return this.prisma.user.findUnique({ where: { id }, select: PUBLIC_SELECT });
   }
 
   findAll() {
@@ -86,19 +95,67 @@ export class UsersService {
     return this.prisma.user.update({ where: { id }, data, select: PUBLIC_SELECT });
   }
 
+  async updateProfile(
+    id: string,
+    input: { birthday?: string; favoriteDrink?: string; allergies?: string; avatarUrl?: string },
+  ) {
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        birthday: input.birthday ? new Date(input.birthday) : null,
+        favoriteDrink: input.favoriteDrink || null,
+        allergies: input.allergies || null,
+        avatarUrl: input.avatarUrl || null,
+      },
+      select: PUBLIC_SELECT,
+    });
+  }
+
   async remove(id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        barMemberships: {
+          where: { role: 'OWNER' },
+          include: {
+            bar: {
+              include: {
+                _count: {
+                  select: { memberships: { where: { role: 'OWNER' } } },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
     if (!user) throw new NotFoundException('Utilisateur introuvable');
-    try {
-      await this.prisma.user.delete({ where: { id } });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
-        throw new ConflictException(
-          "Impossible de supprimer cet utilisateur : il a des contributions associées",
-        );
+
+    const barsToArchive = user.barMemberships
+      .filter((m) => m.bar._count.memberships === 1)
+      .map((m) => m.barId);
+
+    await this.prisma.$transaction(async (tx) => {
+      if (barsToArchive.length > 0) {
+        await tx.bar.updateMany({
+          where: { id: { in: barsToArchive } },
+          data: { isArchived: true, isPublic: false, inviteToken: null },
+        });
       }
-      throw error;
-    }
+
+      const archivedUsername = `${user.username}_archived_${Date.now()}`;
+
+      await tx.user.update({
+        where: { id },
+        data: {
+          isArchived: true,
+          username: archivedUsername,
+          passwordHash: 'ARCHIVED',
+        },
+      });
+    });
+
     return { success: true };
   }
 }

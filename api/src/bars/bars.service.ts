@@ -8,7 +8,17 @@ import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
 
-const MEMBER_INCLUDE = { user: { select: { username: true } } } as const;
+const MEMBER_INCLUDE = {
+  user: {
+    select: {
+      username: true,
+      birthday: true,
+      favoriteDrink: true,
+      allergies: true,
+      avatarUrl: true,
+    },
+  },
+} as const;
 
 @Injectable()
 export class BarsService {
@@ -37,7 +47,7 @@ export class BarsService {
 
   async findMine(userId: string) {
     const bars = await this.prisma.bar.findMany({
-      where: { memberships: { some: { userId } } },
+      where: { memberships: { some: { userId } }, isArchived: false },
       include: { memberships: { where: { userId } } },
       orderBy: { name: 'asc' },
     });
@@ -88,11 +98,11 @@ export class BarsService {
     });
   }
 
-  async updateMemberVip(
+  async updateMember(
     barId: string,
     requesterId: string,
     membershipId: string,
-    vip: boolean,
+    data: { vip?: boolean; role?: 'OWNER' | 'MEMBER' },
   ) {
     await this.assertOwner(barId, requesterId);
 
@@ -101,15 +111,21 @@ export class BarsService {
     });
     if (!membership || membership.barId !== barId)
       throw new NotFoundException('Membre introuvable');
-    if (membership.role === 'OWNER') {
-      throw new ForbiddenException(
-        'Impossible de modifier le statut du propriétaire',
-      );
+
+    if (membership.role === 'OWNER' && data.role === 'MEMBER') {
+      const ownerCount = await this.prisma.barMembership.count({
+        where: { barId, role: 'OWNER' },
+      });
+      if (ownerCount <= 1) {
+        throw new ForbiddenException(
+          'Impossible de retirer le dernier propriétaire du bar',
+        );
+      }
     }
 
     return this.prisma.barMembership.update({
       where: { id: membershipId },
-      data: { vip },
+      data,
       include: MEMBER_INCLUDE,
     });
   }
@@ -123,9 +139,14 @@ export class BarsService {
     if (!membership || membership.barId !== barId)
       throw new NotFoundException('Membre introuvable');
     if (membership.role === 'OWNER') {
-      throw new ForbiddenException(
-        'Impossible de retirer le propriétaire du bar',
-      );
+      const ownerCount = await this.prisma.barMembership.count({
+        where: { barId, role: 'OWNER' },
+      });
+      if (ownerCount <= 1) {
+        throw new ForbiddenException(
+          'Impossible de retirer le dernier propriétaire du bar',
+        );
+      }
     }
 
     const requesterMembership = await this.getMembership(barId, requesterId);
@@ -196,6 +217,7 @@ export class BarsService {
 
   async findAll() {
     const bars = await this.prisma.bar.findMany({
+      where: { isArchived: false },
       include: {
         memberships: {
           select: { role: true, user: { select: { username: true } } },
@@ -365,7 +387,7 @@ export class BarsService {
 
   private async getBar(barId: string) {
     const bar = await this.prisma.bar.findUnique({ where: { id: barId } });
-    if (!bar) throw new NotFoundException('Bar introuvable');
+    if (!bar || bar.isArchived) throw new NotFoundException('Bar introuvable');
     return bar;
   }
 
