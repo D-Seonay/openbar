@@ -23,7 +23,7 @@ export default function DeleteEventButton({ slug, name }: DeleteEventButtonProps
     <button
       onClick={handleDelete}
       disabled={isPending}
-      className="text-xs text-muted/65 hover:text-red-400 font-medium transition-colors px-2 py-1.5 rounded disabled:opacity-50 cursor-pointer"
+      className="tap-target-sm flex items-center whitespace-nowrap text-xs text-muted/65 hover:text-red-400 font-medium transition-colors px-2 py-1.5 rounded disabled:opacity-50 cursor-pointer"
     >
       {isPending ? "Suppression..." : "Supprimer"}
     </button>

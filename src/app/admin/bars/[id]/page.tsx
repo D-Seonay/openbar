@@ -41,19 +41,19 @@ export default async function AdminBarDetailPage({
       <div className="flex flex-wrap gap-2">
         <Link
           href={`/admin/bars/${id}/stock`}
-          className="text-xs px-3 py-2 rounded-xl bg-ink-2 border border-white/[0.08] text-cream hover:border-orange/50 transition-colors"
+          className="tap-target flex items-center text-xs px-3 py-2 rounded-xl bg-ink-2 border border-white/[0.08] text-cream hover:border-orange/50 transition-colors"
         >
           Voir la cave →
         </Link>
         <Link
           href={`/admin/bars/${id}/cocktails`}
-          className="text-xs px-3 py-2 rounded-xl bg-ink-2 border border-white/[0.08] text-cream hover:border-orange/50 transition-colors"
+          className="tap-target flex items-center text-xs px-3 py-2 rounded-xl bg-ink-2 border border-white/[0.08] text-cream hover:border-orange/50 transition-colors"
         >
           Voir les cocktails →
         </Link>
         <Link
           href={`/admin/bars/${id}/soirees`}
-          className="text-xs px-3 py-2 rounded-xl bg-ink-2 border border-white/[0.08] text-cream hover:border-orange/50 transition-colors"
+          className="tap-target flex items-center text-xs px-3 py-2 rounded-xl bg-ink-2 border border-white/[0.08] text-cream hover:border-orange/50 transition-colors"
         >
           Voir les soirées →
         </Link>
@@ -64,7 +64,7 @@ export default async function AdminBarDetailPage({
       <div className="grid lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-4 space-y-6">
           <BarNameSection barId={id} name={bar.name} />
-          <div className="rounded-2xl bg-ink-2 border border-white/[0.08] p-6 shadow-xl">
+          <div className="rounded-2xl bg-ink-2 border border-white/[0.08] p-5 sm:p-6 shadow-xl">
             <InviteMemberForm barId={id} />
           </div>
           <BarVisibilitySection barId={id} isPublic={bar.isPublic} />

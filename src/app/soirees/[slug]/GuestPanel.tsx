@@ -42,7 +42,7 @@ export default function GuestPanel({
 
   if (!session) {
     return (
-      <section className="rounded-2xl border border-orange/20 bg-ink-2/80 p-8 max-w-md mx-auto box-orange-glow text-center space-y-6 my-10 backdrop-blur-xl">
+      <section className="rounded-2xl border border-orange/20 bg-ink-2/80 p-6 sm:p-8 max-w-md mx-auto box-orange-glow text-center space-y-6 my-6 sm:my-10 backdrop-blur-xl">
         <div className="w-16 h-16 rounded-2xl bg-orange/15 border border-orange/30 flex items-center justify-center text-4xl mx-auto shadow-md">
           🎟️
         </div>
@@ -58,6 +58,9 @@ export default function GuestPanel({
             name="username"
             required
             placeholder="Votre prénom"
+            autoComplete="username"
+            autoCapitalize="words"
+            autoCorrect="off"
             className="bg-ink border border-white/[0.12] rounded-xl px-4 py-3 text-sm placeholder:text-muted/50 focus:outline-none focus:border-orange focus:bg-ink-2/50 transition-all text-cream text-center font-medium shadow-inner"
           />
           <input
@@ -65,11 +68,12 @@ export default function GuestPanel({
             type="password"
             required
             placeholder="Code secret de la soirée (ou vide si public)"
+            autoComplete="current-password"
             className="bg-ink border border-white/[0.12] rounded-xl px-4 py-3 text-sm placeholder:text-muted/50 focus:outline-none focus:border-orange focus:bg-ink-2/50 transition-all text-cream text-center font-medium shadow-inner"
           />
           <button
             type="submit"
-            className="bg-gradient-to-r from-orange to-orange-hover text-ink font-extrabold rounded-xl px-5 py-3.5 text-xs uppercase tracking-widest hover:brightness-110 box-orange-glow transition-all cursor-pointer"
+            className="tap-target flex items-center justify-center bg-gradient-to-r from-orange to-orange-hover text-ink font-extrabold rounded-xl px-5 py-3.5 text-xs uppercase tracking-widest hover:brightness-110 box-orange-glow transition-all cursor-pointer"
           >
             Entrer au Salon →
           </button>
@@ -103,7 +107,7 @@ export default function GuestPanel({
       <div className="grid lg:grid-cols-12 gap-8">
         {/* Left Column: Party Board Live Contributions (Col 7) */}
         <div className="lg:col-span-7 space-y-6">
-          <section className="rounded-2xl border border-white/[0.08] bg-ink-2/80 p-6 space-y-5 shadow-xl backdrop-blur-xl">
+          <section className="rounded-2xl border border-white/[0.08] bg-ink-2/80 p-5 sm:p-6 space-y-5 shadow-xl backdrop-blur-xl">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-orange animate-pulse" />
@@ -132,7 +136,7 @@ export default function GuestPanel({
                   >
                     <button
                       type="submit"
-                      className="px-3 py-1.5 rounded-xl bg-ink/70 hover:bg-orange/20 border border-white/[0.1] hover:border-orange/40 text-xs text-cream font-semibold transition-all cursor-pointer active:scale-95"
+                      className="tap-target-sm flex items-center px-3.5 py-2 rounded-xl bg-ink/70 hover:bg-orange/20 border border-white/[0.1] hover:border-orange/40 text-xs text-cream font-semibold transition-all cursor-pointer active:scale-95"
                     >
                       + {qi.label}
                     </button>
@@ -157,11 +161,11 @@ export default function GuestPanel({
               <input
                 name="quantity"
                 placeholder="Qté (ex: 2 btl)"
-                className="bg-ink border border-white/[0.12] rounded-xl px-3.5 py-2.5 text-xs placeholder:text-muted/60 focus:outline-none focus:border-orange text-cream font-medium w-28"
+                className="bg-ink border border-white/[0.12] rounded-xl px-3.5 py-2.5 text-xs placeholder:text-muted/60 focus:outline-none focus:border-orange text-cream font-medium w-full sm:w-28"
               />
               <button
                 type="submit"
-                className="bg-orange text-ink font-extrabold rounded-xl px-4 py-2.5 text-xs hover:bg-orange-hover box-orange-glow transition-all uppercase tracking-wider cursor-pointer"
+                className="tap-target flex items-center justify-center bg-orange text-ink font-extrabold rounded-xl px-4 py-2.5 text-xs hover:bg-orange-hover box-orange-glow transition-all uppercase tracking-wider cursor-pointer"
               >
                 Promettre
               </button>
@@ -178,13 +182,13 @@ export default function GuestPanel({
                 {contributions.map((c) => (
                   <li
                     key={c.id}
-                    className="rounded-xl border border-white/[0.08] bg-ink/70 px-4 py-3 flex items-center justify-between text-xs text-cream hover:border-orange/30 transition-all"
+                    className="rounded-xl border border-white/[0.08] bg-ink/70 px-3.5 sm:px-4 py-3 flex items-start justify-between gap-3 text-xs text-cream hover:border-orange/30 transition-all"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                       <span className="font-bold text-orange">{c.user.username}</span>
                       <span className="text-muted">apporte</span>
-                      <span className="font-semibold text-cream">{c.item}</span>
+                      <span className="font-semibold text-cream break-words">{c.item}</span>
                       {c.quantity && (
                         <span className="text-[10px] font-mono bg-orange/15 px-2 py-0.5 rounded text-orange font-bold border border-orange/30">
                           {c.quantity}
@@ -194,7 +198,7 @@ export default function GuestPanel({
                     {c.user.id === session.sub && (
                       <button
                         onClick={() => startTransition(() => deleteContributionAction(slug, c.id))}
-                        className="text-[10px] text-muted hover:text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                        className="tap-target-sm shrink-0 flex items-center px-1.5 text-[10px] text-muted hover:text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer"
                       >
                         Retirer
                       </button>
@@ -206,7 +210,7 @@ export default function GuestPanel({
           </section>
 
           {/* Already at the Bar Section */}
-          <section className="rounded-2xl border border-white/[0.08] bg-ink-2/60 p-6 space-y-4">
+          <section className="rounded-2xl border border-white/[0.08] bg-ink-2/60 p-5 sm:p-6 space-y-4">
             <h2 className="font-display text-lg font-bold text-cream border-b border-white/[0.08] pb-2 flex items-center gap-2">
               <span>🍸</span>
               <span>Déjà au Bar de l&apos;Hôte</span>
@@ -239,7 +243,7 @@ export default function GuestPanel({
 
         {/* Right Column: Cocktails & VIP Secret Vault (Col 5) */}
         <div className="lg:col-span-5 space-y-6">
-          <section className="rounded-2xl border border-white/[0.08] bg-ink-2/80 p-6 space-y-4 shadow-xl">
+          <section className="rounded-2xl border border-white/[0.08] bg-ink-2/80 p-5 sm:p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
               <h2 className="font-display text-lg font-bold text-cream flex items-center gap-2">
                 <span>🍹</span>
@@ -283,7 +287,7 @@ export default function GuestPanel({
 
           {/* Secret VIP Vault if session is VIP */}
           {session.vip && (
-            <section className="rounded-2xl vip-vault-card p-6 border border-gold/40 space-y-4 shadow-2xl">
+            <section className="rounded-2xl vip-vault-card p-5 sm:p-6 border border-gold/40 space-y-4 shadow-2xl">
               <div className="flex items-center gap-2.5 border-b border-gold/20 pb-3">
                 <span className="text-2xl">🔒</span>
                 <div>

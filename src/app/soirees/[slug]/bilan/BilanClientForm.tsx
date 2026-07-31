@@ -140,8 +140,8 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
           </label>
         </div>
 
-        {/* Rayon Horizontal Filter */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+        {/* Rayon Horizontal Filter — swipeable rail, bleeds to the card edge. */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 sm:-mx-5 sm:px-5 no-scrollbar">
           {GROCERY_AISLES.map((aisle) => {
             const active = selectedAisle === aisle.id;
             return (
@@ -149,7 +149,7 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
                 key={aisle.id}
                 type="button"
                 onClick={() => setSelectedAisle(aisle.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                className={`tap-target-sm flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                   active
                     ? "bg-orange text-ink shadow-sm shadow-orange/30"
                     : "bg-white/[0.04] text-muted hover:text-cream hover:bg-white/[0.08]"
@@ -211,12 +211,12 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
                 </div>
 
                 {/* Right: Interactive Stepper & Shortcuts */}
-                <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/[0.05]">
+                <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/[0.05] shrink-0">
                   <button
                     type="button"
                     onClick={() => handleAdjust(b.id, -1)}
                     disabled={currentQty <= 0}
-                    className="px-2.5 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/30 text-red-400 text-xs font-bold transition-colors cursor-pointer disabled:opacity-30"
+                    className="tap-target-sm flex items-center px-2.5 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/30 text-red-400 text-xs font-bold transition-colors cursor-pointer disabled:opacity-30"
                     title="-1 bouteille consommée"
                   >
                     −1 consommée
@@ -227,7 +227,8 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
                       type="button"
                       onClick={() => handleAdjust(b.id, -0.5)}
                       disabled={currentQty <= 0}
-                      className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-orange/20 hover:text-orange text-cream font-bold text-xs flex items-center justify-center cursor-pointer disabled:opacity-30"
+                      aria-label="Retirer une demi-bouteille"
+                      className="w-9 h-9 sm:w-7 sm:h-7 rounded-lg bg-white/[0.05] hover:bg-orange/20 hover:text-orange text-cream font-bold text-xs flex items-center justify-center cursor-pointer disabled:opacity-30"
                     >
                       −
                     </button>
@@ -235,14 +236,16 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
                       type="number"
                       min="0"
                       step="0.5"
+                      inputMode="decimal"
                       value={currentQty}
                       onChange={(e) => handleSetExact(b.id, Number(e.target.value))}
-                      className="w-14 bg-transparent text-center font-mono text-xs font-bold text-cream focus:outline-none"
+                      className="w-16 sm:w-14 bg-transparent text-center font-mono text-sm sm:text-xs font-bold text-cream focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => handleAdjust(b.id, 0.5)}
-                      className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-orange/20 hover:text-orange text-cream font-bold text-xs flex items-center justify-center cursor-pointer"
+                      aria-label="Ajouter une demi-bouteille"
+                      className="w-9 h-9 sm:w-7 sm:h-7 rounded-lg bg-white/[0.05] hover:bg-orange/20 hover:text-orange text-cream font-bold text-xs flex items-center justify-center cursor-pointer"
                     >
                       +
                     </button>
@@ -252,7 +255,7 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
                     <button
                       type="button"
                       onClick={() => handleSetExact(b.id, original)}
-                      className="text-[11px] text-muted hover:text-cream px-2 py-1 rounded-lg hover:bg-white/[0.05] transition-colors"
+                      className="tap-target-sm flex items-center text-[11px] text-muted hover:text-cream px-2 py-1 rounded-lg hover:bg-white/[0.05] transition-colors"
                       title="Annuler la modification pour cette bouteille"
                     >
                       Réinitialiser
@@ -266,21 +269,21 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
       </div>
 
       {/* Sticky Bottom Bar */}
-      <div className="sticky bottom-4 z-40 bg-ink/95 backdrop-blur-xl border border-orange/40 rounded-2xl p-4 sm:p-5 shadow-2xl box-orange-glow flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-6">
-          <div>
+      <div className="sticky bottom-safe z-40 bg-ink/95 backdrop-blur-xl border border-orange/40 rounded-2xl p-4 sm:p-5 shadow-2xl box-orange-glow flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4 sm:gap-6">
+          <div className="min-w-0">
             <span className="text-[10px] uppercase font-bold text-muted block">
               Bouteilles modifiées
             </span>
-            <span className="font-display text-xl font-bold text-cream">
+            <span className="font-display text-base sm:text-xl font-bold text-cream">
               {modifiedBottlesCount} référence{modifiedBottlesCount > 1 ? "s" : ""}
             </span>
           </div>
-          <div className="border-l border-white/[0.1] pl-6">
+          <div className="border-l border-white/[0.1] pl-4 sm:pl-6 min-w-0">
             <span className="text-[10px] uppercase font-bold text-muted block">
               Consommation nette
             </span>
-            <span className="font-display text-xl font-bold text-orange">
+            <span className="font-display text-base sm:text-xl font-bold text-orange">
               {totalConsumedBottles} btl consommée{totalConsumedBottles > 1 ? "s" : ""}
             </span>
           </div>
@@ -289,7 +292,7 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
         <button
           type="submit"
           disabled={isPending}
-          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-orange to-copper text-ink font-bold text-xs uppercase tracking-wider shadow-lg shadow-orange/30 hover:opacity-95 transition-all cursor-pointer disabled:opacity-50"
+          className="tap-target w-full sm:w-auto flex items-center justify-center px-6 py-3 rounded-xl bg-gradient-to-r from-orange to-gold text-ink font-bold text-xs uppercase tracking-wider shadow-lg shadow-orange/30 hover:opacity-95 transition-all cursor-pointer disabled:opacity-50"
         >
           {isPending
             ? "Enregistrement en cours..."

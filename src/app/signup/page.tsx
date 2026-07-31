@@ -9,7 +9,7 @@ export default async function SignupPage({
   const { error, inviteToken } = await searchParams;
 
   return (
-    <div className="max-w-sm mx-auto mt-16 bg-ink-2/40 border border-orange/10 p-8 rounded-xl box-orange-glow space-y-4">
+    <div className="max-w-sm mx-auto mt-6 sm:mt-16 bg-ink-2/40 border border-orange/10 p-6 sm:p-8 rounded-xl box-orange-glow space-y-4">
       <div className="text-center">
         <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">Nouveau compte</span>
         <h1 className="font-display text-3xl text-cream mt-1">Rejoindre OpenBar</h1>
@@ -21,8 +21,10 @@ export default async function SignupPage({
           type="text"
           placeholder="Identifiant"
           required
-          autoFocus
-          className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-2.5 text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+          autoComplete="username"
+          autoCapitalize="none"
+          autoCorrect="off"
+          className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-3 text-sm sm:text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
         />
         <input
           name="password"
@@ -30,7 +32,8 @@ export default async function SignupPage({
           placeholder="Mot de passe (6 caractères min.)"
           required
           minLength={6}
-          className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-2.5 text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+          autoComplete="new-password"
+          className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-3 text-sm sm:text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
         />
         <input
           name="confirmPassword"
@@ -38,7 +41,8 @@ export default async function SignupPage({
           placeholder="Confirmer le mot de passe"
           required
           minLength={6}
-          className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-2.5 text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+          autoComplete="new-password"
+          className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-3 text-sm sm:text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
         />
         {error && (
           <p className="text-xs text-red-400 text-center">Inscription impossible. Vérifie tes informations.</p>

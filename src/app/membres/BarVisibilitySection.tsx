@@ -8,7 +8,7 @@ export default function BarVisibilitySection({ barId, isPublic }: { barId: strin
   const [isPending, startTransition] = useTransition();
 
   return (
-    <section className="bg-ink-2/40 border border-orange/10 p-6 rounded-xl space-y-3">
+    <section className="bg-ink-2/40 border border-orange/10 p-5 sm:p-6 rounded-xl space-y-3">
       <div>
         <h2 className="font-display text-xl text-cream">Visibilité du bar</h2>
         <p className="text-muted text-[11px] mt-0.5">
