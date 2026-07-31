@@ -32,9 +32,9 @@ export class BottlesService {
   }
 
   async update(id: string, dto: UpdateBottleDto) {
-    await this.findOne(id);
+    const previous = await this.findOne(id);
     const { volumes, ...rest } = dto;
-    return this.prisma.bottle.update({
+    const updated = await this.prisma.bottle.update({
       where: { id },
       data: {
         ...rest,
@@ -42,6 +42,16 @@ export class BottlesService {
       },
       include: { volumes: true },
     });
+
+    // Swapping the image out orphans the previous file. `undefined` means the
+    // field wasn't part of this patch, which must not delete anything; an empty
+    // string means the image was cleared, which must. Runs after the update so
+    // the row already points at the new value when we check for references.
+    if (rest.imageUrl !== undefined && rest.imageUrl !== previous.imageUrl) {
+      await this.deleteImageIfUnused(previous.imageUrl);
+    }
+
+    return updated;
   }
 
   async remove(id: string) {
