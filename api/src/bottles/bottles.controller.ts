@@ -4,9 +4,6 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { randomUUID } from 'crypto';
-import { mkdirSync } from 'fs';
-import { join } from 'path';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { JwtPayload } from '../auth/auth.service';
@@ -14,27 +11,12 @@ import { BarAccessService } from '../bars/bar-access.service';
 import { BottlesService } from './bottles.service';
 import { CreateBottleDto } from './dto/create-bottle.dto';
 import { UpdateBottleDto } from './dto/update-bottle.dto';
-
-/**
- * Accepted upload types, mapped to the extension the file is stored under.
- *
- * The stored extension MUST come from this table and never from the client's
- * `originalname`: `mimetype` is client-controlled too, so a file named
- * `evil.html` sent as `image/png` would otherwise land on disk as `.html` and
- * be served as markup by the static handler — stored XSS on the API origin,
- * which shares cookies with the web app (cookies ignore the port).
- */
-const UPLOAD_EXTENSION_BY_MIME: Record<string, string> = {
-  'image/jpeg': '.jpg',
-  'image/png': '.png',
-  'image/webp': '.webp',
-};
-
-const UPLOADS_DIR = join(process.cwd(), 'uploads');
-const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
-
-// multer's diskStorage does not create the destination for us.
-mkdirSync(UPLOADS_DIR, { recursive: true });
+import {
+  buildUploadFilename,
+  MAX_UPLOAD_BYTES,
+  UPLOAD_EXTENSION_BY_MIME,
+  UPLOADS_DIR,
+} from './uploads';
 
 @UseGuards(JwtAuthGuard)
 @Controller('bottles')
@@ -66,11 +48,11 @@ export class BottlesController {
         destination: UPLOADS_DIR,
         filename: (_req, file, callback) => {
           // fileFilter runs first, so the mimetype is known-good here.
-          const ext = UPLOAD_EXTENSION_BY_MIME[file.mimetype];
-          if (!ext) {
+          const filename = buildUploadFilename(file.mimetype);
+          if (!filename) {
             return callback(new BadRequestException('Type de fichier non autorisé'), '');
           }
-          callback(null, `bottle-${Date.now()}-${randomUUID()}${ext}`);
+          callback(null, filename);
         },
       }),
       fileFilter: (_req, file, callback) => {
