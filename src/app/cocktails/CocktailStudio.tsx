@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useTransition, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { RecipeAvailability, CocktailRecipe } from "@/lib/cocktail-types";
 import { deleteRecipeAction } from "@/app/actions";
@@ -40,6 +41,16 @@ export default function CocktailStudio({
   useEffect(() => {
     setCurrentPage(1);
   }, [activeTab, searchQuery]);
+
+  // Keep the page behind the recipe slide-over from scrolling under the finger.
+  useEffect(() => {
+    if (!selectedRecipeId) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [selectedRecipeId]);
 
   const accessibleResults = useMemo(() => {
     return isVip ? initialResults : initialResults.filter((r) => !r.usesVip);
@@ -92,7 +103,7 @@ export default function CocktailStudio({
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setActiveTab("ready")}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+            className={`tap-target flex items-center px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
               activeTab === "ready"
                 ? "bg-gradient-to-r from-emerald-500 to-emerald-400 text-ink font-extrabold shadow-md"
                 : "text-muted hover:text-cream hover:bg-white/[0.04]"
@@ -104,7 +115,7 @@ export default function CocktailStudio({
           {isVip && (
             <button
               onClick={() => setActiveTab("vip")}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+              className={`tap-target flex items-center px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
                 activeTab === "vip"
                   ? "bg-gradient-to-r from-gold to-amber-300 text-ink font-extrabold shadow-md gold-glow"
                   : "text-gold-dim hover:text-gold hover:bg-gold/10 border border-gold/20"
@@ -116,7 +127,7 @@ export default function CocktailStudio({
 
           <button
             onClick={() => setActiveTab("locked")}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+            className={`tap-target flex items-center px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
               activeTab === "locked"
                 ? "bg-orange text-ink font-extrabold shadow-md box-orange-glow"
                 : "text-muted hover:text-cream hover:bg-white/[0.04]"
@@ -170,7 +181,7 @@ export default function CocktailStudio({
                     isSelected ? "bg-orange/15 border-l-4 border-l-orange" : "hover:bg-ink-2"
                   }`}
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     <div
                       className={`w-3 h-3 rounded-full shrink-0 ${
                         item.makeable
@@ -180,9 +191,9 @@ export default function CocktailStudio({
                           : "bg-muted/40"
                       }`}
                     />
-                    <div>
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-display font-bold text-base text-cream group-hover:text-orange transition-colors">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                        <span className="font-display font-bold text-base text-cream group-hover:text-orange transition-colors break-words">
                           {item.recipe.name}
                         </span>
                         {item.recipe.isCustom && (
@@ -201,7 +212,7 @@ export default function CocktailStudio({
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-muted mt-0.5 truncate max-w-sm sm:max-w-xl">
+                      <p className="text-xs text-muted mt-0.5 truncate">
                         {item.recipe.glass ? `${item.recipe.glass} · ` : ""}
                         {item.recipe.tags.join(" · ")}
                         {item.recipe.isCustom && item.recipe.createdByUsername
@@ -236,10 +247,15 @@ export default function CocktailStudio({
         onPageChange={setCurrentPage}
       />
 
-      {/* Slide-Over Warm Orange / Cream Recipe Spec Sheet Inspector */}
-      <AnimatePresence>
-        {selectedItem && (
-          <>
+      {/* Slide-Over Warm Orange / Cream Recipe Spec Sheet Inspector, portaled to
+          <body>: this component renders inside <main class="relative z-10">,
+          which is a stacking context, so a z-50 drawer left in place is painted
+          *under* the z-50 sticky header instead of covering the screen. */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {selectedItem && (
+              <>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -253,15 +269,15 @@ export default function CocktailStudio({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.22, ease: "easeOut" }}
-              className="fixed top-0 right-0 h-dvh w-full max-w-lg bg-ink-2 border-l border-white/[0.1] z-50 p-6 sm:p-8 overflow-y-auto flex flex-col justify-between shadow-2xl"
+              className="fixed top-0 right-0 h-dvh w-full max-w-lg bg-ink-2 border-l border-white/[0.1] z-50 p-5 sm:p-8 overflow-y-auto overscroll-contain flex flex-col justify-between shadow-2xl pb-safe"
             >
               <div className="space-y-6">
-                <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
-                  <div>
+                <div className="flex items-start justify-between gap-3 border-b border-white/[0.08] pb-4">
+                  <div className="min-w-0">
                     <span className="text-[10px] uppercase tracking-caps text-gold font-bold block">
                       Fiche de Mixologie
                     </span>
-                    <h2 className="font-display text-2xl font-bold text-cream mt-1">
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-cream mt-1 break-words">
                       {selectedItem.recipe.name}
                     </h2>
                     {selectedItem.recipe.isCustom && (
@@ -273,14 +289,15 @@ export default function CocktailStudio({
                   </div>
                   <button
                     onClick={() => setSelectedRecipeId(null)}
-                    className="w-9 h-9 rounded-xl bg-ink border border-white/[0.1] text-muted hover:text-cream text-lg flex items-center justify-center cursor-pointer"
+                    aria-label="Fermer"
+                    className="w-10 h-10 shrink-0 rounded-xl bg-ink border border-white/[0.1] text-muted hover:text-cream text-lg flex items-center justify-center cursor-pointer"
                   >
                     ×
                   </button>
                 </div>
 
                 {/* Glassware & Service Status */}
-                <div className="grid grid-cols-2 gap-4 text-xs">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4 text-xs">
                   <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
                     <span className="text-[10px] uppercase tracking-caps text-muted block">Verre conseillé</span>
                     <span className="text-cream font-bold capitalize mt-1 block text-sm">
@@ -365,9 +382,9 @@ export default function CocktailStudio({
                 </div>
               </div>
 
-              <div className="pt-6 mt-6 border-t border-white/[0.08] flex items-center justify-between text-xs">
-                <span className="text-muted">OpenBar · Carte Cocktails</span>
-                <div className="flex items-center gap-2">
+              <div className="pt-6 mt-6 border-t border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <span className="hidden sm:block text-muted">OpenBar · Carte Cocktails</span>
+                <div className="flex flex-wrap items-center gap-2">
                   {canEditRecipe(selectedItem.recipe) && (
                     <>
                       <button
@@ -375,13 +392,13 @@ export default function CocktailStudio({
                           setFormModal({ mode: "edit", recipe: selectedItem.recipe });
                           setSelectedRecipeId(null);
                         }}
-                        className="px-4 py-2.5 rounded-xl bg-ink border border-orange/30 text-orange font-bold uppercase tracking-wider hover:bg-orange/10 transition-colors cursor-pointer"
+                        className="tap-target flex-1 sm:flex-none justify-center flex items-center px-4 py-2.5 rounded-xl bg-ink border border-orange/30 text-orange font-bold uppercase tracking-wider hover:bg-orange/10 transition-colors cursor-pointer"
                       >
                         Modifier
                       </button>
                       <button
                         onClick={() => setDeleteTarget({ id: selectedItem.recipe.id, name: selectedItem.recipe.name })}
-                        className="px-4 py-2.5 rounded-xl bg-ink border border-red-500/30 text-red-400 font-bold uppercase tracking-wider hover:bg-red-950/20 transition-colors cursor-pointer"
+                        className="tap-target flex-1 sm:flex-none justify-center flex items-center px-4 py-2.5 rounded-xl bg-ink border border-red-500/30 text-red-400 font-bold uppercase tracking-wider hover:bg-red-950/20 transition-colors cursor-pointer"
                       >
                         Supprimer
                       </button>
@@ -389,16 +406,18 @@ export default function CocktailStudio({
                   )}
                   <button
                     onClick={() => setSelectedRecipeId(null)}
-                    className="px-5 py-2.5 rounded-xl bg-orange text-ink font-bold uppercase tracking-wider hover:bg-orange-hover transition-colors cursor-pointer"
+                    className="tap-target w-full sm:w-auto justify-center flex items-center px-5 py-2.5 rounded-xl bg-orange text-ink font-bold uppercase tracking-wider hover:bg-orange-hover transition-colors cursor-pointer"
                   >
                     Fermer
                   </button>
                 </div>
               </div>
             </motion.aside>
-          </>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
 
       {formModal && (
         <CreateRecipeModal

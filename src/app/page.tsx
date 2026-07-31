@@ -92,16 +92,16 @@ export default async function HomePage() {
             L&apos;Art du Cocktail Privé
           </h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2.5 sm:gap-3">
           <Link
             href="/stock"
-            className="px-4 py-2.5 rounded-xl bg-ink-2 hover:bg-ink-2/80 border border-white/[0.08] text-xs font-semibold uppercase tracking-wider text-cream hover:border-orange/50 transition-all"
+            className="tap-target flex items-center justify-center text-center px-3 sm:px-4 py-2.5 rounded-xl bg-ink-2 hover:bg-ink-2/80 border border-white/[0.08] text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-cream hover:border-orange/50 transition-all"
           >
             Consulter la Cave →
           </Link>
           <Link
             href="/cocktails"
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange to-orange-hover text-ink font-extrabold text-xs uppercase tracking-wider box-orange-glow transition-all hover:brightness-110"
+            className="tap-target flex items-center justify-center text-center px-3 sm:px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange to-orange-hover text-ink font-extrabold text-[11px] sm:text-xs uppercase tracking-wider box-orange-glow transition-all hover:brightness-110"
           >
             Carte des Cocktails →
           </Link>
@@ -156,7 +156,7 @@ export default async function HomePage() {
       {/* Architectural Split Section: Prochain Événement + Diagnostic Cave */}
       <div className="grid lg:grid-cols-12 gap-6">
         {/* Next Party Board Lounge Card */}
-        <div className="lg:col-span-5 rounded-2xl bg-ink-2/80 border border-white/[0.08] p-6 flex flex-col justify-between shadow-xl">
+        <div className="lg:col-span-5 rounded-2xl bg-ink-2/80 border border-white/[0.08] p-5 sm:p-6 flex flex-col justify-between shadow-xl">
           <div>
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 mb-4">
               <span className="text-xs uppercase tracking-caps text-gold font-bold">
@@ -212,7 +212,7 @@ export default async function HomePage() {
         </div>
 
         {/* Low Stock Alerts Warm Lounge Card */}
-        <div className="lg:col-span-7 rounded-2xl bg-ink-2/80 border border-white/[0.08] p-6 shadow-xl">
+        <div className="lg:col-span-7 rounded-2xl bg-ink-2/80 border border-white/[0.08] p-5 sm:p-6 shadow-xl">
           <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 mb-4">
             <span className="text-xs uppercase tracking-caps text-orange font-bold">
               Surveillance du Stock & Alertes
@@ -238,15 +238,15 @@ export default async function HomePage() {
               {lowStock.map((b) => (
                 <div
                   key={b.id}
-                  className="flex items-center justify-between p-3.5 rounded-xl bg-ink/70 border border-white/[0.06] hover:border-orange/30 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-xl bg-ink/70 border border-white/[0.06] hover:border-orange/30 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] uppercase font-bold text-muted px-2 py-0.5 rounded bg-white/[0.05]">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-[10px] uppercase font-bold text-muted px-2 py-0.5 rounded bg-white/[0.05] shrink-0">
                       {b.type}
                     </span>
-                    <span className="font-semibold text-sm text-cream">{b.name}</span>
+                    <span className="font-semibold text-sm text-cream truncate">{b.name}</span>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
                     <span className="text-xs font-mono font-bold text-orange">
                       {b.quantity} restant{b.quantity > 1 ? "s" : ""}
                     </span>

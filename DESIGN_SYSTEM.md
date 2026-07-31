@@ -48,3 +48,37 @@ Déclarée dans `@theme` (`src/app/globals.css`) et enrichie par `src/lib/catego
 - **Cartes Glassmorphism** : `.glass-card` combiné à `.glass-card-hover` pour une élévation douce au survol.
 - **Filtres à Pilules Colorées** : Badges interactifs affichant le nombre de bouteilles ou recettes par catégorie.
 - **Accordéon de Recette** : Animation de hauteur et de rotation d'icône au clic.
+
+## 5. Mobile-First — Règles Obligatoires
+
+L'application est consultée au téléphone pendant les soirées : **toute nouvelle UI doit être vérifiée à 360 px avant d'être considérée terminée.**
+
+### Points de rupture
+
+| Breakpoint | Largeur | Usage |
+|---|---|---|
+| *(défaut)* | < 400px | Petits téléphones (iPhone SE / mini) — tout s'empile |
+| `xs:` | ≥ 400px | Téléphones standards — les paires côte à côte redeviennent possibles |
+| `sm:` | ≥ 640px | Tablette et plus — densité « desktop », typographie compacte |
+| `md:` | ≥ 768px | Navigation en pilules inline (en dessous : tiroir hamburger) |
+
+### Utilitaires (`src/app/globals.css`)
+
+- **`.tap-target` / `.tap-target-sm`** : hauteur minimale de 44px / 36px sur pointeur grossier (`@media (pointer: coarse)`). À appliquer à tout bouton-pilule qui ferait moins de 36px de haut. Combiner avec `flex items-center` pour que le libellé reste centré.
+- **`.no-scrollbar`** : rails de filtres horizontaux défilables au doigt. Motif complet : `flex overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0` (le débord négatif fait filer les pilules jusqu'au bord de l'écran).
+- **`.pb-safe` / `.pb-safe-0` / `.bottom-safe`** : marges `env(safe-area-inset-bottom)` pour l'encoche et la barre d'accueil iPhone. Obligatoire sur les tiroirs, les barres collantes et le pied de page.
+
+### Règles de mise en page
+
+- **Champs de formulaire** : en dessous de `sm`, tous les `input/select/textarea` passent à 16px automatiquement — en dessous, iOS zoome le viewport au focus. Ne pas contourner cette règle.
+- **Troncature** : `truncate` n'a d'effet que si **tous** les parents flex portent `min-w-0`. Sans cela, un nom de bouteille long élargit la page.
+- **Lignes denses** : `flex-col sm:flex-row` pour les listes, `flex-wrap` pour les groupes de badges et de boutons d'action.
+- **Survol** : les effets qui déplacent ou éclairent un élément sont enfermés dans `@media (hover: hover) and (pointer: fine)` — sinon un tap laisse la carte figée dans son état survolé.
+
+### Superpositions (tiroirs et modales) — piège de contexte d'empilement
+
+`<main>` porte `relative z-10` et `<header>` porte `backdrop-blur` + `z-50`. Les deux créent un **contexte d'empilement**. Conséquence : une superposition `fixed` rendue à l'intérieur de `<main>` est plafonnée à `z-10` et passe **sous** l'en-tête, quel que soit son `z-index` ; à l'intérieur de `<header>` elle est en plus dimensionnée par rapport à l'en-tête et non au viewport.
+
+**Toute superposition plein écran doit donc être portée dans `<body>` via `createPortal`.** Voir `ConfirmDeleteModal`, `ManageAlertsModal`, `CreateRecipeModal`, `StockStudio`, `CocktailStudio` et `Navigation`.
+
+Compléter chaque tiroir par : `h-dvh` (et non `h-screen`, qui ignore la barre d'URL mobile), `overflow-y-auto overscroll-contain`, un verrouillage du défilement de `document.body` à l'ouverture, et `pb-safe`.

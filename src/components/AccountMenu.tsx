@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { logout } from "@/app/login/actions";
@@ -26,14 +27,17 @@ export default function AccountMenu({ session, avatarUrl }: AccountMenuProps) {
       <div className="flex items-center gap-2">
         <Link
           href="/login"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-orange/15 border border-white/[0.08] hover:border-orange/40 text-xs font-semibold text-muted hover:text-orange transition-all duration-200"
+          className="tap-target flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-orange/15 border border-white/[0.08] hover:border-orange/40 text-xs font-semibold text-muted hover:text-orange transition-all duration-200 whitespace-nowrap"
         >
+          {/* Short labels below sm so the pair fits a 360px header. */}
+          <span className="sm:hidden">Connexion</span>
           <span className="hidden sm:inline">Se connecter</span>
         </Link>
         <Link
           href="/signup"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-xs font-semibold text-orange transition-all duration-200"
+          className="tap-target flex items-center gap-1.5 px-3 py-2 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-xs font-semibold text-orange transition-all duration-200 whitespace-nowrap"
         >
+          <span className="sm:hidden">S&apos;inscrire</span>
           <span className="hidden sm:inline">Créer un compte</span>
         </Link>
       </div>
@@ -72,7 +76,15 @@ export default function AccountMenu({ session, avatarUrl }: AccountMenuProps) {
       <AnimatePresence>
         {open && (
           <>
-            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+            {/* Portaled: the header sets `backdrop-blur`, which would otherwise
+                make it the containing block for this fixed overlay and shrink
+                the dismiss area to the header strip. Only ever rendered after a
+                click, so `document` is always available here. */}
+            {typeof document !== "undefined" &&
+              createPortal(
+                <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />,
+                document.body
+              )}
 
             <motion.div
               initial={{ opacity: 0, y: 6, scale: 0.98 }}
@@ -93,7 +105,7 @@ export default function AccountMenu({ session, avatarUrl }: AccountMenuProps) {
               <Link
                 href="/profil"
                 onClick={() => setOpen(false)}
-                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full mb-1"
+                className="flex items-center justify-between tap-target px-2.5 py-2.5 rounded-xl text-sm sm:text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full mb-1"
               >
                 <span>Mon profil</span>
                 <span className="text-orange">→</span>
@@ -109,21 +121,21 @@ export default function AccountMenu({ session, avatarUrl }: AccountMenuProps) {
                   <Link
                     href="/admin"
                     onClick={() => setOpen(false)}
-                    className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full"
+                    className="flex items-center justify-between tap-target px-2.5 py-2.5 rounded-xl text-sm sm:text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full"
                   >
                     <span>Tableau de bord</span>
                   </Link>
                   <Link
                     href="/comptes"
                     onClick={() => setOpen(false)}
-                    className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full"
+                    className="flex items-center justify-between tap-target px-2.5 py-2.5 rounded-xl text-sm sm:text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full"
                   >
                     <span>Comptes</span>
                   </Link>
                   <Link
                     href="/admin/bars"
                     onClick={() => setOpen(false)}
-                    className="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full mb-1"
+                    className="flex items-center justify-between tap-target px-2.5 py-2.5 rounded-xl text-sm sm:text-xs font-medium text-cream hover:bg-white/[0.06] transition-colors w-full mb-1"
                   >
                     <span>Tous les bars</span>
                   </Link>
@@ -135,7 +147,7 @@ export default function AccountMenu({ session, avatarUrl }: AccountMenuProps) {
                   type="button"
                   disabled={isPending}
                   onClick={handleLogout}
-                  className="flex items-center justify-between w-full px-2.5 py-2 rounded-xl text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                  className="tap-target flex items-center justify-between w-full px-2.5 py-2.5 rounded-xl text-sm sm:text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
                 >
                   <span>{isPending ? "Déconnexion..." : "Se déconnecter"}</span>
                 </button>

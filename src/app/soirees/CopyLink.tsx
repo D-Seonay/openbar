@@ -19,7 +19,7 @@ export default function CopyLink({ path }: { path: string }) {
   return (
     <button
       onClick={copy}
-      className="text-xs px-2 py-1 rounded-md border border-brick-light/60 text-muted hover:border-gold hover:text-gold transition-colors"
+      className="tap-target-sm flex items-center whitespace-nowrap text-xs px-2.5 py-1.5 rounded-md border border-brick-light/60 text-muted hover:border-gold hover:text-gold transition-colors cursor-pointer"
     >
       {copied ? "Copié !" : "Copier le lien"}
     </button>

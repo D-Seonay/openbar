@@ -35,7 +35,7 @@ export default async function SoireesPage() {
 
       <div className="grid md:grid-cols-3 gap-6 items-start">
         {/* Create Event Card */}
-        <section className="bg-ink-2/40 border border-orange/10 p-6 rounded-xl box-orange-glow md:col-span-1 space-y-4">
+        <section className="bg-ink-2/40 border border-orange/10 p-5 sm:p-6 rounded-xl box-orange-glow md:col-span-1 space-y-4">
           <div>
             <h2 className="font-display text-xl text-cream">Créer un Événement</h2>
             <p className="text-muted text-[11px] mt-0.5">Configurez une nouvelle date.</p>
@@ -104,7 +104,7 @@ export default async function SoireesPage() {
                         </span>
                       </p>
                     </div>
-                    <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-0 border-orange/5 pt-2 sm:pt-0 shrink-0">
+                    <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-3 border-t sm:border-0 border-orange/5 pt-3 sm:pt-0 shrink-0">
                       <CopyLink path={`/soirees/${event.slug}`} />
                       <ShareButton path={`/soirees/${event.slug}`} title={event.name} />
                       <DeleteEventButton slug={event.slug} name={event.name} />
@@ -147,10 +147,10 @@ export default async function SoireesPage() {
                         </span>
                       </p>
                     </div>
-                    <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-0 border-white/[0.05] pt-2 sm:pt-0 shrink-0">
-                      <Link 
+                    <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-3 border-t sm:border-0 border-white/[0.05] pt-3 sm:pt-0 shrink-0">
+                      <Link
                         href={`/soirees/${event.slug}`}
-                        className="text-[10px] uppercase font-bold text-muted hover:text-cream px-3 py-1.5 rounded-lg bg-white/[0.05] transition-colors"
+                        className="tap-target-sm flex items-center text-[10px] uppercase font-bold text-muted hover:text-cream px-3 py-1.5 rounded-lg bg-white/[0.05] transition-colors"
                       >
                         Consulter
                       </Link>

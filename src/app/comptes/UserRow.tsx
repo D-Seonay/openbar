@@ -10,13 +10,13 @@ export default function UserRow({ user }: { user: AccountUser }) {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   return (
-    <div className="p-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-ink-2 transition-colors">
-      <div className="flex items-center gap-3.5">
-        <div className="w-9 h-9 rounded-xl bg-ink border border-white/[0.08] flex items-center justify-center font-display text-sm font-bold text-gold">
+    <div className="p-4 sm:p-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:bg-ink-2 transition-colors">
+      <div className="flex items-center gap-3.5 min-w-0">
+        <div className="w-9 h-9 shrink-0 rounded-xl bg-ink border border-white/[0.08] flex items-center justify-center font-display text-sm font-bold text-gold">
           {user.username.slice(0, 2).toUpperCase()}
         </div>
-        <div>
-          <div className="flex items-center gap-2.5">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <span className={`font-semibold text-sm ${user.isArchived ? "text-muted line-through" : "text-cream"}`}>
               {user.isArchived ? "Compte archivé" : user.username}
             </span>
@@ -49,14 +49,14 @@ export default function UserRow({ user }: { user: AccountUser }) {
           onClick={() =>
             startTransition(() => toggleRoleAction(user.id, user.role === "ADMIN" ? "USER" : "ADMIN"))
           }
-          className="px-3 py-1.5 rounded-xl bg-ink hover:bg-white/[0.06] border border-white/[0.08] text-cream transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="tap-target-sm flex items-center px-3 py-1.5 rounded-xl bg-ink hover:bg-white/[0.06] border border-white/[0.08] text-cream transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {user.role === "ADMIN" ? "Rétrograder User" : "Promouvoir Admin"}
         </button>
         <button
           disabled={isPending || user.isArchived}
           onClick={() => startTransition(() => toggleVipAction(user.id, !user.vip))}
-          className={`px-3 py-1.5 rounded-xl border transition-colors cursor-pointer font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${
+          className={`tap-target-sm flex items-center px-3 py-1.5 rounded-xl border transition-colors cursor-pointer font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${
             user.vip
               ? "bg-gold/15 border-gold/40 text-gold hover:bg-gold/25"
               : "bg-ink border-white/[0.08] text-muted hover:text-gold"
@@ -72,7 +72,7 @@ export default function UserRow({ user }: { user: AccountUser }) {
               setResetResult(password);
             })
           }
-          className="px-3 py-1.5 rounded-xl bg-ink hover:bg-white/[0.06] border border-white/[0.08] text-muted hover:text-cream transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="tap-target-sm flex items-center px-3 py-1.5 rounded-xl bg-ink hover:bg-white/[0.06] border border-white/[0.08] text-muted hover:text-cream transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Réinitialiser MDP
         </button>
@@ -86,7 +86,7 @@ export default function UserRow({ user }: { user: AccountUser }) {
               if (result.error) setDeleteError(result.error);
             });
           }}
-          className="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="tap-target-sm flex items-center px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Archiver
         </button>

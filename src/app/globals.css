@@ -29,6 +29,10 @@
 
   --font-display: var(--font-outfit), sans-serif;
   --font-sans: var(--font-jakarta), sans-serif;
+
+  /* Small-phone breakpoint: below this (iPhone SE / mini, 320–400px) even
+     two-up layouts have to collapse. Tailwind ships nothing under sm (640px). */
+  --breakpoint-xs: 25rem;
 }
 
 :root {
@@ -36,10 +40,21 @@
   --foreground: var(--color-cream);
 }
 
+html {
+  /* Stop iOS/Android from inflating text in landscape. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  /* No grey flash on tap, no rubber-band bounce behind the fixed header. */
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+  /* Long bottle names / invite URLs must never widen the page. */
+  overflow-wrap: break-word;
 }
 
 h1, h2, h3, .font-display {
@@ -50,6 +65,26 @@ h1, h2, h3, .font-display {
 input, select, textarea {
   color-scheme: dark;
   font-family: var(--font-sans);
+}
+
+/* iOS Safari zooms the whole viewport whenever a focused field renders below
+   16px. Most of our fields are text-xs/text-sm, so pin them to 16px on phones
+   and keep the compact type from the sm: breakpoint up. */
+@media (max-width: 639px) {
+  input, select, textarea {
+    font-size: 16px;
+  }
+}
+
+/* Opt-in comfortable thumb target: 44px is the iOS/Android minimum. Applied to
+   the small pill-shaped controls that would otherwise be ~28px tall. */
+@media (pointer: coarse) {
+  .tap-target {
+    min-height: 44px;
+  }
+  .tap-target-sm {
+    min-height: 36px;
+  }
 }
 
 .tracking-caps {
@@ -69,8 +104,12 @@ input, select, textarea {
   box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 107, 53, 0.08);
 }
 
-.box-orange-glow-hover:hover {
-  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 107, 53, 0.16);
+/* Hover-only affordances are gated so a tap on a phone doesn't leave the card
+   stuck in its hovered state until the next tap elsewhere. */
+@media (hover: hover) and (pointer: fine) {
+  .box-orange-glow-hover:hover {
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 107, 53, 0.16);
+  }
 }
 
 /* Glassmorphism Dark Cards */
@@ -83,10 +122,12 @@ input, select, textarea {
 .glass-card-hover {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.glass-card-hover:hover {
-  background: rgba(35, 28, 25, 0.85);
-  border-color: rgba(232, 165, 99, 0.25);
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .glass-card-hover:hover {
+    background: rgba(35, 28, 25, 0.85);
+    border-color: rgba(232, 165, 99, 0.25);
+    transform: translateY(-2px);
+  }
 }
 
 /* VIP Vault Card Style */
@@ -110,6 +151,45 @@ input, select, textarea {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-orange-dark);
+}
+
+/* Horizontal filter rails (categories, rayons) scroll by swipe on mobile and
+   must not show a scrollbar eating into the pill row. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -webkit-overflow-scrolling: touch;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+/* iPhone notch / home-indicator insets. */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+.pb-safe-0 {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.bottom-safe {
+  bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 

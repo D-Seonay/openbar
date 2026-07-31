@@ -37,16 +37,16 @@ export default async function AdminBarsPage() {
             <Link
               key={bar.id}
               href={`/admin/bars/${bar.id}`}
-              className="p-4.5 flex items-center justify-between gap-4 hover:bg-ink-2 transition-colors"
+              className="p-4 sm:p-4.5 flex items-center justify-between gap-3 hover:bg-ink-2 transition-colors"
             >
-              <div>
-                <p className="font-semibold text-sm text-cream">{bar.name}</p>
+              <div className="min-w-0">
+                <p className="font-semibold text-sm text-cream truncate">{bar.name}</p>
                 <p className="text-xs text-muted mt-0.5">
                   Par {bar.ownerUsername} · {bar.memberCount} membre{bar.memberCount > 1 ? "s" : ""}
                 </p>
               </div>
               <span
-                className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-full ${
+                className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-full shrink-0 ${
                   bar.isPublic
                     ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
                     : "bg-white/[0.05] text-muted border border-white/[0.08]"

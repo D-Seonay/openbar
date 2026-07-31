@@ -29,7 +29,7 @@ export default function BarDirectory({
   };
 
   return (
-    <div className="rounded-2xl bg-ink-2/80 border border-white/[0.08] p-6 shadow-xl">
+    <div className="rounded-2xl bg-ink-2/80 border border-white/[0.08] p-5 sm:p-6 shadow-xl">
       <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 mb-4">
         <span className="text-xs uppercase tracking-caps text-gold font-bold">Annuaire des Bars</span>
         <span className="text-[11px] text-muted bg-white/[0.05] px-2.5 py-0.5 rounded-full">
@@ -44,9 +44,9 @@ export default function BarDirectory({
           {entries.map((entry) => (
             <div
               key={entry.id}
-              className="flex items-center justify-between p-3.5 rounded-xl bg-ink/70 border border-white/[0.06] hover:border-orange/30 transition-colors"
+              className="flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 p-3.5 rounded-xl bg-ink/70 border border-white/[0.06] hover:border-orange/30 transition-colors"
             >
-              <div>
+              <div className="min-w-0">
                 <p className="font-semibold text-sm text-cream">{entry.name}</p>
                 <p className="text-xs text-muted">
                   Par {entry.ownerUsername} · {entry.memberCount} membre{entry.memberCount > 1 ? "s" : ""}
@@ -73,7 +73,7 @@ export default function BarDirectory({
                 (guestMode ? (
                   <Link
                     href="/signup"
-                    className="text-xs px-3 py-1.5 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-orange font-semibold transition-colors"
+                    className="tap-target shrink-0 flex items-center justify-center text-center text-xs px-3 py-2 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-orange font-semibold transition-colors"
                   >
                     Créer un compte pour rejoindre
                   </Link>
@@ -81,7 +81,7 @@ export default function BarDirectory({
                   <button
                     disabled={isPending && pendingId === entry.id}
                     onClick={() => handleRequest(entry.id)}
-                    className="text-xs px-3 py-1.5 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-orange font-semibold transition-colors cursor-pointer"
+                    className="tap-target shrink-0 flex items-center justify-center text-center text-xs px-3 py-2 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-orange font-semibold transition-colors cursor-pointer"
                   >
                     Demander à rejoindre
                   </button>

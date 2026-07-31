@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Bottle } from "@/lib/types";
 import { updateBottleThreshold, updateBottleQuantity } from "@/app/actions";
@@ -47,7 +48,9 @@ export default function ManageAlertsModal({
 
   if (!isOpen) return null;
 
-  return (
+  // Portaled to <body> to escape the `relative z-10` stacking context of
+  // <main>, which would otherwise keep this modal underneath the sticky header.
+  return createPortal(
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
@@ -55,7 +58,7 @@ export default function ManageAlertsModal({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
         onClick={onClose}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/85 backdrop-blur-xl"
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-ink/85 backdrop-blur-xl"
       >
         <motion.div
           initial={{ scale: 0.94, opacity: 0, y: 16 }}
@@ -63,33 +66,34 @@ export default function ManageAlertsModal({
           exit={{ scale: 0.94, opacity: 0, y: 16 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full max-w-xl bg-ink-2/95 border border-white/[0.09] rounded-2xl p-6 sm:p-7 shadow-2xl box-orange-glow space-y-6 max-h-[85vh] flex flex-col"
+          className="relative w-full max-w-xl bg-ink-2/95 border border-white/[0.09] rounded-2xl p-5 sm:p-7 shadow-2xl box-orange-glow space-y-5 sm:space-y-6 max-h-[85dvh] flex flex-col"
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
-            <div className="flex items-center gap-3">
-              <span className="w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-xl">
+          <div className="flex items-start justify-between gap-3 border-b border-white/[0.08] pb-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="w-10 h-10 shrink-0 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-xl">
                 🚨
               </span>
-              <div>
-                <h2 className="font-display text-2xl font-bold text-cream">
+              <div className="min-w-0">
+                <h2 className="font-display text-lg sm:text-2xl font-bold text-cream">
                   Alertes de Stock & Ruptures
                 </h2>
-                <p className="text-muted text-xs">
+                <p className="text-muted text-xs hidden sm:block">
                   Gérez ou désactivez les alertes pour vos bouteilles sous seuil.
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-muted hover:text-cream flex items-center justify-center transition-colors cursor-pointer"
+              aria-label="Fermer"
+              className="w-10 h-10 shrink-0 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-muted hover:text-cream flex items-center justify-center transition-colors cursor-pointer"
             >
               ✕
             </button>
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
+          <div className="flex-1 overflow-y-auto overscroll-contain space-y-3 pr-1 scrollbar-thin">
             {alertedBottles.length === 0 ? (
               <div className="text-center py-12 bg-ink/40 rounded-xl border border-dashed border-white/[0.08]">
                 <span className="text-4xl block mb-2">✨</span>
@@ -120,9 +124,9 @@ export default function ManageAlertsModal({
                         />
                       )}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-display text-base font-bold text-cream">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-display text-base font-bold text-cream break-words">
                           {b.name}
                         </span>
                         {b.quantity === 0 ? (
@@ -145,11 +149,11 @@ export default function ManageAlertsModal({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 self-end sm:self-center">
+                  <div className="flex flex-wrap items-center gap-2 self-stretch sm:self-center shrink-0">
                     <button
                       onClick={() => handleQuickRestock(b.id)}
                       disabled={isPending}
-                      className="text-xs px-3 py-1.5 rounded-lg bg-orange/15 hover:bg-orange text-orange hover:text-ink font-semibold border border-orange/30 transition-all cursor-pointer"
+                      className="tap-target-sm flex items-center justify-center text-xs px-3 py-1.5 rounded-lg bg-orange/15 hover:bg-orange text-orange hover:text-ink font-semibold border border-orange/30 transition-all cursor-pointer"
                       title="Ajouter 1 bouteille"
                     >
                       ⚡ +1
@@ -157,7 +161,7 @@ export default function ManageAlertsModal({
                     <button
                       onClick={() => handleDismissAlert(b.id)}
                       disabled={isPending}
-                      className="text-xs px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-red-500/20 text-muted hover:text-red-400 border border-white/[0.08] hover:border-red-500/30 font-medium transition-all cursor-pointer"
+                      className="tap-target-sm flex-1 sm:flex-none flex items-center justify-center text-xs px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-red-500/20 text-muted hover:text-red-400 border border-white/[0.08] hover:border-red-500/30 font-medium transition-all cursor-pointer"
                       title="Supprimer l'alerte pour cet article"
                     >
                       🔕 Supprimer l&apos;alerte
@@ -169,28 +173,29 @@ export default function ManageAlertsModal({
           </div>
 
           {/* Footer actions */}
-          <div className="flex items-center justify-between border-t border-white/[0.08] pt-4">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 border-t border-white/[0.08] pt-4 pb-safe-0">
             {alertedBottles.length > 0 ? (
               <button
                 onClick={handleDismissAllAlerts}
                 disabled={isPending}
-                className="text-xs px-4 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/30 text-red-400 border border-red-500/30 font-bold transition-all cursor-pointer"
+                className="tap-target flex items-center justify-center text-xs px-4 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/30 text-red-400 border border-red-500/30 font-bold transition-all cursor-pointer"
               >
                 🔕 Supprimer toutes les alertes ({alertedBottles.length})
               </button>
             ) : (
-              <span />
+              <span className="hidden sm:block" />
             )}
 
             <button
               onClick={onClose}
-              className="text-xs px-5 py-2.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] text-cream font-semibold transition-all cursor-pointer"
+              className="tap-target flex items-center justify-center text-xs px-5 py-2.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] text-cream font-semibold transition-all cursor-pointer"
             >
               Fermer
             </button>
           </div>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
