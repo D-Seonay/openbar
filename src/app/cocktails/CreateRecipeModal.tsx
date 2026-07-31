@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { createRecipe, updateRecipe } from "@/app/actions";
 import type { CocktailRecipe } from "@/lib/cocktail-types";
 
@@ -54,22 +55,31 @@ export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClos
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-ink/90 backdrop-blur-xl overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-ink-2/95 border border-orange/20 rounded-2xl p-6 sm:p-7 shadow-2xl my-8">
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-4 mb-5">
-          <h3 className="font-display text-xl font-bold text-cream">
+  // Portaled to <body> to escape the `relative z-10` stacking context of
+  // <main>, which would otherwise keep this modal underneath the sticky header.
+  return createPortal(
+    <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center p-3 sm:p-4 bg-ink/90 backdrop-blur-xl overflow-y-auto overscroll-contain">
+      <div className="relative w-full max-w-2xl bg-ink-2/95 border border-orange/20 rounded-2xl p-5 sm:p-7 shadow-2xl my-4 sm:my-8 mb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="flex items-center justify-between gap-3 border-b border-white/[0.08] pb-4 mb-5">
+          <h3 className="font-display text-lg sm:text-xl font-bold text-cream">
             {mode === "edit" ? "Modifier la recette" : "Nouvelle recette custom"}
           </h3>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-xl bg-ink border border-white/[0.1] text-muted hover:text-cream text-lg flex items-center justify-center cursor-pointer"
+            aria-label="Fermer"
+            className="w-10 h-10 shrink-0 rounded-xl bg-ink border border-white/[0.1] text-muted hover:text-cream text-lg flex items-center justify-center cursor-pointer"
           >
             ×
           </button>
         </div>
 
-        <form action={action} onSubmit={handleSubmit} className="grid sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto pr-1">
+        {/* On phones the backdrop already scrolls; a second inner scroll area
+            would trap the form and fight the on-screen keyboard. */}
+        <form
+          action={action}
+          onSubmit={handleSubmit}
+          className="grid sm:grid-cols-2 gap-4 sm:max-h-[70vh] sm:overflow-y-auto sm:pr-1"
+        >
           <input type="hidden" name="ingredientsList" value={JSON.stringify(ingredientsList.filter(Boolean))} />
           <input type="hidden" name="instructions" value={JSON.stringify(instructions.filter(Boolean))} />
 
@@ -184,7 +194,7 @@ export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClos
               </button>
             </div>
             {ingredientsList.map((line, idx) => (
-              <div key={idx} className="flex gap-2 items-center">
+              <div key={idx} className="flex gap-2 items-center min-w-0">
                 <input
                   type="text"
                   value={line}
@@ -196,7 +206,7 @@ export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClos
                   <button
                     type="button"
                     onClick={() => removeLine(ingredientsList, setIngredientsList, idx)}
-                    className="text-xs text-muted hover:text-red-400 font-semibold px-2 py-1 transition-colors"
+                    className="tap-target-sm shrink-0 text-xs text-muted hover:text-red-400 font-semibold px-2 py-1 transition-colors"
                   >
                     Retirer
                   </button>
@@ -217,7 +227,7 @@ export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClos
               </button>
             </div>
             {instructions.map((line, idx) => (
-              <div key={idx} className="flex gap-2 items-center">
+              <div key={idx} className="flex gap-2 items-center min-w-0">
                 <input
                   type="text"
                   value={line}
@@ -229,7 +239,7 @@ export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClos
                   <button
                     type="button"
                     onClick={() => removeLine(instructions, setInstructions, idx)}
-                    className="text-xs text-muted hover:text-red-400 font-semibold px-2 py-1 transition-colors"
+                    className="tap-target-sm shrink-0 text-xs text-muted hover:text-red-400 font-semibold px-2 py-1 transition-colors"
                   >
                     Retirer
                   </button>
@@ -250,6 +260,7 @@ export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClos
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

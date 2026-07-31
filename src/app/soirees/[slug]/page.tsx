@@ -53,7 +53,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">
             {event.isClosed ? "Soirée clôturée" : "Soirée en cours"}
           </span>
-          <h1 className="font-display text-4xl text-cream mt-1">{event.name}</h1>
+          <h1 className="font-display text-3xl sm:text-4xl text-cream mt-1 break-words">{event.name}</h1>
           <p className="text-muted text-xs mt-2 capitalize font-mono text-orange-dim">
             {new Date(event.date).toLocaleDateString("fr-FR", {
               weekday: "long",
@@ -65,7 +65,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </div>
         <Link
           href={`/soirees/${slug}/bilan`}
-          className="shrink-0 text-xs px-4 py-2.5 rounded-xl border border-orange/30 bg-orange/10 text-orange hover:bg-orange hover:text-ink transition-all duration-300 font-bold uppercase tracking-wider text-center shadow-md shadow-orange/10"
+          className="tap-target shrink-0 flex items-center justify-center text-xs px-4 py-2.5 rounded-xl border border-orange/30 bg-orange/10 text-orange hover:bg-orange hover:text-ink transition-all duration-300 font-bold uppercase tracking-wider text-center shadow-md shadow-orange/10"
         >
           📝 Faire / Modifier le bilan
         </Link>
@@ -97,7 +97,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                   key={adj.bottleId}
                   className="flex items-center justify-between p-3 rounded-xl bg-ink border border-white/[0.06] text-xs"
                 >
-                  <span className="font-semibold text-cream truncate max-w-[170px]">
+                  <span className="font-semibold text-cream truncate min-w-0 mr-2">
                     {adj.bottleName}
                   </span>
                   <div className="flex items-center gap-2 shrink-0">

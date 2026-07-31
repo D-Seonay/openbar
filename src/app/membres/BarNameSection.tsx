@@ -31,7 +31,7 @@ export default function BarNameSection({ barId, name }: { barId: string; name: s
   };
 
   return (
-    <section className="bg-ink-2/40 border border-orange/10 p-6 rounded-xl space-y-3">
+    <section className="bg-ink-2/40 border border-orange/10 p-5 sm:p-6 rounded-xl space-y-3">
       <div>
         <h2 className="font-display text-xl text-cream">Nom du bar</h2>
         <p className="text-muted text-[11px] mt-0.5">Visible par tous les membres et dans l&apos;annuaire.</p>

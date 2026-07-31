@@ -56,6 +56,16 @@ export default function StockStudio({
     setMounted(true);
   }, []);
 
+  // Keep the page behind the slide-over from scrolling under the user's finger.
+  useEffect(() => {
+    if (drawerMode === null) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [drawerMode]);
+
   const shoppingList = useMemo(() => {
     const listToScan = isVip ? [...normalBottles, ...vipBottles] : normalBottles;
     return listToScan.filter((b) => {
@@ -165,7 +175,7 @@ export default function StockStudio({
               setActiveUniverse("bar");
               setSelectedCategory("all");
             }}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+            className={`tap-target flex items-center px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
               activeUniverse === "bar"
                 ? "bg-gradient-to-r from-orange to-orange-hover text-ink font-extrabold shadow-md box-orange-glow"
                 : "text-muted hover:text-cream hover:bg-white/[0.04]"
@@ -180,7 +190,7 @@ export default function StockStudio({
                 setActiveUniverse("vip");
                 setSelectedCategory("all");
               }}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+              className={`tap-target flex items-center px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
                 activeUniverse === "vip"
                   ? "bg-gradient-to-r from-gold to-amber-300 text-ink font-extrabold shadow-md gold-glow"
                   : "text-gold-dim hover:text-gold hover:bg-gold/10 border border-gold/20"
@@ -195,7 +205,7 @@ export default function StockStudio({
               setActiveUniverse("shopping");
               setSelectedCategory("all");
             }}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+            className={`tap-target flex items-center px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
               activeUniverse === "shopping"
                 ? "bg-red-500 text-white font-extrabold shadow-md"
                 : "text-muted hover:text-cream hover:bg-white/[0.04]"
@@ -206,11 +216,11 @@ export default function StockStudio({
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isAdmin && (
             <button
               onClick={handleOpenAdd}
-              className="px-4 py-2 rounded-xl bg-cream hover:bg-white text-ink text-xs font-extrabold uppercase transition-colors cursor-pointer shadow-sm"
+              className="tap-target px-4 py-2 rounded-xl bg-cream hover:bg-white text-ink text-xs font-extrabold uppercase transition-colors cursor-pointer shadow-sm"
             >
               + Ajouter au Stock
             </button>
@@ -218,7 +228,7 @@ export default function StockStudio({
           {activeUniverse === "shopping" && shoppingList.length > 0 && (
             <button
               onClick={copyShoppingList}
-              className="px-3.5 py-2 rounded-xl bg-orange text-ink font-bold text-xs transition-colors cursor-pointer"
+              className="tap-target px-3.5 py-2 rounded-xl bg-orange text-ink font-bold text-xs transition-colors cursor-pointer"
             >
               📋 Copier la liste
             </button>
@@ -226,7 +236,7 @@ export default function StockStudio({
           {filteredBottles.length > 0 && (
             <button
               onClick={exportCsv}
-              className="px-3.5 py-2 rounded-xl bg-cream hover:bg-white text-ink font-bold text-xs transition-colors cursor-pointer"
+              className="tap-target px-3.5 py-2 rounded-xl bg-cream hover:bg-white text-ink font-bold text-xs transition-colors cursor-pointer"
             >
               📥 Exporter en CSV
             </button>
@@ -236,7 +246,7 @@ export default function StockStudio({
 
       {/* Search Input & Category Pills */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative w-full sm:flex-1 sm:max-w-sm">
           <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted text-sm">
             🔍
           </span>
@@ -249,7 +259,8 @@ export default function StockStudio({
           />
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+        {/* Swipeable rail on mobile — the pills must never wrap the layout wide. */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar">
           <button
             onClick={() => setSelectedCategory("all")}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors shrink-0 cursor-pointer ${
@@ -299,13 +310,13 @@ export default function StockStudio({
                       : "hover:bg-ink-2"
                   }`}
                 >
-                  <div className="flex items-start sm:items-center gap-4">
-                    <div className="w-14 h-16 flex-shrink-0 bg-ink rounded-xl border border-white/[0.09] flex items-center justify-center overflow-hidden p-1.5 relative shadow-inner">
+                  <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+                    <div className="w-12 h-14 sm:w-14 sm:h-16 shrink-0 bg-ink rounded-xl border border-white/[0.09] flex items-center justify-center overflow-hidden p-1.5 relative shadow-inner">
                       <BottleImage bottle={bottle} />
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-display font-bold text-base text-cream group-hover:text-orange transition-colors">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                        <span className="font-display font-bold text-base text-cream group-hover:text-orange transition-colors break-words">
                           {bottle.name}
                         </span>
                         {bottle.vip && isVip && (
@@ -319,19 +330,23 @@ export default function StockStudio({
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-muted">
-                        <span className="text-[10px] uppercase tracking-caps text-gold-dim font-semibold">{bottle.type}</span>
-                        <span>·</span>
-                        <span>{formatLiters(totalLiters)} en cave</span>
-                        <span>·</span>
-                        <span className="truncate max-w-xs sm:max-w-md">
+                      {/* The type moved here now that the thumbnail occupies
+                          the leading column. */}
+                      <div className="flex items-center gap-2 sm:gap-3 mt-1 text-xs text-muted min-w-0">
+                        <span className="shrink-0 text-[10px] uppercase tracking-caps text-gold-dim font-semibold">
+                          {bottle.type}
+                        </span>
+                        <span className="shrink-0">·</span>
+                        <span className="shrink-0">{formatLiters(totalLiters)} en cave</span>
+                        <span className="hidden xs:inline shrink-0">·</span>
+                        <span className="hidden xs:inline truncate min-w-0">
                           {bottle.tags.map((t) => `#${t}`).join(" ")}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-6 mt-3 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-0 border-white/[0.06]">
+                  <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-0 border-white/[0.06] shrink-0">
                     <div className="flex items-center gap-2 text-xs">
                       <span className="text-muted">En stock :</span>
                       <span className="text-cream font-bold text-sm bg-ink px-2.5 py-1 rounded-lg border border-white/[0.08]">
@@ -344,13 +359,15 @@ export default function StockStudio({
                         <button
                           onClick={() => quickAdjust(bottle.id, bottle.quantity, -1)}
                           disabled={bottle.quantity <= 0}
-                          className="w-8 h-8 rounded-lg bg-ink hover:bg-white/[0.1] text-cream text-sm font-bold flex items-center justify-center disabled:opacity-30 border border-white/[0.08] transition-colors cursor-pointer"
+                          aria-label={`Retirer une bouteille de ${bottle.name}`}
+                          className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-ink hover:bg-white/[0.1] text-cream text-sm font-bold flex items-center justify-center disabled:opacity-30 border border-white/[0.08] transition-colors cursor-pointer"
                         >
                           -
                         </button>
                         <button
                           onClick={() => quickAdjust(bottle.id, bottle.quantity, 1)}
-                          className="w-8 h-8 rounded-lg bg-ink hover:bg-orange hover:text-ink text-cream text-sm font-bold flex items-center justify-center border border-white/[0.08] transition-colors cursor-pointer"
+                          aria-label={`Ajouter une bouteille de ${bottle.name}`}
+                          className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-ink hover:bg-orange hover:text-ink text-cream text-sm font-bold flex items-center justify-center border border-white/[0.08] transition-colors cursor-pointer"
                         >
                           +
                         </button>
@@ -397,21 +414,22 @@ export default function StockStudio({
                   animate={{ x: 0 }}
                   exit={{ x: "100%" }}
                   transition={{ duration: 0.22, ease: "easeOut" }}
-                  className="fixed top-0 right-0 h-full w-full max-w-lg bg-ink-2 border-l border-white/[0.1] z-50 p-6 sm:p-8 overflow-y-auto flex flex-col justify-between shadow-2xl"
+                  className="fixed top-0 right-0 h-dvh w-full max-w-lg bg-ink-2 border-l border-white/[0.1] z-50 p-5 sm:p-8 overflow-y-auto overscroll-contain flex flex-col justify-between shadow-2xl pb-safe"
                 >
                   <div className="space-y-6">
-                    <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
-                      <div>
+                    <div className="flex items-start justify-between gap-3 border-b border-white/[0.08] pb-4">
+                      <div className="min-w-0">
                         <span className="text-[10px] uppercase tracking-caps text-gold font-bold block">
                           {drawerMode === "add" ? "Enregistrer un arrivage" : "Fiche de cave"}
                         </span>
-                        <h2 className="font-display text-2xl font-bold text-cream mt-1">
+                        <h2 className="font-display text-xl sm:text-2xl font-bold text-cream mt-1 break-words">
                           {drawerMode === "add" ? "Nouvelle Bouteille" : selectedBottle?.name}
                         </h2>
                       </div>
                       <button
                         onClick={handleCloseDrawer}
-                        className="w-9 h-9 rounded-xl bg-ink border border-white/[0.1] text-muted hover:text-cream text-lg flex items-center justify-center cursor-pointer"
+                        aria-label="Fermer"
+                        className="w-10 h-10 shrink-0 rounded-xl bg-ink border border-white/[0.1] text-muted hover:text-cream text-lg flex items-center justify-center cursor-pointer"
                       >
                         ×
                       </button>
@@ -427,12 +445,12 @@ export default function StockStudio({
                       <div className="space-y-6 text-sm">
                         {selectedBottle.imageUrl && (
                           <div className="flex justify-center p-4 rounded-xl bg-ink border border-white/[0.08]">
-                            <div className="w-32 h-40 flex items-center justify-center overflow-hidden">
+                            <div className="w-28 h-36 sm:w-32 sm:h-40 flex items-center justify-center overflow-hidden">
                               <BottleImage bottle={selectedBottle} />
                             </div>
                           </div>
                         )}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4">
                           <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
                             <span className="text-[10px] uppercase tracking-caps text-muted block">Catégorie</span>
                             <span className="text-cream font-bold capitalize mt-1 block text-base">
@@ -495,11 +513,11 @@ export default function StockStudio({
                     )}
                   </div>
 
-                  <div className="pt-6 mt-6 border-t border-white/[0.08] flex items-center justify-between text-xs">
+                  <div className="pt-6 mt-6 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3 text-xs">
                     {drawerMode === "inspect" && isAdmin && selectedBottle ? (
                       <button
                         onClick={() => setDeleteTarget({ id: selectedBottle.id, name: selectedBottle.name })}
-                        className="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                        className="tap-target px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer"
                       >
                         Supprimer
                       </button>
@@ -508,7 +526,7 @@ export default function StockStudio({
                     )}
                     <button
                       onClick={handleCloseDrawer}
-                      className="px-5 py-2.5 rounded-xl bg-orange text-ink font-bold uppercase tracking-wider hover:bg-orange-hover transition-colors cursor-pointer"
+                      className="tap-target px-5 py-2.5 rounded-xl bg-orange text-ink font-bold uppercase tracking-wider hover:bg-orange-hover transition-colors cursor-pointer"
                     >
                       Fermer
                     </button>

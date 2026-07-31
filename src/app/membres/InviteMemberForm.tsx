@@ -29,7 +29,7 @@ export default function InviteMemberForm({ barId }: { barId: string }) {
   };
 
   return (
-    <section className="bg-ink-2/40 border border-orange/10 p-6 rounded-xl space-y-4">
+    <section className="bg-ink-2/40 border border-orange/10 p-5 sm:p-6 rounded-xl space-y-4">
       <div>
         <h2 className="font-display text-xl text-cream">Inviter un membre</h2>
         <p className="text-muted text-[11px] mt-0.5">Cherche parmi les comptes existants.</p>

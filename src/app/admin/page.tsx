@@ -92,10 +92,10 @@ export default async function AdminDashboardPage() {
                 <Link
                   key={bar.id}
                   href={`/admin/bars/${bar.id}`}
-                  className="p-4 flex items-center justify-between gap-4 hover:bg-ink-2 transition-colors"
+                  className="p-4 flex items-center justify-between gap-3 hover:bg-ink-2 transition-colors"
                 >
-                  <div>
-                    <p className="font-semibold text-sm text-cream">{bar.name}</p>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm text-cream truncate">{bar.name}</p>
                     <p className="text-xs text-muted mt-0.5">Par {bar.ownerUsername}</p>
                   </div>
                   <span className="text-[10px] text-muted whitespace-nowrap">
@@ -116,9 +116,9 @@ export default async function AdminDashboardPage() {
               <div className="py-8 text-center text-sm text-muted">Aucun compte pour l&apos;instant.</div>
             ) : (
               recentUsers.map((user) => (
-                <div key={user.id} className="p-4 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2.5">
-                    <p className="font-semibold text-sm text-cream">{user.username}</p>
+                <div key={user.id} className="p-4 flex items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2 min-w-0">
+                    <p className="font-semibold text-sm text-cream truncate">{user.username}</p>
                     {user.role === "ADMIN" && (
                       <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-gold text-ink">
                         Admin

@@ -24,8 +24,14 @@ kind: Ingress
 metadata:
   name: bardenoa
   namespace: default
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: traefik
+  tls:
+    - hosts:
+        - {{ ingress_host }}
+      secretName: bardenoa-tls
   rules:
     - host: {{ ingress_host }}
       http:

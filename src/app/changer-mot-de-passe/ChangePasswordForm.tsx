@@ -22,7 +22,8 @@ export default function ChangePasswordForm() {
         type="password"
         placeholder="Mot de passe temporaire actuel"
         required
-        className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-2.5 text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+        autoComplete="current-password"
+        className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-3 text-sm sm:text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
       />
       <input
         name="newPassword"
@@ -30,7 +31,8 @@ export default function ChangePasswordForm() {
         placeholder="Nouveau mot de passe (6 caractères min.)"
         required
         minLength={6}
-        className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-2.5 text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+        autoComplete="new-password"
+        className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-3 text-sm sm:text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
       />
       <input
         name="confirmPassword"
@@ -38,7 +40,8 @@ export default function ChangePasswordForm() {
         placeholder="Confirmer le nouveau mot de passe"
         required
         minLength={6}
-        className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-2.5 text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+        autoComplete="new-password"
+        className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-3 text-sm sm:text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
       />
       {error && <p className="text-xs text-red-400 text-center">{error}</p>}
       <button

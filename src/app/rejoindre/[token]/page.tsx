@@ -22,7 +22,7 @@ export default async function RejoindreParLienPage({
 
   if (!barName) {
     return (
-      <PageTransition className="max-w-sm mx-auto mt-16 text-center space-y-4">
+      <PageTransition className="max-w-sm mx-auto mt-6 sm:mt-16 text-center space-y-4">
         <h1 className="font-display text-2xl text-cream">Lien invalide</h1>
         <p className="text-sm text-muted">Ce lien d&apos;invitation n&apos;existe plus ou n&apos;est plus valide.</p>
         <Link href="/login" className="text-orange hover:underline text-sm">
@@ -39,7 +39,7 @@ export default async function RejoindreParLienPage({
   }
 
   return (
-    <PageTransition className="max-w-sm mx-auto mt-16 bg-ink-2/40 border border-orange/10 p-8 rounded-xl box-orange-glow space-y-4 text-center">
+    <PageTransition className="max-w-sm mx-auto mt-6 sm:mt-16 bg-ink-2/40 border border-orange/10 p-6 sm:p-8 rounded-xl box-orange-glow space-y-4 text-center">
       <h1 className="font-display text-2xl text-cream">Rejoindre {barName}</h1>
       <p className="text-sm text-muted">Connecte-toi ou crée un compte pour rejoindre ce bar.</p>
       <div className="flex flex-col gap-2">

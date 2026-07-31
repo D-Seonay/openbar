@@ -102,37 +102,9 @@ export default function AddBottleForm({
 
       <div className="sm:col-span-2">
         <input type="hidden" name="imageUrl" value={imageUrl} />
+        {/* The preview and its "Retirer" button live inside ImagePicker so the
+            profile avatar and the bottle detail modal keep them too. */}
         <ImagePicker value={imageUrl} onChange={setImageUrl} onUpload={uploadBottleImage} label="Photo du produit (Fichier local ou URL)" />
-        {imageUrl && (
-          <div className="mt-3 flex items-center justify-between p-2.5 rounded-xl bg-ink/80 border border-white/[0.08]">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-11 bg-ink rounded-lg p-1 border border-white/[0.08] overflow-hidden">
-                <img 
-                  src={
-                    imageUrl.startsWith('/uploads/') 
-                      ? `${process.env.NEXT_PUBLIC_NEST_API_URL || 'http://localhost:3001'}${imageUrl}`
-                      : imageUrl
-                  } 
-                  alt="Aperçu" 
-                  className="w-full h-full object-contain" 
-                />
-              </div>
-              <div>
-                <span className="text-xs font-medium text-cream block">Aperçu de l&apos;image sélectionnée</span>
-                <span className="text-[10px] text-orange font-mono truncate max-w-[200px] block">
-                  {imageUrl.startsWith("data:") ? "Image locale convertie" : imageUrl}
-                </span>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setImageUrl("")}
-              className="text-xs text-red-400 hover:text-red-300 bg-red-500/10 px-2.5 py-1 rounded-lg border border-red-500/20 cursor-pointer"
-            >
-              Retirer
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Volumes and quantities editor */}
@@ -153,32 +125,33 @@ export default function AddBottleForm({
         ) : (
           <div className="space-y-2">
             {volumes.map((vol, idx) => (
-              <div key={idx} className="flex gap-3 items-center">
+              <div key={idx} className="flex flex-wrap gap-2 sm:gap-3 items-center">
                 <input
                   type="text"
                   placeholder="Ex: 70cl, 1L, 1.5L"
                   value={vol.size}
                   required
                   onChange={(e) => updateVolume(idx, "size", e.target.value)}
-                  className="flex-1 bg-ink border border-orange/15 rounded-lg px-3 py-1.5 text-xs text-cream focus:outline-none focus:border-orange"
+                  className="flex-1 min-w-0 basis-full sm:basis-0 bg-ink border border-orange/15 rounded-lg px-3 py-2 text-xs text-cream focus:outline-none focus:border-orange"
                 />
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 shrink-0">
                   <span className="text-xs text-muted font-mono">Qté:</span>
                   <input
                     type="number"
                     min="1"
                     step="1"
+                    inputMode="numeric"
                     value={vol.quantity}
                     required
                     onChange={(e) => updateVolume(idx, "quantity", e.target.value)}
-                    className="w-16 bg-ink border border-orange/15 rounded-lg px-3 py-1.5 text-xs text-center text-cream focus:outline-none focus:border-orange"
+                    className="w-20 sm:w-16 bg-ink border border-orange/15 rounded-lg px-3 py-2 text-xs text-center text-cream focus:outline-none focus:border-orange"
                   />
                 </div>
                 {volumes.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeVolumeRow(idx)}
-                    className="text-xs text-muted hover:text-red-400 font-semibold px-2 py-1 transition-colors"
+                    className="tap-target-sm flex items-center shrink-0 text-xs text-muted hover:text-red-400 font-semibold px-2 py-1 transition-colors cursor-pointer"
                   >
                     Retirer
                   </button>
@@ -214,6 +187,7 @@ export default function AddBottleForm({
           type="number"
           min="0"
           step="1"
+          inputMode="numeric"
           placeholder="Alerte si bouteilles <= X"
           className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
         />

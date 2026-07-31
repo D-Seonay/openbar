@@ -9,28 +9,33 @@ export default async function LoginPage({
   const { error, redirectTo } = await searchParams;
 
   return (
-    <div className="max-w-sm mx-auto mt-16 bg-ink-2/40 border border-orange/10 p-8 rounded-xl box-orange-glow space-y-4">
+    <div className="max-w-sm mx-auto mt-6 sm:mt-16 bg-ink-2/40 border border-orange/10 p-6 sm:p-8 rounded-xl box-orange-glow space-y-4">
       <div className="text-center">
         <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">Connexion</span>
         <h1 className="font-display text-3xl text-cream mt-1">OpenBar</h1>
       </div>
       <form action={login} className="space-y-3">
         <input type="hidden" name="redirectTo" value={redirectTo ?? "/"} />
+        {/* No autoFocus: on phones it pops the keyboard over the form before
+            the user has seen it. autoComplete/autoCapitalize let mobile
+            password managers fill this in. */}
         <input
           name="username"
           type="text"
           placeholder="Identifiant"
           required
-          autoFocus
-          className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-2.5 text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+          autoComplete="username"
+          autoCapitalize="none"
+          autoCorrect="off"
+          className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-3 text-sm sm:text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
         />
         <input
           name="password"
           type="password"
           placeholder="Mot de passe"
           required
-          autoFocus
-          className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-2.5 text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+          autoComplete="current-password"
+          className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-3 text-sm sm:text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
         />
         {error && <p className="text-xs text-red-400 text-center">Mot de passe incorrect.</p>}
         <button

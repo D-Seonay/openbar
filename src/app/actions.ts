@@ -254,23 +254,11 @@ export async function uploadBottleImage(formData: FormData): Promise<string | nu
   return (data as { imageUrl: string }).imageUrl ?? null;
 }
 
+// Avatars go through the same API endpoint as bottle images. Writing them into
+// Next's `public/uploads` (the previous behaviour) doesn't survive a container
+// rebuild and isn't reachable from the API origin the previews resolve against.
 export async function uploadProfileImage(formData: FormData): Promise<string | null> {
-  await requireLoggedIn();
-  const file = formData.get("file") as File | null;
-  if (!file || file.size === 0) return null;
-
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  await fs.mkdir(uploadsDir, { recursive: true });
-
-  const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "png";
-  const filename = `avatar-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const filePath = path.join(uploadsDir, filename);
-
-  await fs.writeFile(filePath, buffer);
-  return `/uploads/${filename}`;
+  return uploadBottleImage(formData);
 }
 
 export async function editBottleAction(id: string, data: { name: string; type: BottleType; notes?: string; vip: boolean }) {

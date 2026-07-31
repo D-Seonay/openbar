@@ -41,7 +41,7 @@ export default async function BarMembresPage() {
       <div className="grid lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-4 space-y-6">
           <BarNameSection barId={activeBar.id} name={activeBar.name} />
-          <div className="rounded-2xl bg-ink-2 border border-white/[0.08] p-6 shadow-xl">
+          <div className="rounded-2xl bg-ink-2 border border-white/[0.08] p-5 sm:p-6 shadow-xl">
             <InviteMemberForm barId={activeBar.id} />
           </div>
           <BarVisibilitySection barId={activeBar.id} isPublic={activeBar.isPublic} />
