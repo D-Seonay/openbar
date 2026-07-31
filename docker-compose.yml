@@ -26,6 +26,11 @@ services:
       DATABASE_URL: postgresql://bardenoa:bardenoa@postgres:5432/bardenoa
       JWT_SECRET: ${JWT_SECRET}
       WEB_ORIGIN: http://web:3000
+    volumes:
+      - uploads_data:/app/uploads
+    # No published port: the browser never calls the API directly. Uploaded
+    # images reach it through the web service's /uploads rewrite, so the API
+    # stays on the internal network.
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3001/health || exit 1"]
       interval: 10s
@@ -47,3 +52,4 @@ services:
 
 volumes:
   postgres_data:
+  uploads_data:

@@ -8,6 +8,7 @@ import { updateBottleQuantity, deleteBottleAction } from "@/app/actions";
 import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import AddBottleForm from "./AddBottleForm";
+import BottleImage from "@/components/BottleImage";
 import Pagination from "@/components/Pagination";
 
 const ITEMS_PER_PAGE = 20;
@@ -310,8 +311,8 @@ export default function StockStudio({
                   }`}
                 >
                   <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
-                    <div className="w-16 shrink-0 text-[10px] font-bold uppercase tracking-caps text-gold-dim">
-                      {bottle.type}
+                    <div className="w-12 h-14 sm:w-14 sm:h-16 shrink-0 bg-ink rounded-xl border border-white/[0.09] flex items-center justify-center overflow-hidden p-1.5 relative shadow-inner">
+                      <BottleImage bottle={bottle} />
                     </div>
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
@@ -329,10 +330,16 @@ export default function StockStudio({
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-muted min-w-0">
-                        <span className="shrink-0">{formatLiters(totalLiters)} en cave</span>
+                      {/* The type moved here now that the thumbnail occupies
+                          the leading column. */}
+                      <div className="flex items-center gap-2 sm:gap-3 mt-1 text-xs text-muted min-w-0">
+                        <span className="shrink-0 text-[10px] uppercase tracking-caps text-gold-dim font-semibold">
+                          {bottle.type}
+                        </span>
                         <span className="shrink-0">·</span>
-                        <span className="truncate min-w-0">
+                        <span className="shrink-0">{formatLiters(totalLiters)} en cave</span>
+                        <span className="hidden xs:inline shrink-0">·</span>
+                        <span className="hidden xs:inline truncate min-w-0">
                           {bottle.tags.map((t) => `#${t}`).join(" ")}
                         </span>
                       </div>
@@ -436,7 +443,14 @@ export default function StockStudio({
 
                     {drawerMode === "inspect" && selectedBottle && (
                       <div className="space-y-6 text-sm">
-                        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 gap-3 sm:gap-4">
+                        {selectedBottle.imageUrl && (
+                          <div className="flex justify-center p-4 rounded-xl bg-ink border border-white/[0.08]">
+                            <div className="w-28 h-36 sm:w-32 sm:h-40 flex items-center justify-center overflow-hidden">
+                              <BottleImage bottle={selectedBottle} />
+                            </div>
+                          </div>
+                        )}
+                        <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4">
                           <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
                             <span className="text-[10px] uppercase tracking-caps text-muted block">Catégorie</span>
                             <span className="text-cream font-bold capitalize mt-1 block text-base">

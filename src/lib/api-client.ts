@@ -17,8 +17,9 @@ import type {
   MyProfile,
 } from "./types";
 import type { CocktailRecipe, RecipeAvailability } from "./cocktail-types";
+import { getBaseApiUrl } from "./api";
 
-const API_URL = process.env.NEST_API_URL ?? "http://localhost:3001";
+const API_URL = getBaseApiUrl();
 
 export async function apiLogin(
   username: string,

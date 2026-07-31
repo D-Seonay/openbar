@@ -23,7 +23,6 @@ export default function ImagePicker({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Instant client preview & server upload
     startUpload(async () => {
       const formData = new FormData();
       formData.append("file", file);
@@ -31,25 +30,9 @@ export default function ImagePicker({
         const uploadedUrl = await onUpload(formData);
         if (uploadedUrl) {
           onChange(uploadedUrl);
-        } else {
-          // Fallback to FileReader base64 if server returns null
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            if (typeof event.target?.result === "string") {
-              onChange(event.target.result);
-            }
-          };
-          reader.readAsDataURL(file);
         }
       } catch {
-        // Fallback to FileReader base64
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (typeof event.target?.result === "string") {
-            onChange(event.target.result);
-          }
-        };
-        reader.readAsDataURL(file);
+        // silent
       }
     });
   };
@@ -125,11 +108,15 @@ export default function ImagePicker({
         />
       )}
 
-      {/* Preview selected image */}
+      {/* Preview of the selected image. This lives in the picker rather than in
+          each caller so that every consumer — bottle form, bottle detail, and
+          the profile avatar — keeps a way to clear the image. */}
       {value && (
         <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-ink/80 border border-white/[0.08]">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-11 shrink-0 bg-ink rounded-lg p-1 border border-white/[0.08] overflow-hidden">
+              {/* `/uploads/*` is proxied to the API by next.config.ts, so the
+                  stored path resolves same-origin as-is. */}
               <img src={value} alt="Aperçu" className="w-full h-full object-contain" />
             </div>
             <div className="min-w-0">

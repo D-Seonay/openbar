@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import type { Bottle } from "@/lib/types";
 import { calculateBottleTotalLiters, calculateTotalBottlesCount, formatLiters } from "@/lib/volumeUtils";
 import { updateBottleQuantity } from "@/app/actions";
-import BottlePreview from "./BottlePreview";
+import BottleImage from "@/components/BottleImage";
 import BottleDetailModal from "./BottleDetailModal";
 
 export default function BottleGridCard({
@@ -43,11 +43,7 @@ export default function BottleGridCard({
       >
         {/* Top visual shelf display */}
         <div className="relative w-full h-44 rounded-xl bg-ink/80 border border-white/[0.07] flex items-center justify-center overflow-hidden p-3 mb-3.5 shadow-inner group-hover:border-orange/20 transition-colors">
-          {bottle.imageUrl ? (
-            <img src={bottle.imageUrl} alt={bottle.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" />
-          ) : (
-            <BottlePreview type={bottle.type} quantity={totalBottles} vip={bottle.vip} />
-          )}
+          <BottleImage bottle={bottle} />
 
           {/* Top Left Badge: Category */}
           <span className="absolute top-2.5 left-2.5 text-[9px] font-bold uppercase tracking-caps px-2 py-1 rounded-md bg-ink-2/90 border border-white/[0.1] text-gold">

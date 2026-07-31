@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBottleDto } from './dto/create-bottle.dto';
 import { UpdateBottleDto } from './dto/update-bottle.dto';
+import { deleteUploadedImage } from './uploads';
 
 @Injectable()
 export class BottlesService {
@@ -31,9 +32,9 @@ export class BottlesService {
   }
 
   async update(id: string, dto: UpdateBottleDto) {
-    await this.findOne(id);
+    const previous = await this.findOne(id);
     const { volumes, ...rest } = dto;
-    return this.prisma.bottle.update({
+    const updated = await this.prisma.bottle.update({
       where: { id },
       data: {
         ...rest,
@@ -41,10 +42,20 @@ export class BottlesService {
       },
       include: { volumes: true },
     });
+
+    // Swapping the image out orphans the previous file. `undefined` means the
+    // field wasn't part of this patch, which must not delete anything; an empty
+    // string means the image was cleared, which must. Runs after the update so
+    // the row already points at the new value when we check for references.
+    if (rest.imageUrl !== undefined && rest.imageUrl !== previous.imageUrl) {
+      await this.deleteImageIfUnused(previous.imageUrl);
+    }
+
+    return updated;
   }
 
   async remove(id: string) {
-    await this.findOne(id);
+    const bottle = await this.findOne(id);
     try {
       await this.prisma.bottle.delete({ where: { id } });
     } catch (error) {
@@ -55,6 +66,30 @@ export class BottlesService {
       }
       throw error;
     }
+
+    // Drop the uploaded file now that the row is gone, otherwise the volume
+    // accumulates orphans forever. Done *after* the delete so a rejected
+    // delete (P2003 above) never leaves a surviving bottle without its image.
+    await this.deleteImageIfUnused(bottle.imageUrl);
+
     return { success: true };
+  }
+
+  /**
+   * Uploads get unique filenames, so normally nothing else points at this file.
+   * But `imageUrl` is a free-form client-supplied string, so a bottle can be
+   * saved pointing at another bottle's image — or at a user's avatar, which now
+   * lives in the same directory. Check before unlinking.
+   */
+  private async deleteImageIfUnused(imageUrl: string | null) {
+    if (!imageUrl) return;
+
+    const [bottlesUsing, usersUsing] = await Promise.all([
+      this.prisma.bottle.count({ where: { imageUrl } }),
+      this.prisma.user.count({ where: { avatarUrl: imageUrl } }),
+    ]);
+    if (bottlesUsing > 0 || usersUsing > 0) return;
+
+    await deleteUploadedImage(imageUrl);
   }
 }

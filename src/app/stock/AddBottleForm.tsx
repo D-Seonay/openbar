@@ -102,6 +102,8 @@ export default function AddBottleForm({
 
       <div className="sm:col-span-2">
         <input type="hidden" name="imageUrl" value={imageUrl} />
+        {/* The preview and its "Retirer" button live inside ImagePicker so the
+            profile avatar and the bottle detail modal keep them too. */}
         <ImagePicker value={imageUrl} onChange={setImageUrl} onUpload={uploadBottleImage} label="Photo du produit (Fichier local ou URL)" />
       </div>
 

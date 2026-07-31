@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import type { Bottle, BottleVolume } from "@/lib/types";
 import { updateBottleVolumes, updateBottleThreshold, deleteBottleAction, uploadBottleImage, editBottleAction } from "@/app/actions";
 import { calculateBottleTotalLiters, calculateTotalBottlesCount, formatLiters } from "@/lib/volumeUtils";
-import BottlePreview from "./BottlePreview";
+import BottleImage from "@/components/BottleImage";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import ImagePicker from "@/components/ImagePicker";
 
@@ -148,11 +148,7 @@ export default function BottleDetailModal({ bottle, onClose, isAdmin = false }: 
         {/* Header */}
         <div className="flex gap-4 items-start">
           <div className="w-20 h-24 flex-shrink-0 bg-ink rounded-lg border border-orange/20 flex items-center justify-center overflow-hidden p-1.5 relative mt-1">
-            {bottle.imageUrl ? (
-              <img src={bottle.imageUrl} alt={bottle.name} className="w-full h-full object-contain" />
-            ) : (
-              <BottlePreview type={bottle.type} quantity={totalBottles} vip={bottle.vip} />
-            )}
+            <BottleImage bottle={bottle} />
           </div>
           <div className="flex-1 min-w-0">
             {isEditing ? (
