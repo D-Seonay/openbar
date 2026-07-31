@@ -13,7 +13,19 @@ async function bootstrap() {
     origin: process.env.WEB_ORIGIN ?? 'http://localhost:3000',
     credentials: true,
   });
-  app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
+  // Uploaded bottle images. These are user-supplied bytes, so serve them
+  // defensively: `nosniff` stops the browser from re-interpreting a stored
+  // image as markup, and the CSP neutralises anything that is interpreted
+  // anyway. Directory listings and dotfiles stay off.
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/uploads',
+    index: false,
+    dotfiles: 'deny',
+    setHeaders: (res: import('express').Response) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox");
+    },
+  });
   app.getHttpAdapter().get('/health', (_req: unknown, res: import('express').Response) => {
     res.status(200).json({ status: 'ok' });
   });

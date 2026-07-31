@@ -25,11 +25,12 @@ services:
     environment:
       DATABASE_URL: postgresql://bardenoa:bardenoa@postgres:5432/bardenoa
       JWT_SECRET: ${JWT_SECRET}
-      WEB_ORIGIN: http://localhost:8080
+      WEB_ORIGIN: http://web:3000
     volumes:
       - uploads_data:/app/uploads
-    ports:
-      - "3001:3001"
+    # No published port: the browser never calls the API directly. Uploaded
+    # images reach it through the web service's /uploads rewrite, so the API
+    # stays on the internal network.
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3001/health || exit 1"]
       interval: 10s
@@ -45,7 +46,6 @@ services:
         condition: service_healthy
     environment:
       NEST_API_URL: http://api:3001
-      NEXT_PUBLIC_NEST_API_URL: http://localhost:3001
       JWT_SECRET: ${JWT_SECRET}
     ports:
       - "8080:3000"

@@ -48,9 +48,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# user uploads
+# user uploads — now written by the API, served back through the /uploads rewrite
 /public/uploads/*
 !/public/uploads/.gitkeep
+/api/uploads/
 
 # api/ (NestJS)
 api/node_modules

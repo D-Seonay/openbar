@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition, useRef } from "react";
-import { getBaseApiUrl } from "@/lib/api";
+import { useState, useTransition, useRef } from "react";
 
 interface ImagePickerProps {
   value: string;
@@ -19,15 +18,6 @@ export default function ImagePicker({
   const [mode, setMode] = useState<"local" | "url">("local");
   const [isUploading, startUpload] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Uploads now return an API-relative path (`/uploads/…`) served by Nest, so
-  // the preview has to be resolved against the API origin. Absolute URLs and
-  // data: URIs are shown as-is.
-  const previewUrl = useMemo(() => {
-    if (!value) return "";
-    if (/^(https?:)?\/\//.test(value) || value.startsWith("data:")) return value;
-    return `${getBaseApiUrl()}${value.startsWith("/") ? value : `/${value}`}`;
-  }, [value]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -125,7 +115,9 @@ export default function ImagePicker({
         <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-ink/80 border border-white/[0.08]">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-11 shrink-0 bg-ink rounded-lg p-1 border border-white/[0.08] overflow-hidden">
-              <img src={previewUrl} alt="Aperçu" className="w-full h-full object-contain" />
+              {/* `/uploads/*` is proxied to the API by next.config.ts, so the
+                  stored path resolves same-origin as-is. */}
+              <img src={value} alt="Aperçu" className="w-full h-full object-contain" />
             </div>
             <div className="min-w-0">
               <span className="text-xs font-medium text-cream block">Aperçu de l&apos;image sélectionnée</span>
