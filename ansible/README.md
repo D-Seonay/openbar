@@ -96,6 +96,23 @@ forward 80/443 vers la VM k3s existe déjà, pas besoin d'en ajouter). En
 attendant la propagation DNS, tu peux tester en mappant le domaine vers
 cette IP publique dans `/etc/hosts` sur ta machine cliente (pas sur les VMs).
 
+## HTTPS
+
+`configure-ingress.yml` demande un certificat Let's Encrypt automatique via
+cert-manager (déjà installé sur ce cluster, `ClusterIssuer` `letsencrypt-prod`,
+solveur `http01` sur `ingressClassName: traefik`) — rien à configurer côté
+bardenoa au-delà de l'annotation et du bloc `tls:` déjà présents dans
+`templates/ingress.yml.j2`. Le certificat est émis automatiquement au premier
+`kubectl apply` (le solveur HTTP-01 a besoin que le port 80 soit joignable
+depuis Internet, ce qui est déjà le cas). Vérifie l'état avec :
+
+```bash
+ssh -J root@192.168.1.253 debian@10.10.10.50 "sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubectl get certificate bardenoa-tls"
+```
+
+`READY: True` signifie que `https://openbar.seonay.eu` sert un certificat
+valide.
+
 ## Dépannage
 
 **`Host key verification failed` sur `[k3s]`/`[bardenoa]`** : Ansible ne
@@ -157,6 +174,4 @@ qui génère le token, pas l'ancien nom.
 
 ## Hors scope
 
-- TLS/Let's Encrypt sur `openbar.seonay.eu` (pas de cert-manager configuré
-  sur ce cluster pour l'instant — HTTP simple).
 - Sauvegardes de la base Postgres de production.
