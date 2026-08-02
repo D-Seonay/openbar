@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
@@ -24,24 +34,42 @@ export class WishlistController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Param('slug') slug: string, @Body() dto: CreateWishlistItemDto, @Req() req: Request) {
+  async create(
+    @Param('slug') slug: string,
+    @Body() dto: CreateWishlistItemDto,
+    @Req() req: Request,
+  ) {
     const user = req.user as JwtPayload;
     const event = await this.eventsService.findBySlug(slug);
-    const { isOwnerOrAdmin } = await this.barAccessService.assertMember(event.barId, user);
+    const { isOwnerOrAdmin } = await this.barAccessService.assertMember(
+      event.barId,
+      user,
+    );
     if (!isOwnerOrAdmin) {
-      throw new ForbiddenException("Seul l'hôte de la soirée peut gérer la liste à ramener");
+      throw new ForbiddenException(
+        "Seul l'hôte de la soirée peut gérer la liste à ramener",
+      );
     }
     return this.wishlistService.create(slug, dto.label);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async remove(@Param('slug') slug: string, @Param('id') id: string, @Req() req: Request) {
+  async remove(
+    @Param('slug') slug: string,
+    @Param('id') id: string,
+    @Req() req: Request,
+  ) {
     const user = req.user as JwtPayload;
     const event = await this.eventsService.findBySlug(slug);
-    const { isOwnerOrAdmin } = await this.barAccessService.assertMember(event.barId, user);
+    const { isOwnerOrAdmin } = await this.barAccessService.assertMember(
+      event.barId,
+      user,
+    );
     if (!isOwnerOrAdmin) {
-      throw new ForbiddenException("Seul l'hôte de la soirée peut gérer la liste à ramener");
+      throw new ForbiddenException(
+        "Seul l'hôte de la soirée peut gérer la liste à ramener",
+      );
     }
     return this.wishlistService.remove(slug, id);
   }
