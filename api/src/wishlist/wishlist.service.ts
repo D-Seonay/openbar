@@ -28,6 +28,11 @@ export class WishlistService {
     const event = await this.eventsService.findBySlug(slug);
     return this.prisma.wishlistItem.create({
       data: { eventId: event.id, label },
+      include: {
+        assignments: {
+          include: { user: { select: { id: true, username: true } } },
+        },
+      },
     });
   }
 
@@ -43,7 +48,9 @@ export class WishlistService {
 
   async assign(slug: string, itemId: string, userId: string) {
     const event = await this.eventsService.findBySlug(slug);
-    const item = await this.prisma.wishlistItem.findUnique({ where: { id: itemId } });
+    const item = await this.prisma.wishlistItem.findUnique({
+      where: { id: itemId },
+    });
     if (!item || item.eventId !== event.id) {
       throw new NotFoundException('Item introuvable');
     }
@@ -58,7 +65,10 @@ export class WishlistService {
         include: { user: { select: { id: true, username: true } } },
       });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
         // A concurrent request created the same assignment first; return that row.
         return this.prisma.wishlistItemAssignment.findUnique({
           where: { wishlistItemId_userId: { wishlistItemId: itemId, userId } },
@@ -71,7 +81,9 @@ export class WishlistService {
 
   async unassign(slug: string, itemId: string, userId: string) {
     const event = await this.eventsService.findBySlug(slug);
-    const item = await this.prisma.wishlistItem.findUnique({ where: { id: itemId } });
+    const item = await this.prisma.wishlistItem.findUnique({
+      where: { id: itemId },
+    });
     if (!item || item.eventId !== event.id) {
       throw new NotFoundException('Item introuvable');
     }
