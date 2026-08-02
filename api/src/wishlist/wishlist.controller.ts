@@ -73,4 +73,18 @@ export class WishlistController {
     }
     return this.wishlistService.remove(slug, id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/assign')
+  async assign(@Param('slug') slug: string, @Param('id') id: string, @Req() req: Request) {
+    const user = req.user as JwtPayload;
+    return this.wishlistService.assign(slug, id, user.sub);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/assign')
+  async unassign(@Param('slug') slug: string, @Param('id') id: string, @Req() req: Request) {
+    const user = req.user as JwtPayload;
+    return this.wishlistService.unassign(slug, id, user.sub);
+  }
 }
