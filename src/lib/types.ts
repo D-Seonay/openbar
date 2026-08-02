@@ -56,11 +56,17 @@ export interface Contribution {
   createdAt: string;
 }
 
+export interface WishlistItemAssignment {
+  id: string;
+  user: { id: string; username: string };
+}
+
 export interface WishlistItem {
   id: string;
   eventId: string;
   label: string;
   createdAt: string;
+  assignments: WishlistItemAssignment[];
 }
 
 export interface StockAdjustment {

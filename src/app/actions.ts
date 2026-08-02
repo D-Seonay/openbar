@@ -214,6 +214,16 @@ export async function deleteWishlistItemAction(slug: string, id: string) {
   revalidatePath(`/soirees/${slug}`);
 }
 
+export async function assignWishlistItemAction(slug: string, itemId: string) {
+  await api.assignWishlistItem(slug, itemId);
+  revalidatePath(`/soirees/${slug}`);
+}
+
+export async function unassignWishlistItemAction(slug: string, itemId: string) {
+  await api.unassignWishlistItem(slug, itemId);
+  revalidatePath(`/soirees/${slug}`);
+}
+
 export async function submitBilan(slug: string, formData: FormData) {
   await requireLoggedIn();
   const changes: { bottleId: string; quantityAfter: number }[] = [];

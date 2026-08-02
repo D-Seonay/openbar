@@ -16,6 +16,7 @@ import type {
   BarAdminDetail,
   MyProfile,
   WishlistItem,
+  WishlistItemAssignment,
 } from "./types";
 import type { CocktailRecipe, RecipeAvailability } from "./cocktail-types";
 import { getBaseApiUrl } from "./api";
@@ -202,6 +203,16 @@ export function addWishlistItem(slug: string, label: string): Promise<WishlistIt
 
 export function deleteWishlistItem(slug: string, id: string): Promise<{ success: boolean }> {
   return request(`/events/${slug}/wishlist/${id}`, { method: "DELETE" });
+}
+
+export function assignWishlistItem(slug: string, itemId: string): Promise<WishlistItemAssignment> {
+  return request<WishlistItemAssignment>(`/events/${slug}/wishlist/${itemId}/assign`, {
+    method: "POST",
+  });
+}
+
+export function unassignWishlistItem(slug: string, itemId: string): Promise<{ success: boolean }> {
+  return request(`/events/${slug}/wishlist/${itemId}/assign`, { method: "DELETE" });
 }
 
 // Stock Adjustments
