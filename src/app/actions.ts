@@ -201,6 +201,19 @@ export async function deleteContributionAction(slug: string, id: string) {
   revalidatePath(`/soirees/${slug}`);
 }
 
+export async function addWishlistItemAction(slug: string, formData: FormData) {
+  const label = String(formData.get("label") ?? "").trim();
+  if (!label) return;
+
+  await api.addWishlistItem(slug, label);
+  revalidatePath(`/soirees/${slug}`);
+}
+
+export async function deleteWishlistItemAction(slug: string, id: string) {
+  await api.deleteWishlistItem(slug, id);
+  revalidatePath(`/soirees/${slug}`);
+}
+
 export async function submitBilan(slug: string, formData: FormData) {
   await requireLoggedIn();
   const changes: { bottleId: string; quantityAfter: number }[] = [];

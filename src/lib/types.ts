@@ -56,6 +56,13 @@ export interface Contribution {
   createdAt: string;
 }
 
+export interface WishlistItem {
+  id: string;
+  eventId: string;
+  label: string;
+  createdAt: string;
+}
+
 export interface StockAdjustment {
   id: string;
   eventId: string;

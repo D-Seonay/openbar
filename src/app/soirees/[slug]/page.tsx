@@ -1,9 +1,10 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { getEvent, listContributions, listBottles, listStockAdjustments, evaluateCocktails, listMyBars } from "@/lib/api-client";
+import { getEvent, listContributions, listBottles, listStockAdjustments, evaluateCocktails, listMyBars, listWishlistItems } from "@/lib/api-client";
 import { getSession } from "@/lib/session";
 import { resolveActiveBar } from "@/lib/active-bar";
 import GuestPanel from "./GuestPanel";
+import WishlistSection from "./WishlistSection";
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -17,11 +18,12 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const activeBar = await resolveActiveBar(bars);
   if (!activeBar) redirect("/");
 
-  const [bottles, adjustments, availability, contributions] = await Promise.all([
+  const [bottles, adjustments, availability, contributions, wishlistItems] = await Promise.all([
     listBottles(activeBar.id),
     listStockAdjustments(slug),
     evaluateCocktails(activeBar.id),
     listContributions(slug),
+    listWishlistItems(slug),
   ]);
 
   const stock = bottles
@@ -34,6 +36,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
   const readyCocktails = availability.filter((a) => a.makeable && !a.usesVip);
   const vipCocktails = availability.filter((a) => a.makeable && a.usesVip);
+
+  const canManageWishlist = activeBar.myRole === "OWNER" || session.role === "ADMIN";
 
   const netAdjustments = Object.values(
     adjustments.reduce((acc, adj) => {
@@ -130,6 +134,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         readyCocktails={readyCocktails}
         vipCocktails={vipCocktails}
       />
+
+      <WishlistSection slug={slug} items={wishlistItems} canManage={canManageWishlist} />
     </div>
   );
 }

@@ -15,6 +15,7 @@ import type {
   BarAdminSummary,
   BarAdminDetail,
   MyProfile,
+  WishlistItem,
 } from "./types";
 import type { CocktailRecipe, RecipeAvailability } from "./cocktail-types";
 import { getBaseApiUrl } from "./api";
@@ -186,6 +187,21 @@ export function addContribution(
 
 export function deleteContribution(slug: string, id: string): Promise<{ success: boolean }> {
   return request(`/events/${slug}/contributions/${id}`, { method: "DELETE" });
+}
+
+export function listWishlistItems(slug: string): Promise<WishlistItem[]> {
+  return request<WishlistItem[]>(`/events/${slug}/wishlist`);
+}
+
+export function addWishlistItem(slug: string, label: string): Promise<WishlistItem> {
+  return request<WishlistItem>(`/events/${slug}/wishlist`, {
+    method: "POST",
+    body: JSON.stringify({ label }),
+  });
+}
+
+export function deleteWishlistItem(slug: string, id: string): Promise<{ success: boolean }> {
+  return request(`/events/${slug}/wishlist/${id}`, { method: "DELETE" });
 }
 
 // Stock Adjustments
