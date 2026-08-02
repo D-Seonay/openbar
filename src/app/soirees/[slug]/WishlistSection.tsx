@@ -1,17 +1,19 @@
 "use client";
 
 import { useTransition } from "react";
-import { addWishlistItemAction, deleteWishlistItemAction } from "@/app/actions";
+import { addWishlistItemAction, deleteWishlistItemAction, assignWishlistItemAction, unassignWishlistItemAction } from "@/app/actions";
 import type { WishlistItem } from "@/lib/types";
 
 export default function WishlistSection({
   slug,
   items,
   canManage,
+  currentUserId,
 }: {
   slug: string;
   items: WishlistItem[];
   canManage: boolean;
+  currentUserId: string;
 }) {
   const [isPending, startTransition] = useTransition();
 
@@ -61,18 +63,48 @@ export default function WishlistSection({
           {items.map((wishlistItem) => (
             <li
               key={wishlistItem.id}
-              className="rounded-xl border border-white/[0.08] bg-ink/70 px-3.5 sm:px-4 py-3 flex items-center justify-between gap-3 text-xs text-cream hover:border-orange/30 transition-all"
+              className="rounded-xl border border-white/[0.08] bg-ink/70 px-3.5 sm:px-4 py-3 space-y-2 text-xs text-cream hover:border-orange/30 transition-all"
             >
-              <span className="font-semibold text-cream break-words">{wishlistItem.label}</span>
-              {canManage && (
-                <button
-                  disabled={isPending}
-                  onClick={() => startTransition(() => deleteWishlistItemAction(slug, wishlistItem.id))}
-                  className="tap-target-sm shrink-0 flex items-center px-1.5 text-[10px] text-muted hover:text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer"
-                >
-                  Retirer
-                </button>
-              )}
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-semibold text-cream break-words">{wishlistItem.label}</span>
+                {canManage && (
+                  <button
+                    disabled={isPending}
+                    onClick={() => startTransition(() => deleteWishlistItemAction(slug, wishlistItem.id))}
+                    className="tap-target-sm shrink-0 flex items-center px-1.5 text-[10px] text-muted hover:text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    Retirer
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                {wishlistItem.assignments.length > 0 ? (
+                  <span className="text-[10px] text-muted">
+                    Pris par {wishlistItem.assignments.map((a) => a.user.username).join(", ")}
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-muted italic">Personne pour l&apos;instant</span>
+                )}
+
+                {wishlistItem.assignments.some((a) => a.user.id === currentUserId) ? (
+                  <button
+                    disabled={isPending}
+                    onClick={() => startTransition(() => unassignWishlistItemAction(slug, wishlistItem.id))}
+                    className="tap-target-sm shrink-0 flex items-center px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-red-500/10 border border-white/[0.08] hover:border-red-400/40 text-[10px] text-muted hover:text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    Je ne peux plus
+                  </button>
+                ) : (
+                  <button
+                    disabled={isPending}
+                    onClick={() => startTransition(() => assignWishlistItemAction(slug, wishlistItem.id))}
+                    className="tap-target-sm shrink-0 flex items-center px-2.5 py-1 rounded-lg bg-orange/15 hover:bg-orange/25 border border-orange/40 text-[10px] text-orange font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    Je m&apos;en occupe
+                  </button>
+                )}
+              </div>
             </li>
           ))}
         </ul>
