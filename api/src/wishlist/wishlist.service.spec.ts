@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { WishlistService } from './wishlist.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsService } from '../events/events.service';
@@ -24,6 +25,7 @@ describe('WishlistService', () => {
         findUnique: jest.fn(),
         create: jest.fn(),
         delete: jest.fn(),
+        deleteMany: jest.fn(),
       },
     };
     eventsService = { findBySlug: jest.fn() };
@@ -151,23 +153,48 @@ describe('WishlistService', () => {
     await expect(service.assign('apero-du-samedi-a1b2c3d4', 'item-1', 'user-1')).rejects.toThrow(NotFoundException);
   });
 
+  it('returns the existing assignment when a concurrent request already created it', async () => {
+    eventsService.findBySlug.mockResolvedValue({ id: 'event-1' });
+    prisma.wishlistItem.findUnique.mockResolvedValue({ id: 'item-1', eventId: 'event-1', label: 'Glaçons' });
+    const createdByConcurrentRequest = {
+      id: 'assign-1',
+      wishlistItemId: 'item-1',
+      userId: 'user-1',
+      user: { id: 'user-1', username: 'Alice' },
+    };
+    prisma.wishlistItemAssignment.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(createdByConcurrentRequest);
+    prisma.wishlistItemAssignment.create.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+        code: 'P2002',
+        clientVersion: '5.0.0',
+      }),
+    );
+
+    const result = await service.assign('apero-du-samedi-a1b2c3d4', 'item-1', 'user-1');
+
+    expect(result).toEqual(createdByConcurrentRequest);
+  });
+
   it('removes the assignment when the caller owns it', async () => {
     eventsService.findBySlug.mockResolvedValue({ id: 'event-1' });
     prisma.wishlistItem.findUnique.mockResolvedValue({ id: 'item-1', eventId: 'event-1', label: 'Glaçons' });
-    prisma.wishlistItemAssignment.findUnique.mockResolvedValue({ id: 'assign-1', wishlistItemId: 'item-1', userId: 'user-1' });
+    prisma.wishlistItemAssignment.deleteMany.mockResolvedValue({ count: 1 });
 
     const result = await service.unassign('apero-du-samedi-a1b2c3d4', 'item-1', 'user-1');
 
-    expect(prisma.wishlistItemAssignment.delete).toHaveBeenCalledWith({ where: { id: 'assign-1' } });
+    expect(prisma.wishlistItemAssignment.deleteMany).toHaveBeenCalledWith({
+      where: { wishlistItemId: 'item-1', userId: 'user-1' },
+    });
     expect(result).toEqual({ success: true });
   });
 
   it('rejects unassigning when the caller has no assignment on the item', async () => {
     eventsService.findBySlug.mockResolvedValue({ id: 'event-1' });
     prisma.wishlistItem.findUnique.mockResolvedValue({ id: 'item-1', eventId: 'event-1', label: 'Glaçons' });
-    prisma.wishlistItemAssignment.findUnique.mockResolvedValue(null);
+    prisma.wishlistItemAssignment.deleteMany.mockResolvedValue({ count: 0 });
 
     await expect(service.unassign('apero-du-samedi-a1b2c3d4', 'item-1', 'user-1')).rejects.toThrow(NotFoundException);
-    expect(prisma.wishlistItemAssignment.delete).not.toHaveBeenCalled();
   });
 });

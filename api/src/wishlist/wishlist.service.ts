@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsService } from '../events/events.service';
 
@@ -51,10 +52,21 @@ export class WishlistService {
       include: { user: { select: { id: true, username: true } } },
     });
     if (existing) return existing;
-    return this.prisma.wishlistItemAssignment.create({
-      data: { wishlistItemId: itemId, userId },
-      include: { user: { select: { id: true, username: true } } },
-    });
+    try {
+      return await this.prisma.wishlistItemAssignment.create({
+        data: { wishlistItemId: itemId, userId },
+        include: { user: { select: { id: true, username: true } } },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        // A concurrent request created the same assignment first; return that row.
+        return this.prisma.wishlistItemAssignment.findUnique({
+          where: { wishlistItemId_userId: { wishlistItemId: itemId, userId } },
+          include: { user: { select: { id: true, username: true } } },
+        });
+      }
+      throw error;
+    }
   }
 
   async unassign(slug: string, itemId: string, userId: string) {
@@ -63,13 +75,12 @@ export class WishlistService {
     if (!item || item.eventId !== event.id) {
       throw new NotFoundException('Item introuvable');
     }
-    const assignment = await this.prisma.wishlistItemAssignment.findUnique({
-      where: { wishlistItemId_userId: { wishlistItemId: itemId, userId } },
+    const { count } = await this.prisma.wishlistItemAssignment.deleteMany({
+      where: { wishlistItemId: itemId, userId },
     });
-    if (!assignment) {
+    if (count === 0) {
       throw new NotFoundException('Assignation introuvable');
     }
-    await this.prisma.wishlistItemAssignment.delete({ where: { id: assignment.id } });
     return { success: true };
   }
 }
