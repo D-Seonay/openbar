@@ -36,6 +36,7 @@ export interface EventItem {
   name: string;
   date: string;
   isClosed: boolean;
+  barId: string;
   createdAt: string;
   _count?: {
     stockAdjustments: number;

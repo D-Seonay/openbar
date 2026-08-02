@@ -114,7 +114,7 @@ export default function GuestPanel({
                 <h2 className="font-display text-xl font-bold text-cream">Qui ramène quoi</h2>
               </div>
               <span className="text-xs font-mono font-bold text-orange bg-orange/15 px-3 py-1 rounded-full border border-orange/30">
-                {contributions.length} Contribution{contributions.length > 1 ? "s" : ""}
+                {contributions.length} Contribution{contributions.length !== 1 ? "s" : ""}
               </span>
             </div>
 

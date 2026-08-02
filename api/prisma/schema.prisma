@@ -44,23 +44,23 @@ enum JoinRequestStatus {
 }
 
 model User {
-  id                 String         @id @default(cuid())
-  username           String         @unique
-  passwordHash       String
-  role               Role           @default(USER)
-  vip                Boolean        @default(false)
-  mustChangePassword Boolean        @default(false)
-  birthday           DateTime?
-  favoriteDrink      String?
-  allergies          String?
-  avatarUrl          String?
-  createdAt          DateTime       @default(now())
-  isArchived         Boolean        @default(false)
-  contributions      Contribution[]
+  id                  String                   @id @default(cuid())
+  username            String                   @unique
+  passwordHash        String
+  role                Role                     @default(USER)
+  vip                 Boolean                  @default(false)
+  mustChangePassword  Boolean                  @default(false)
+  birthday            DateTime?
+  favoriteDrink       String?
+  allergies           String?
+  avatarUrl           String?
+  createdAt           DateTime                 @default(now())
+  isArchived          Boolean                  @default(false)
+  contributions       Contribution[]
   wishlistAssignments WishlistItemAssignment[]
-  recipes            Recipe[]
-  barMemberships     BarMembership[]
-  barJoinRequests    BarJoinRequest[]
+  recipes             Recipe[]
+  barMemberships      BarMembership[]
+  barJoinRequests     BarJoinRequest[]
 }
 
 model Bottle {
@@ -164,12 +164,12 @@ model Recipe {
 }
 
 model Bar {
-  id           String          @id @default(cuid())
+  id           String           @id @default(cuid())
   name         String
-  isPublic     Boolean         @default(true)
-  inviteToken  String?         @unique
-  isArchived   Boolean         @default(false)
-  createdAt    DateTime        @default(now())
+  isPublic     Boolean          @default(true)
+  inviteToken  String?          @unique
+  isArchived   Boolean          @default(false)
+  createdAt    DateTime         @default(now())
   memberships  BarMembership[]
   bottles      Bottle[]
   events       Event[]

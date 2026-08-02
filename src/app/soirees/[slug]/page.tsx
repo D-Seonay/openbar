@@ -37,7 +37,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const readyCocktails = availability.filter((a) => a.makeable && !a.usesVip);
   const vipCocktails = availability.filter((a) => a.makeable && a.usesVip);
 
-  const canManageWishlist = activeBar.myRole === "OWNER" || session.role === "ADMIN";
+  const canManageWishlist =
+    session.role === "ADMIN" || (event.barId === activeBar.id && activeBar.myRole === "OWNER");
 
   const netAdjustments = Object.values(
     adjustments.reduce((acc, adj) => {

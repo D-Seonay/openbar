@@ -202,6 +202,7 @@ export async function deleteContributionAction(slug: string, id: string) {
 }
 
 export async function addWishlistItemAction(slug: string, formData: FormData) {
+  await requireLoggedIn();
   const label = String(formData.get("label") ?? "").trim();
   if (!label) return;
 
@@ -210,16 +211,19 @@ export async function addWishlistItemAction(slug: string, formData: FormData) {
 }
 
 export async function deleteWishlistItemAction(slug: string, id: string) {
+  await requireLoggedIn();
   await api.deleteWishlistItem(slug, id);
   revalidatePath(`/soirees/${slug}`);
 }
 
 export async function assignWishlistItemAction(slug: string, itemId: string) {
+  await requireLoggedIn();
   await api.assignWishlistItem(slug, itemId);
   revalidatePath(`/soirees/${slug}`);
 }
 
 export async function unassignWishlistItemAction(slug: string, itemId: string) {
+  await requireLoggedIn();
   await api.unassignWishlistItem(slug, itemId);
   revalidatePath(`/soirees/${slug}`);
 }
