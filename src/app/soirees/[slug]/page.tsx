@@ -135,7 +135,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         vipCocktails={vipCocktails}
       />
 
-      <WishlistSection slug={slug} items={wishlistItems} canManage={canManageWishlist} />
+      <WishlistSection slug={slug} items={wishlistItems} canManage={canManageWishlist} currentUserId={session.sub} />
     </div>
   );
 }
