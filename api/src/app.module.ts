@@ -9,6 +9,7 @@ import { ContributionsModule } from './contributions/contributions.module';
 import { StockAdjustmentsModule } from './stock-adjustments/stock-adjustments.module';
 import { RecipesModule } from './recipes/recipes.module';
 import { BarsModule } from './bars/bars.module';
+import { WishlistModule } from './wishlist/wishlist.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { BarsModule } from './bars/bars.module';
     CocktailsModule,
     EventsModule,
     ContributionsModule,
+    WishlistModule,
     StockAdjustmentsModule,
     RecipesModule,
     BarsModule,
