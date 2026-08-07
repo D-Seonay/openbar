@@ -53,7 +53,9 @@ describe('WishlistService', () => {
       include: {
         assignments: {
           orderBy: { createdAt: 'asc' },
-          include: { user: { select: { id: true, username: true } } },
+          include: {
+            user: { select: { id: true, username: true, avatarUrl: true } },
+          },
         },
       },
     });
@@ -74,7 +76,9 @@ describe('WishlistService', () => {
       data: { eventId: 'event-1', label: 'Glaçons' },
       include: {
         assignments: {
-          include: { user: { select: { id: true, username: true } } },
+          include: {
+            user: { select: { id: true, username: true, avatarUrl: true } },
+          },
         },
       },
     });
@@ -137,7 +141,11 @@ describe('WishlistService', () => {
       id: 'assign-1',
       wishlistItemId: 'item-1',
       userId: 'user-1',
-      user: { id: 'user-1', username: 'Alice' },
+      user: {
+        id: 'user-1',
+        username: 'Alice',
+        avatarUrl: '/uploads/alice.png',
+      },
     };
     prisma.wishlistItemAssignment.create.mockResolvedValue(created);
 
@@ -149,7 +157,9 @@ describe('WishlistService', () => {
 
     expect(prisma.wishlistItemAssignment.create).toHaveBeenCalledWith({
       data: { wishlistItemId: 'item-1', userId: 'user-1' },
-      include: { user: { select: { id: true, username: true } } },
+      include: {
+        user: { select: { id: true, username: true, avatarUrl: true } },
+      },
     });
     expect(result).toEqual(created);
   });
@@ -165,7 +175,11 @@ describe('WishlistService', () => {
       id: 'assign-1',
       wishlistItemId: 'item-1',
       userId: 'user-1',
-      user: { id: 'user-1', username: 'Alice' },
+      user: {
+        id: 'user-1',
+        username: 'Alice',
+        avatarUrl: '/uploads/alice.png',
+      },
     };
     prisma.wishlistItemAssignment.findUnique.mockResolvedValue(existing);
 
@@ -203,7 +217,11 @@ describe('WishlistService', () => {
       id: 'assign-1',
       wishlistItemId: 'item-1',
       userId: 'user-1',
-      user: { id: 'user-1', username: 'Alice' },
+      user: {
+        id: 'user-1',
+        username: 'Alice',
+        avatarUrl: '/uploads/alice.png',
+      },
     };
     prisma.wishlistItemAssignment.findUnique
       .mockResolvedValueOnce(null)

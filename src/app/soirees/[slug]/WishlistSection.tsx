@@ -2,7 +2,32 @@
 
 import { useTransition } from "react";
 import { addWishlistItemAction, deleteWishlistItemAction, assignWishlistItemAction, unassignWishlistItemAction } from "@/app/actions";
-import type { WishlistItem } from "@/lib/types";
+import type { WishlistItem, WishlistItemAssignment } from "@/lib/types";
+
+/**
+ * Avatar for one assignee. `avatarUrl` is a relative `/uploads/...` path that
+ * the Next rewrite proxies to the API, so it is used as-is. Users without a
+ * picture fall back to their initials, same as the directory and the header.
+ */
+function AssigneeAvatar({ user }: { user: WishlistItemAssignment["user"] }) {
+  const className =
+    "w-6 h-6 rounded-full border border-ink ring-1 ring-white/[0.08] shrink-0 object-cover";
+
+  if (!user.avatarUrl) {
+    return (
+      <span
+        title={user.username}
+        className={`${className} bg-ink-2 flex items-center justify-center font-display text-[9px] font-bold text-gold`}
+      >
+        {user.username.slice(0, 2).toUpperCase()}
+      </span>
+    );
+  }
+
+  return (
+    <img src={user.avatarUrl} alt={user.username} title={user.username} className={className} />
+  );
+}
 
 function WishlistItemRow({
   slug,
@@ -35,8 +60,16 @@ function WishlistItemRow({
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
         {wishlistItem.assignments.length > 0 ? (
-          <span className="text-[10px] text-muted">
-            Pris par {wishlistItem.assignments.map((a) => a.user.username).join(", ")}
+          <span className="flex items-center gap-2 min-w-0">
+            {/* Overlapped so a long guest list stays compact on a phone. */}
+            <span className="flex -space-x-2 shrink-0">
+              {wishlistItem.assignments.map((a) => (
+                <AssigneeAvatar key={a.id} user={a.user} />
+              ))}
+            </span>
+            <span className="text-[10px] text-muted break-words min-w-0">
+              Pris par {wishlistItem.assignments.map((a) => a.user.username).join(", ")}
+            </span>
           </span>
         ) : (
           <span className="text-[10px] text-muted italic">Personne pour l&apos;instant</span>

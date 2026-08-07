@@ -59,7 +59,7 @@ export interface Contribution {
 
 export interface WishlistItemAssignment {
   id: string;
-  user: { id: string; username: string };
+  user: { id: string; username: string; avatarUrl: string | null };
 }
 
 export interface WishlistItem {
