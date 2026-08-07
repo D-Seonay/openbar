@@ -3,6 +3,15 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsService } from '../events/events.service';
 
+// Every assignment read exposes the same public shape. Kept in one place so the
+// call sites below can't drift apart — the UI renders an avatar per assignee
+// and silently falls back to initials if `avatarUrl` goes missing.
+const ASSIGNEE_SELECT = {
+  id: true,
+  username: true,
+  avatarUrl: true,
+} as const;
+
 @Injectable()
 export class WishlistService {
   constructor(
@@ -18,7 +27,7 @@ export class WishlistService {
       include: {
         assignments: {
           orderBy: { createdAt: 'asc' },
-          include: { user: { select: { id: true, username: true } } },
+          include: { user: { select: ASSIGNEE_SELECT } },
         },
       },
     });
@@ -30,7 +39,7 @@ export class WishlistService {
       data: { eventId: event.id, label },
       include: {
         assignments: {
-          include: { user: { select: { id: true, username: true } } },
+          include: { user: { select: ASSIGNEE_SELECT } },
         },
       },
     });
@@ -56,13 +65,13 @@ export class WishlistService {
     }
     const existing = await this.prisma.wishlistItemAssignment.findUnique({
       where: { wishlistItemId_userId: { wishlistItemId: itemId, userId } },
-      include: { user: { select: { id: true, username: true } } },
+      include: { user: { select: ASSIGNEE_SELECT } },
     });
     if (existing) return existing;
     try {
       return await this.prisma.wishlistItemAssignment.create({
         data: { wishlistItemId: itemId, userId },
-        include: { user: { select: { id: true, username: true } } },
+        include: { user: { select: ASSIGNEE_SELECT } },
       });
     } catch (error) {
       if (
@@ -72,7 +81,7 @@ export class WishlistService {
         // A concurrent request created the same assignment first; return that row.
         return this.prisma.wishlistItemAssignment.findUnique({
           where: { wishlistItemId_userId: { wishlistItemId: itemId, userId } },
-          include: { user: { select: { id: true, username: true } } },
+          include: { user: { select: ASSIGNEE_SELECT } },
         });
       }
       throw error;
