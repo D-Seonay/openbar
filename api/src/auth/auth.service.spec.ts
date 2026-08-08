@@ -5,6 +5,15 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 
+jest.mock('bcrypt', () => ({
+  hash: jest.fn(async (pw: string) => `hashed-${pw}`),
+  compare: jest.fn(async (pw: string, hash: string) => hash === `hashed-${pw}`),
+  hashSync: jest.fn((pw: string) => `hashed-${pw}`),
+  compareSync: jest.fn((pw: string, hash: string) => hash === `hashed-${pw}`),
+  genSalt: jest.fn(async () => 'mock-salt'),
+  genSaltSync: jest.fn(() => 'mock-salt'),
+}));
+
 describe('AuthService', () => {
   let service: AuthService;
   let usersService: {
@@ -38,7 +47,7 @@ describe('AuthService', () => {
   });
 
   it('logs in successfully with correct credentials and returns a signed token', async () => {
-    const passwordHash = await bcrypt.hash('mot-de-passe-dEssai', 10);
+    const passwordHash = await bcrypt.hash('demo', 10);
     usersService.findByUsername.mockResolvedValue({
       id: '1',
       username: 'noa',
@@ -48,7 +57,7 @@ describe('AuthService', () => {
       mustChangePassword: false,
     });
 
-    const result = await service.login('noa', 'mot-de-passe-dEssai');
+    const result = await service.login('noa', 'demo');
 
     expect(result.token).toBe('signed.jwt.token');
     expect(result.user).toEqual({
@@ -60,7 +69,7 @@ describe('AuthService', () => {
   });
 
   it('signs an ADMIN token with a 24h expiry', async () => {
-    const passwordHash = await bcrypt.hash('mot-de-passe-dEssai', 10);
+    const passwordHash = await bcrypt.hash('demo', 10);
     usersService.findByUsername.mockResolvedValue({
       id: '1',
       username: 'noa',
@@ -70,7 +79,7 @@ describe('AuthService', () => {
       mustChangePassword: false,
     });
 
-    await service.login('noa', 'mot-de-passe-dEssai');
+    await service.login('noa', 'demo');
 
     expect(jwtService.sign).toHaveBeenCalledWith(
       expect.objectContaining({ role: 'ADMIN' }),
@@ -79,7 +88,7 @@ describe('AuthService', () => {
   });
 
   it('signs a USER token with a 30d expiry', async () => {
-    const passwordHash = await bcrypt.hash('mot-de-passe-dEssai', 10);
+    const passwordHash = await bcrypt.hash('demo', 10);
     usersService.findByUsername.mockResolvedValue({
       id: '1',
       username: 'noa',
@@ -89,7 +98,7 @@ describe('AuthService', () => {
       mustChangePassword: false,
     });
 
-    await service.login('noa', 'mot-de-passe-dEssai');
+    await service.login('noa', 'demo');
 
     expect(jwtService.sign).toHaveBeenCalledWith(
       expect.objectContaining({ role: 'USER' }),
@@ -98,7 +107,7 @@ describe('AuthService', () => {
   });
 
   it('rejects login with a wrong password', async () => {
-    const passwordHash = await bcrypt.hash('mot-de-passe-dEssai', 10);
+    const passwordHash = await bcrypt.hash('demo', 10);
     usersService.findByUsername.mockResolvedValue({
       id: '1',
       username: 'noa',
@@ -129,11 +138,11 @@ describe('AuthService', () => {
       vip: false,
     });
 
-    const result = await service.signup('newuser', 'mot-de-passe-dEssai');
+    const result = await service.signup('newuser', 'demo');
 
     expect(usersService.create).toHaveBeenCalledWith({
       username: 'newuser',
-      password: 'mot-de-passe-dEssai',
+      password: 'demo',
     });
     expect(result.token).toBe('signed.jwt.token');
     expect(result.user).toEqual({
@@ -145,7 +154,7 @@ describe('AuthService', () => {
   });
 
   it('includes mustChangePassword: true in the JWT payload when the account must change its password', async () => {
-    const passwordHash = await bcrypt.hash('mot-de-passe-dEssai', 10);
+    const passwordHash = await bcrypt.hash('demo', 10);
     usersService.findByUsername.mockResolvedValue({
       id: '1',
       username: 'noa',
@@ -155,7 +164,7 @@ describe('AuthService', () => {
       mustChangePassword: true,
     });
 
-    await service.login('noa', 'mot-de-passe-dEssai');
+    await service.login('noa', 'demo');
 
     expect(jwtService.sign).toHaveBeenCalledWith(
       expect.objectContaining({ mustChangePassword: true }),
@@ -172,7 +181,7 @@ describe('AuthService', () => {
       mustChangePassword: false,
     });
 
-    await service.signup('newuser', 'mot-de-passe-dEssai');
+    await service.signup('newuser', 'demo');
 
     expect(jwtService.sign).toHaveBeenCalledWith(
       expect.objectContaining({ mustChangePassword: false }),
@@ -182,7 +191,7 @@ describe('AuthService', () => {
 
   describe('changePassword', () => {
     it('updates the password and clears mustChangePassword when the current password is correct', async () => {
-      const passwordHash = await bcrypt.hash('mot-de-passe-temporaire', 10);
+      const passwordHash = await bcrypt.hash('demo-current', 10);
       usersService.findById.mockResolvedValue({
         id: '1',
         username: 'noa',
@@ -199,14 +208,10 @@ describe('AuthService', () => {
         mustChangePassword: false,
       });
 
-      const result = await service.changePassword(
-        '1',
-        'mot-de-passe-temporaire',
-        'mot-de-passe-dEssai',
-      );
+      const result = await service.changePassword('1', 'demo-current', 'demo');
 
       expect(usersService.update).toHaveBeenCalledWith('1', {
-        password: 'mot-de-passe-dEssai',
+        password: 'demo',
         mustChangePassword: false,
       });
       expect(jwtService.sign).toHaveBeenCalledWith(
@@ -217,7 +222,7 @@ describe('AuthService', () => {
     });
 
     it('rejects with UnauthorizedException when the current password is wrong', async () => {
-      const passwordHash = await bcrypt.hash('mot-de-passe-temporaire', 10);
+      const passwordHash = await bcrypt.hash('demo-current', 10);
       usersService.findById.mockResolvedValue({
         id: '1',
         username: 'noa',
@@ -228,7 +233,7 @@ describe('AuthService', () => {
       });
 
       await expect(
-        service.changePassword('1', 'wrongpassword', 'mot-de-passe-dEssai'),
+        service.changePassword('1', 'demo-invalid', 'demo'),
       ).rejects.toThrow(UnauthorizedException);
       expect(usersService.update).not.toHaveBeenCalled();
     });
@@ -237,7 +242,7 @@ describe('AuthService', () => {
       usersService.findById.mockResolvedValue(null);
 
       await expect(
-        service.changePassword('ghost', 'whatever', 'mot-de-passe-dEssai'),
+        service.changePassword('ghost', 'whatever', 'demo'),
       ).rejects.toThrow(UnauthorizedException);
     });
   });
