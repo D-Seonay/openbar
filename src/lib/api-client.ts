@@ -18,6 +18,7 @@ import type {
   MyProfile,
   WishlistItem,
   WishlistItemAssignment,
+  EventMedia,
 } from "./types";
 import type { CocktailRecipe, RecipeAvailability } from "./cocktail-types";
 import { getBaseApiUrl } from "./api";
@@ -220,6 +221,22 @@ export function assignWishlistItem(slug: string, itemId: string): Promise<Wishli
 
 export function unassignWishlistItem(slug: string, itemId: string): Promise<{ success: boolean }> {
   return request(`/events/${slug}/wishlist/${itemId}/assign`, { method: "DELETE" });
+}
+
+// Event media (gallery)
+export function listEventMedia(slug: string): Promise<EventMedia[]> {
+  return request<EventMedia[]>(`/events/${slug}/media`);
+}
+
+export function addEventMediaLink(slug: string, url: string): Promise<EventMedia> {
+  return request<EventMedia>(`/events/${slug}/media/link`, {
+    method: "POST",
+    body: JSON.stringify({ url }),
+  });
+}
+
+export function deleteEventMedia(slug: string, id: string): Promise<{ success: boolean }> {
+  return request(`/events/${slug}/media/${id}`, { method: "DELETE" });
 }
 
 // Stock Adjustments

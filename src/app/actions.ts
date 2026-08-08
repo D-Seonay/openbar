@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import * as api from "@/lib/api-client";
 import { isAdminLoggedIn, getSession, SESSION_COOKIE } from "@/lib/session";
-import type { BarcodeLookupResult, BottleType, BottleVolume } from "@/lib/types";
+import type { BarcodeLookupResult, BottleType, BottleVolume, EventMedia } from "@/lib/types";
 import { getBaseApiUrl } from "@/lib/api";
 
 async function requireAdmin() {
@@ -275,6 +275,63 @@ export async function submitBilan(slug: string, formData: FormData) {
 }
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+const MAX_MEDIA_SIZE = 200 * 1024 * 1024;
+
+export async function uploadEventMedia(slug: string, formData: FormData): Promise<EventMedia | null> {
+  await requireLoggedIn();
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) return null;
+  if (file.size > MAX_MEDIA_SIZE) {
+    throw new Error(`Le fichier dépasse la limite de ${MAX_MEDIA_SIZE / 1024 / 1024} Mo`);
+  }
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+
+  const apiFormData = new FormData();
+  apiFormData.append("file", file);
+
+  const res = await fetch(`${getBaseApiUrl()}/events/${slug}/media/upload`, {
+    method: "POST",
+    headers: {
+      ...(token ? { Cookie: `${SESSION_COOKIE}=${token}` } : {}),
+    },
+    body: apiFormData,
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    throw new Error(body.message ?? `Erreur API (${res.status})`);
+  }
+
+  revalidatePath(`/soirees/${slug}`);
+  return res.json() as Promise<EventMedia>;
+}
+
+export async function addEventMediaLinkAction(slug: string, formData: FormData) {
+  await requireLoggedIn();
+  const url = String(formData.get("url") ?? "").trim();
+  if (!url) return;
+
+  try {
+    await api.addEventMediaLink(slug, url);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Impossible d'ajouter le lien." };
+  }
+  revalidatePath(`/soirees/${slug}`);
+}
+
+export async function deleteEventMediaAction(slug: string, id: string) {
+  try {
+    await requireLoggedIn();
+    await api.deleteEventMedia(slug, id);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Erreur lors du retrait du média." };
+  }
+  revalidatePath(`/soirees/${slug}`);
+}
 
 export async function uploadBottleImage(formData: FormData): Promise<string | null> {
   await requireLoggedIn();

@@ -9,14 +9,29 @@ describe('BarAccessService', () => {
   let barsService: { getMembership: jest.Mock };
 
   const BAR_ID = 'bar-1';
-  const admin: JwtPayload = { sub: 'admin-1', username: 'root', role: 'ADMIN', vip: false, mustChangePassword: false };
-  const member: JwtPayload = { sub: 'user-1', username: 'alice', role: 'USER', vip: false, mustChangePassword: false };
+  const admin: JwtPayload = {
+    sub: 'admin-1',
+    username: 'root',
+    role: 'ADMIN',
+    vip: false,
+    mustChangePassword: false,
+  };
+  const member: JwtPayload = {
+    sub: 'user-1',
+    username: 'alice',
+    role: 'USER',
+    vip: false,
+    mustChangePassword: false,
+  };
 
   beforeEach(async () => {
     barsService = { getMembership: jest.fn() };
 
     const moduleRef = await Test.createTestingModule({
-      providers: [BarAccessService, { provide: BarsService, useValue: barsService }],
+      providers: [
+        BarAccessService,
+        { provide: BarsService, useValue: barsService },
+      ],
     }).compile();
 
     service = moduleRef.get(BarAccessService);
@@ -32,7 +47,9 @@ describe('BarAccessService', () => {
   it('throws ForbiddenException for a non-member', async () => {
     barsService.getMembership.mockResolvedValue(null);
 
-    await expect(service.assertMember(BAR_ID, member)).rejects.toThrow(ForbiddenException);
+    await expect(service.assertMember(BAR_ID, member)).rejects.toThrow(
+      ForbiddenException,
+    );
   });
 
   it('grants VIP visibility and owner status for an OWNER member', async () => {

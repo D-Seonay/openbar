@@ -45,7 +45,12 @@ export class AuthService {
     const expiresIn = user.role === 'ADMIN' ? '24h' : '30d';
     return {
       token: this.jwtService.sign(payload, { expiresIn }),
-      user: { id: user.id, username: user.username, role: user.role, vip: user.vip },
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        vip: user.vip,
+      },
     };
   }
 
@@ -59,14 +64,22 @@ export class AuthService {
     return this.issueToken(user);
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
     const user = await this.usersService.findById(userId);
     if (!user) throw new UnauthorizedException('Utilisateur introuvable');
 
     const matches = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!matches) throw new UnauthorizedException('Mot de passe actuel incorrect');
+    if (!matches)
+      throw new UnauthorizedException('Mot de passe actuel incorrect');
 
-    await this.usersService.update(userId, { password: newPassword, mustChangePassword: false });
+    await this.usersService.update(userId, {
+      password: newPassword,
+      mustChangePassword: false,
+    });
     return this.issueToken({
       id: user.id,
       username: user.username,
@@ -84,7 +97,12 @@ export class AuthService {
 
   async updateProfile(
     userId: string,
-    input: { birthday?: string; favoriteDrink?: string; allergies?: string; avatarUrl?: string },
+    input: {
+      birthday?: string;
+      favoriteDrink?: string;
+      allergies?: string;
+      avatarUrl?: string;
+    },
   ) {
     const user = await this.usersService.findPublicById(userId);
     if (!user) throw new UnauthorizedException('Utilisateur introuvable');

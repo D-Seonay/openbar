@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { JwtPayload } from '../auth/auth.service';
@@ -32,9 +43,14 @@ export class EventsController {
   @Post()
   async create(@Req() req: Request, @Body() dto: CreateEventDto) {
     const user = req.user as JwtPayload;
-    const { isOwnerOrAdmin } = await this.barAccessService.assertMember(dto.barId, user);
+    const { isOwnerOrAdmin } = await this.barAccessService.assertMember(
+      dto.barId,
+      user,
+    );
     if (!isOwnerOrAdmin) {
-      throw new ForbiddenException('Seul le propriétaire du bar peut créer une soirée');
+      throw new ForbiddenException(
+        'Seul le propriétaire du bar peut créer une soirée',
+      );
     }
     return this.eventsService.create(dto);
   }
@@ -43,9 +59,14 @@ export class EventsController {
   async remove(@Req() req: Request, @Param('slug') slug: string) {
     const user = req.user as JwtPayload;
     const event = await this.eventsService.findBySlug(slug);
-    const { isOwnerOrAdmin } = await this.barAccessService.assertMember(event.barId, user);
+    const { isOwnerOrAdmin } = await this.barAccessService.assertMember(
+      event.barId,
+      user,
+    );
     if (!isOwnerOrAdmin) {
-      throw new ForbiddenException('Seul le propriétaire du bar peut supprimer une soirée');
+      throw new ForbiddenException(
+        'Seul le propriétaire du bar peut supprimer une soirée',
+      );
     }
     return this.eventsService.remove(slug);
   }

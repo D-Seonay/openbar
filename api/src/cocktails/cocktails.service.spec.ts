@@ -17,7 +17,11 @@ function bottle(overrides: Partial<TestBottle>): TestBottle {
 
 describe('evaluateRecipes', () => {
   it('marks a recipe makeable when every required tag is covered', () => {
-    const bottles = [bottle({ tags: ['rhum blanc'] }), bottle({ tags: ['cola'] }), bottle({ tags: ['citron vert'] })];
+    const bottles = [
+      bottle({ tags: ['rhum blanc'] }),
+      bottle({ tags: ['cola'] }),
+      bottle({ tags: ['citron vert'] }),
+    ];
     const results = evaluateRecipes(bottles);
     const cubaLibre = results.find((r) => r.recipe.id === 'cuba-libre')!;
     expect(cubaLibre.makeable).toBe(true);
@@ -40,7 +44,11 @@ describe('evaluateRecipes', () => {
   });
 
   it('prefers a non-VIP bottle over a VIP bottle covering the same tag', () => {
-    const bottles = [bottle({ tags: ['whisky'], vip: true }), bottle({ tags: ['whisky'], vip: false }), bottle({ tags: ['cola'] })];
+    const bottles = [
+      bottle({ tags: ['whisky'], vip: true }),
+      bottle({ tags: ['whisky'], vip: false }),
+      bottle({ tags: ['cola'] }),
+    ];
     const results = evaluateRecipes(bottles);
     const whiskyCoca = results.find((r) => r.recipe.id === 'whisky-coca')!;
     expect(whiskyCoca.makeable).toBe(true);
@@ -48,7 +56,10 @@ describe('evaluateRecipes', () => {
   });
 
   it('flags a recipe as VIP-only when only a VIP bottle covers a required tag', () => {
-    const bottles = [bottle({ tags: ['whisky'], vip: true }), bottle({ tags: ['cola'] })];
+    const bottles = [
+      bottle({ tags: ['whisky'], vip: true }),
+      bottle({ tags: ['cola'] }),
+    ];
     const results = evaluateRecipes(bottles);
     const whiskyCoca = results.find((r) => r.recipe.id === 'whisky-coca')!;
     expect(whiskyCoca.makeable).toBe(true);
@@ -56,7 +67,11 @@ describe('evaluateRecipes', () => {
   });
 
   it('matches tags case-insensitively', () => {
-    const bottles = [bottle({ tags: ['RHUM Blanc'] }), bottle({ tags: ['Cola'] }), bottle({ tags: ['Citron Vert'] })];
+    const bottles = [
+      bottle({ tags: ['RHUM Blanc'] }),
+      bottle({ tags: ['Cola'] }),
+      bottle({ tags: ['Citron Vert'] }),
+    ];
     const results = evaluateRecipes(bottles);
     const cubaLibre = results.find((r) => r.recipe.id === 'cuba-libre')!;
     expect(cubaLibre.makeable).toBe(true);

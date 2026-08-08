@@ -49,7 +49,9 @@ export class EventsService {
     while (await this.prisma.event.findUnique({ where: { slug } })) {
       slug = `${base}-${randomBytes(4).toString('hex')}`;
     }
-    return this.prisma.event.create({ data: { barId: dto.barId, name: dto.name, date: dto.date, slug } });
+    return this.prisma.event.create({
+      data: { barId: dto.barId, name: dto.name, date: dto.date, slug },
+    });
   }
 
   async remove(slug: string) {

@@ -26,9 +26,11 @@ async function bootstrap() {
       res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox");
     },
   });
-  app.getHttpAdapter().get('/health', (_req: unknown, res: import('express').Response) => {
-    res.status(200).json({ status: 'ok' });
-  });
+  app
+    .getHttpAdapter()
+    .get('/health', (_req: unknown, res: import('express').Response) => {
+      res.status(200).json({ status: 'ok' });
+    });
   await app.listen(process.env.PORT ?? 3001);
 }
 bootstrap();

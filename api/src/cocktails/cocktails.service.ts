@@ -27,7 +27,9 @@ export function evaluateRecipes(
   const inStock = bottles.filter((b) => b.quantity > 0);
 
   function bestMatch(tag: string) {
-    const candidates = inStock.filter((b) => b.tags.map(normalize).includes(normalize(tag)));
+    const candidates = inStock.filter((b) =>
+      b.tags.map(normalize).includes(normalize(tag)),
+    );
     if (candidates.length === 0) return null;
     return candidates.find((b) => !b.vip) ?? candidates[0];
   }
@@ -54,7 +56,10 @@ export class CocktailsService {
     private readonly recipesService: RecipesService,
   ) {}
 
-  async evaluate(barId: string, includeVip: boolean): Promise<RecipeAvailability[]> {
+  async evaluate(
+    barId: string,
+    includeVip: boolean,
+  ): Promise<RecipeAvailability[]> {
     const [bottles, customRecipes] = await Promise.all([
       this.bottlesService.findAll(barId, includeVip),
       this.recipesService.findVisible(barId, includeVip),

@@ -10,6 +10,7 @@ import { StockAdjustmentsModule } from './stock-adjustments/stock-adjustments.mo
 import { RecipesModule } from './recipes/recipes.module';
 import { BarsModule } from './bars/bars.module';
 import { WishlistModule } from './wishlist/wishlist.module';
+import { EventMediaModule } from './event-media/event-media.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
     EventsModule,
     ContributionsModule,
     WishlistModule,
+    EventMediaModule,
     StockAdjustmentsModule,
     RecipesModule,
     BarsModule,

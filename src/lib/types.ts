@@ -98,6 +98,19 @@ export interface StockAdjustment {
   createdAt: string;
 }
 
+export type EventMediaKind = "UPLOAD" | "DRIVE_LINK";
+
+export interface EventMedia {
+  id: string;
+  eventId: string;
+  kind: EventMediaKind;
+  url: string;
+  mimeType?: string | null;
+  fileName?: string | null;
+  uploader?: { id: string; username: string } | null;
+  createdAt: string;
+}
+
 export interface AccountUser {
   id: string;
   username: string;

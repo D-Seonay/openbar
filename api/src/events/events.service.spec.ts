@@ -29,7 +29,11 @@ describe('EventsService', () => {
     prisma.event.create.mockImplementation(({ data }) => Promise.resolve(data));
     (randomBytes as jest.Mock).mockReturnValue(Buffer.from('a1b2c3d4', 'hex'));
 
-    const event = await service.create({ barId: 'bar-1', name: 'Apéro du samedi', date: '2026-07-11' });
+    const event = await service.create({
+      barId: 'bar-1',
+      name: 'Apéro du samedi',
+      date: '2026-07-11',
+    });
 
     expect(event.slug).toBe('apero-du-samedi-a1b2c3d4');
     expect(event.slug).not.toBe('apero-du-samedi');
@@ -44,7 +48,11 @@ describe('EventsService', () => {
       .mockReturnValueOnce(Buffer.from('a1b2c3d4', 'hex'))
       .mockReturnValueOnce(Buffer.from('deadbeef', 'hex'));
 
-    const event = await service.create({ barId: 'bar-1', name: 'Apéro du samedi', date: '2026-07-18' });
+    const event = await service.create({
+      barId: 'bar-1',
+      name: 'Apéro du samedi',
+      date: '2026-07-18',
+    });
 
     expect(event.slug).toBe('apero-du-samedi-deadbeef');
   });

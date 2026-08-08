@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
@@ -18,7 +27,11 @@ export class ContributionsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Param('slug') slug: string, @Body() dto: CreateContributionDto, @Req() req: Request) {
+  create(
+    @Param('slug') slug: string,
+    @Body() dto: CreateContributionDto,
+    @Req() req: Request,
+  ) {
     const user = req.user as JwtPayload;
     return this.contributionsService.create(slug, user.sub, dto);
   }

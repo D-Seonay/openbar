@@ -43,6 +43,11 @@ enum JoinRequestStatus {
   DECLINED
 }
 
+enum EventMediaKind {
+  UPLOAD
+  DRIVE_LINK
+}
+
 model User {
   id                  String                   @id @default(cuid())
   username            String                   @unique
@@ -61,6 +66,7 @@ model User {
   recipes             Recipe[]
   barMemberships      BarMembership[]
   barJoinRequests     BarJoinRequest[]
+  eventMedia          EventMedia[]
 }
 
 model Bottle {
@@ -106,6 +112,7 @@ model Event {
   contributions    Contribution[]
   stockAdjustments StockAdjustment[]
   wishlistItems    WishlistItem[]
+  media            EventMedia[]
 }
 
 model Contribution {
@@ -149,6 +156,21 @@ model StockAdjustment {
   quantityBefore Float
   quantityAfter  Float
   createdAt      DateTime @default(now())
+}
+
+model EventMedia {
+  id         String         @id @default(cuid())
+  eventId    String
+  event      Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  kind       EventMediaKind @default(UPLOAD)
+  url        String
+  mimeType   String?
+  fileName   String?
+  uploaderId String?
+  uploader   User?          @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
+  createdAt  DateTime       @default(now())
+
+  @@index([eventId])
 }
 
 model Recipe {

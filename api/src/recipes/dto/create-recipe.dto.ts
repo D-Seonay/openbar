@@ -1,4 +1,10 @@
-import { ArrayMinSize, IsArray, IsBoolean, IsEnum, IsString } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsString,
+} from 'class-validator';
 import { RecipeDifficulty } from '@prisma/client';
 
 export class CreateRecipeDto {
