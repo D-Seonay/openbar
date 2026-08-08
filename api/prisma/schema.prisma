@@ -73,11 +73,17 @@ model Bottle {
   notes             String?
   lowStockThreshold Float?
   imageUrl          String?
+  barcode           String?
   barId             String
   bar               Bar               @relation(fields: [barId], references: [id], onDelete: Cascade)
   createdAt         DateTime          @default(now())
   volumes           BottleVolume[]
   stockAdjustments  StockAdjustment[]
+
+  // Scanning a barcode must resolve to at most one bottle per bar. Scoped to
+  // the bar rather than global so two bars can each stock the same product.
+  // Postgres treats NULLs as distinct, so unscanned bottles are unaffected.
+  @@unique([barId, barcode])
 }
 
 model BottleVolume {

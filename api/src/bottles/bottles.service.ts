@@ -1,9 +1,28 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBottleDto } from './dto/create-bottle.dto';
 import { UpdateBottleDto } from './dto/update-bottle.dto';
 import { deleteUploadedImage } from './uploads';
+import {
+  LookedUpProduct,
+  lookUpProduct,
+  normaliseBarcode,
+} from './product-lookup';
+
+export type BarcodeLookupResult =
+  | {
+      status: 'existing';
+      barcode: string;
+      bottle: Awaited<ReturnType<BottlesService['findOne']>>;
+    }
+  | { status: 'product'; barcode: string; product: LookedUpProduct }
+  | { status: 'unknown'; barcode: string };
 
 @Injectable()
 export class BottlesService {
@@ -18,30 +37,83 @@ export class BottlesService {
   }
 
   async findOne(id: string) {
-    const bottle = await this.prisma.bottle.findUnique({ where: { id }, include: { volumes: true } });
+    const bottle = await this.prisma.bottle.findUnique({
+      where: { id },
+      include: { volumes: true },
+    });
     if (!bottle) throw new NotFoundException('Bouteille introuvable');
     return bottle;
   }
 
-  create(dto: CreateBottleDto) {
-    const { volumes, ...rest } = dto;
-    return this.prisma.bottle.create({
-      data: { ...rest, volumes: volumes ? { create: volumes } : undefined },
+  async create(dto: CreateBottleDto) {
+    const { volumes, barcode, ...rest } = dto;
+    try {
+      return await this.prisma.bottle.create({
+        data: {
+          ...rest,
+          // Store digits only, matching what `lookupBarcode` searches on. An
+          // unusable code is dropped rather than saved as-is, otherwise it
+          // would never match a future scan.
+          barcode: barcode ? normaliseBarcode(barcode) : null,
+          volumes: volumes ? { create: volumes } : undefined,
+        },
+        include: { volumes: true },
+      });
+    } catch (error) {
+      throw this.translateBarcodeConflict(error);
+    }
+  }
+
+  /**
+   * Resolve a scanned barcode, in order of usefulness to the person holding the
+   * bottle: something already in this bar's stock, then whatever the public
+   * product database knows, then nothing.
+   *
+   * `includeVip` mirrors `findAll`: a member who cannot see the VIP shelf must
+   * not learn what is on it by scanning, so a VIP match is treated as no match
+   * and falls through to the online lookup.
+   */
+  async lookupBarcode(
+    barId: string,
+    rawBarcode: string,
+    includeVip: boolean,
+  ): Promise<BarcodeLookupResult> {
+    const barcode = normaliseBarcode(rawBarcode);
+    if (!barcode) throw new BadRequestException('Code-barres invalide');
+
+    const existing = await this.prisma.bottle.findFirst({
+      where: { barId, barcode, ...(includeVip ? {} : { vip: false }) },
       include: { volumes: true },
     });
+    if (existing) return { status: 'existing', barcode, bottle: existing };
+
+    const product = await lookUpProduct(barcode);
+    if (product) return { status: 'product', barcode, product };
+
+    return { status: 'unknown', barcode };
   }
 
   async update(id: string, dto: UpdateBottleDto) {
     const previous = await this.findOne(id);
-    const { volumes, ...rest } = dto;
-    const updated = await this.prisma.bottle.update({
-      where: { id },
-      data: {
-        ...rest,
-        ...(volumes ? { volumes: { deleteMany: {}, create: volumes } } : {}),
-      },
-      include: { volumes: true },
-    });
+    const { volumes, barcode, ...rest } = dto;
+    let updated: Awaited<ReturnType<typeof this.findOne>>;
+    try {
+      updated = await this.prisma.bottle.update({
+        where: { id },
+        data: {
+          ...rest,
+          // Same normalisation as `create`. `undefined` leaves the stored code
+          // untouched; an explicit empty string clears it.
+          ...(barcode === undefined
+            ? {}
+            : { barcode: barcode ? normaliseBarcode(barcode) : null }),
+          ...(volumes ? { volumes: { deleteMany: {}, create: volumes } } : {}),
+        },
+        include: { volumes: true },
+      });
+    } catch (error) {
+      throw this.translateBarcodeConflict(error);
+    }
 
     // Swapping the image out orphans the previous file. `undefined` means the
     // field wasn't part of this patch, which must not delete anything; an empty
@@ -59,9 +131,12 @@ export class BottlesService {
     try {
       await this.prisma.bottle.delete({ where: { id } });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      ) {
         throw new ConflictException(
-          "Impossible de supprimer cette bouteille : elle est référencée dans des ajustements de stock",
+          'Impossible de supprimer cette bouteille : elle est référencée dans des ajustements de stock',
         );
       }
       throw error;
@@ -73,6 +148,30 @@ export class BottlesService {
     await this.deleteImageIfUnused(bottle.imageUrl);
 
     return { success: true };
+  }
+
+  /**
+   * `@@unique([barId, barcode])` turns a duplicate scan into a raw P2002, which
+   * would surface as a 500. Rewrite it into something the UI can show, and let
+   * anything else through untouched.
+   */
+  private translateBarcodeConflict(error: unknown): unknown {
+    // Prisma reports the violated fields as a string[] on `meta.target`, but
+    // types it loosely, so narrow it before looking inside.
+    const target = (error as { meta?: { target?: unknown } })?.meta?.target;
+    const violatedBarcode =
+      Array.isArray(target) && target.some((field) => field === 'barcode');
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002' &&
+      violatedBarcode
+    ) {
+      return new ConflictException(
+        'Ce code-barres est déjà associé à une bouteille de ce bar',
+      );
+    }
+    return error;
   }
 
   /**

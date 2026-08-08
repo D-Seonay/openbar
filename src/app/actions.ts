@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import * as api from "@/lib/api-client";
 import { isAdminLoggedIn, getSession, SESSION_COOKIE } from "@/lib/session";
-import type { BottleType, BottleVolume } from "@/lib/types";
+import type { BarcodeLookupResult, BottleType, BottleVolume } from "@/lib/types";
 import { getBaseApiUrl } from "@/lib/api";
 
 async function requireAdmin() {
@@ -65,6 +65,9 @@ export async function createBottle(barId: string, formData: FormData) {
   const thresholdRaw = String(formData.get("lowStockThreshold") ?? "").trim();
   const lowStockThreshold = thresholdRaw ? Number(thresholdRaw) : undefined;
   const imageUrl = String(formData.get("imageUrl") ?? "").trim() || undefined;
+  // Present only when the bottle came in through a scan; the API normalises and
+  // validates it, so an empty field is simply omitted.
+  const barcode = String(formData.get("barcode") ?? "").trim() || undefined;
 
   const volumesRaw = String(formData.get("volumes") ?? "").trim();
   let volumes: BottleVolume[] = [];
@@ -79,10 +82,34 @@ export async function createBottle(barId: string, formData: FormData) {
     }
   }
 
-  await api.addBottle(barId, { name, type, quantity, vip, tags, notes, lowStockThreshold, volumes, imageUrl });
+  try {
+    await api.addBottle(barId, {
+      name, type, quantity, vip, tags, notes, lowStockThreshold, volumes, imageUrl, barcode,
+    });
+  } catch (err) {
+    // Most likely the barcode is already on another bottle of this bar; the
+    // form shows the message rather than failing silently.
+    return { error: err instanceof Error ? err.message : "Erreur lors de l'ajout." };
+  }
   revalidatePath("/stock");
   revalidatePath("/cocktails");
   revalidatePath("/");
+}
+
+/**
+ * Resolve a scanned barcode against this bar's stock, then the public product
+ * database. Any member may scan; the API decides what they are allowed to see.
+ */
+export async function lookupBarcodeAction(
+  barId: string,
+  barcode: string,
+): Promise<BarcodeLookupResult | { error: string }> {
+  await requireLoggedIn();
+  try {
+    return await api.lookupBarcode(barId, barcode);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Recherche du code-barres impossible." };
+  }
 }
 
 export async function updateBottleQuantity(id: string, quantity: number) {
