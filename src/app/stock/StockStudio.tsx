@@ -7,7 +7,8 @@ import type { Bottle, BottleType } from "@/lib/types";
 import { updateBottleQuantity, deleteBottleAction } from "@/app/actions";
 import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
-import AddBottleForm from "./AddBottleForm";
+import BarcodeScanner from "@/components/BarcodeScanner";
+import AddBottleForm, { type BottlePrefill } from "./AddBottleForm";
 import BottleImage from "@/components/BottleImage";
 import Pagination from "@/components/Pagination";
 
@@ -34,6 +35,10 @@ export default function StockStudio({
   const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
   const [drawerMode, setDrawerMode] = useState<"inspect" | "add" | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  // Set by a scan, consumed by AddBottleForm. Cleared whenever the drawer
+  // closes so a manual "+ Ajouter" never reopens on stale scan data.
+  const [prefill, setPrefill] = useState<BottlePrefill | undefined>(undefined);
   const [, startTransition] = useTransition();
   const [isDeletePending, startDeleteTransition] = useTransition();
   const [currentPage, setCurrentPage] = useState(1);
@@ -123,12 +128,32 @@ export default function StockStudio({
 
   const handleOpenAdd = () => {
     setSelectedBottleId(null);
+    setPrefill(undefined);
     setDrawerMode("add");
   };
 
   const handleCloseDrawer = () => {
     setDrawerMode(null);
     setSelectedBottleId(null);
+    setPrefill(undefined);
+  };
+
+  // A scan that found nothing in stock hands the code (and whatever the product
+  // database knew) to the add form.
+  const handleScanCreate: React.ComponentProps<typeof BarcodeScanner>["onCreate"] = (
+    barcode,
+    product,
+  ) => {
+    setIsScanning(false);
+    setSelectedBottleId(null);
+    setPrefill({
+      barcode,
+      name: product?.name,
+      type: product?.type,
+      imageUrl: product?.imageUrl ?? undefined,
+      size: product?.size ?? undefined,
+    });
+    setDrawerMode("add");
   };
 
   const quickAdjust = (id: string, currentQuantity: number, delta: number) => {
@@ -218,12 +243,20 @@ export default function StockStudio({
 
         <div className="flex flex-wrap items-center gap-2">
           {isAdmin && (
-            <button
-              onClick={handleOpenAdd}
-              className="tap-target px-4 py-2 rounded-xl bg-cream hover:bg-white text-ink text-xs font-extrabold uppercase transition-colors cursor-pointer shadow-sm"
-            >
-              + Ajouter au Stock
-            </button>
+            <>
+              <button
+                onClick={() => setIsScanning(true)}
+                className="tap-target px-4 py-2 rounded-xl bg-orange hover:bg-orange-hover text-ink text-xs font-extrabold uppercase transition-colors cursor-pointer shadow-sm box-orange-glow"
+              >
+                📷 Scanner
+              </button>
+              <button
+                onClick={handleOpenAdd}
+                className="tap-target px-4 py-2 rounded-xl bg-cream hover:bg-white text-ink text-xs font-extrabold uppercase transition-colors cursor-pointer shadow-sm"
+              >
+                + Ajouter au Stock
+              </button>
+            </>
           )}
           {activeUniverse === "shopping" && shoppingList.length > 0 && (
             <button
@@ -437,7 +470,16 @@ export default function StockStudio({
 
                     {drawerMode === "add" && (
                       <div className="space-y-4">
-                        <AddBottleForm isVip={isVip} barId={barId} onSuccess={handleCloseDrawer} />
+                        {/* Keyed on the barcode so a second scan remounts the
+                            form: the prefilled fields are uncontrolled, and
+                            defaultValue alone would not refresh them. */}
+                        <AddBottleForm
+                          key={prefill?.barcode ?? "manual"}
+                          isVip={isVip}
+                          barId={barId}
+                          onSuccess={handleCloseDrawer}
+                          prefill={prefill}
+                        />
                       </div>
                     )}
 
@@ -537,6 +579,14 @@ export default function StockStudio({
           </AnimatePresence>,
           document.body
         )}
+
+      {isScanning && (
+        <BarcodeScanner
+          barId={barId}
+          onClose={() => setIsScanning(false)}
+          onCreate={handleScanCreate}
+        />
+      )}
 
       <ConfirmDeleteModal
         isOpen={deleteTarget !== null}

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { createBottle, uploadBottleImage } from "@/app/actions";
-import type { BottleVolume } from "@/lib/types";
+import type { BottleType, BottleVolume } from "@/lib/types";
 import ImagePicker from "@/components/ImagePicker";
 
 const TYPES = [
@@ -21,24 +21,43 @@ const TYPES = [
 
 const INITIAL_VOLUMES: BottleVolume[] = [{ size: "70cl", quantity: 1 }];
 
+/** Values a barcode scan can hand over to prefill this form. */
+export interface BottlePrefill {
+  barcode: string;
+  name?: string;
+  type?: BottleType;
+  imageUrl?: string;
+  size?: string;
+}
+
 export default function AddBottleForm({
   isVip = false,
   barId,
   onSuccess,
+  prefill,
 }: {
   isVip?: boolean;
   barId: string;
   onSuccess?: () => void;
+  prefill?: BottlePrefill;
 }) {
-  const [volumes, setVolumes] = useState<BottleVolume[]>(INITIAL_VOLUMES);
-  const [imageUrl, setImageUrl] = useState("");
+  const [volumes, setVolumes] = useState<BottleVolume[]>(
+    prefill?.size ? [{ size: prefill.size, quantity: 1 }] : INITIAL_VOLUMES,
+  );
+  const [imageUrl, setImageUrl] = useState(prefill?.imageUrl ?? "");
   const [isPending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
-      await createBottle(barId, formData);
+      const res = await createBottle(barId, formData);
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
+      setError(null);
 
       // Reset local state so the form is ready for a fresh entry.
       setVolumes(INITIAL_VOLUMES);
@@ -75,11 +94,25 @@ export default function AddBottleForm({
     <form ref={formRef} action={handleSubmit} className="grid sm:grid-cols-2 gap-4">
       {/* Hidden input to pass volumes list as JSON */}
       <input type="hidden" name="volumes" value={JSON.stringify(volumes)} />
+      {/* Carries the scanned code through to the API so a later scan of the
+          same bottle resolves to this row instead of creating a duplicate. */}
+      {prefill?.barcode && <input type="hidden" name="barcode" value={prefill.barcode} />}
+
+      {prefill?.barcode && (
+        <div className="sm:col-span-2 rounded-lg border border-gold/25 bg-gold/[0.06] px-3 py-2 flex items-center gap-2">
+          <span className="text-sm">🏷️</span>
+          <span className="text-[11px] text-gold-dim">
+            Code-barres scanné :{" "}
+            <span className="font-mono text-cream">{prefill.barcode}</span>
+          </span>
+        </div>
+      )}
 
       <div className="sm:col-span-2">
         <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">Nom de la bouteille</label>
         <input
           name="name"
+          defaultValue={prefill?.name ?? ""}
           placeholder="Ex: Gin Hendrick's"
           required
           className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
@@ -90,6 +123,7 @@ export default function AddBottleForm({
         <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">Type d&apos;ingrédient</label>
         <select
           name="type"
+          defaultValue={prefill?.type ?? "whisky"}
           className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
         >
           {TYPES.map(([value, label]) => (
@@ -213,6 +247,12 @@ export default function AddBottleForm({
       >
         {isPending ? "Ajout en cours..." : "Ajouter au stock"}
       </button>
+
+      {error && (
+        <div className="sm:col-span-2 text-xs bg-red-950/30 border border-red-500/30 rounded-xl p-3 text-red-300 text-center font-semibold">
+          {error}
+        </div>
+      )}
 
       {saved && (
         <div className="sm:col-span-2 text-xs bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-emerald-300 text-center font-semibold uppercase tracking-caps">

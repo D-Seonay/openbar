@@ -28,7 +28,25 @@ export interface Bottle {
   createdAt: string;
   volumes?: BottleVolume[];
   imageUrl?: string;
+  barcode?: string | null; // digits only, unique per bar
 }
+
+/** A product the barcode resolved to online, before it becomes a Bottle. */
+export interface LookedUpProduct {
+  name: string;
+  type: BottleType;
+  imageUrl: string | null;
+  size: string | null;
+}
+
+/**
+ * Outcome of scanning a barcode, in the order the UI acts on it: a bottle this
+ * bar already stocks, a product to prefill a new bottle with, or nothing.
+ */
+export type BarcodeLookupResult =
+  | { status: "existing"; barcode: string; bottle: Bottle }
+  | { status: "product"; barcode: string; product: LookedUpProduct }
+  | { status: "unknown"; barcode: string };
 
 export interface EventItem {
   id: string;

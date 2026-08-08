@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { SESSION_COOKIE } from "./session";
 import type {
+  BarcodeLookupResult,
   Bottle,
   EventItem,
   Contribution,
@@ -147,6 +148,12 @@ export function updateBottle(
 
 export function deleteBottle(id: string): Promise<{ success: boolean }> {
   return request(`/bottles/${id}`, { method: "DELETE" });
+}
+
+export function lookupBarcode(barId: string, barcode: string): Promise<BarcodeLookupResult> {
+  return request<BarcodeLookupResult>(
+    `/bottles/lookup?barId=${encodeURIComponent(barId)}&barcode=${encodeURIComponent(barcode)}`,
+  );
 }
 
 // Events
