@@ -38,10 +38,10 @@ describe('UsersService', () => {
       }),
     );
 
-    await service.create({ username: 'noa', password: 'secret123' });
+    await service.create({ username: 'noa', password: 'mot-de-passe-dEssai' });
 
     const createArgs = prisma.user.create.mock.calls[0][0];
-    expect(createArgs.data.passwordHash).not.toBe('secret123');
+    expect(createArgs.data.passwordHash).not.toBe('mot-de-passe-dEssai');
     expect(createArgs.data.passwordHash.length).toBeGreaterThan(20);
   });
 
@@ -49,7 +49,7 @@ describe('UsersService', () => {
     prisma.user.findUnique.mockResolvedValue({ id: 'existing' });
 
     await expect(
-      service.create({ username: 'noa', password: 'secret123' }),
+      service.create({ username: 'noa', password: 'mot-de-passe-dEssai' }),
     ).rejects.toThrow(ConflictException);
   });
 
@@ -81,12 +81,12 @@ describe('UsersService', () => {
       }),
     );
 
-    await service.update('1', { password: 'newsecret123' });
+    await service.update('1', { password: 'mot-de-passe-aJour' });
 
     const updateArgs = prisma.user.update.mock.calls[0][0];
     expect(updateArgs.data.password).toBeUndefined();
     expect(updateArgs.data.passwordHash).toBeDefined();
-    expect(updateArgs.data.passwordHash).not.toBe('newsecret123');
+    expect(updateArgs.data.passwordHash).not.toBe('mot-de-passe-aJour');
   });
 
   it('searches users by partial, case-insensitive username match', async () => {
@@ -116,7 +116,7 @@ describe('UsersService', () => {
       Promise.resolve({ id: '1', ...data }),
     );
 
-    await service.create({ username: 'noa', password: 'secret123' });
+    await service.create({ username: 'noa', password: 'mot-de-passe-dEssai' });
 
     expect(prisma.user.create.mock.calls[0][0].data.mustChangePassword).toBe(
       false,
@@ -131,7 +131,7 @@ describe('UsersService', () => {
 
     await service.create({
       username: 'noa',
-      password: 'secret123',
+      password: 'mot-de-passe-dEssai',
       mustChangePassword: true,
     });
 
@@ -146,7 +146,7 @@ describe('UsersService', () => {
       Promise.resolve({ id: '1', ...data }),
     );
 
-    await service.update('1', { password: 'newsecret123' });
+    await service.update('1', { password: 'mot-de-passe-aJour' });
 
     expect(prisma.user.update.mock.calls[0][0].data.mustChangePassword).toBe(
       true,
@@ -160,7 +160,7 @@ describe('UsersService', () => {
     );
 
     await service.update('1', {
-      password: 'newsecret123',
+      password: 'mot-de-passe-aJour',
       mustChangePassword: false,
     });
 

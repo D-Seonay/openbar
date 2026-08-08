@@ -916,21 +916,21 @@ describe('BarsService', () => {
         role: 'OWNER',
       });
       (randomBytes as jest.Mock).mockReturnValue(
-        Buffer.from('a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4', 'hex'),
+        Buffer.from('ab'.repeat(16), 'hex'),
       );
       prisma.bar.update.mockResolvedValue({
         id: BAR_ID,
-        inviteToken: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4',
+        inviteToken: 'ab'.repeat(16),
       });
 
       const result = await service.generateInviteLink(BAR_ID, OWNER_ID);
 
       expect(prisma.bar.update).toHaveBeenCalledWith({
         where: { id: BAR_ID },
-        data: { inviteToken: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4' },
+        data: { inviteToken: 'ab'.repeat(16) },
       });
       expect(result).toEqual({
-        inviteToken: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4',
+        inviteToken: 'ab'.repeat(16),
       });
     });
   });
