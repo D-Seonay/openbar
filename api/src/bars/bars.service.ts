@@ -150,7 +150,9 @@ export class BarsService {
     }
 
     const requesterMembership = await this.getMembership(barId, requesterId);
-    const isOwner = requesterMembership?.role === 'OWNER' || (await this.isAdmin(requesterId));
+    const isOwner =
+      requesterMembership?.role === 'OWNER' ||
+      (await this.isAdmin(requesterId));
     const isSelf = membership.userId === requesterId;
     if (!isOwner && !isSelf) {
       throw new ForbiddenException(
@@ -195,13 +197,17 @@ export class BarsService {
   }
 
   async previewInviteLink(token: string) {
-    const bar = await this.prisma.bar.findUnique({ where: { inviteToken: token } });
+    const bar = await this.prisma.bar.findUnique({
+      where: { inviteToken: token },
+    });
     if (!bar) throw new NotFoundException("Lien d'invitation invalide");
     return { barName: bar.name };
   }
 
   async joinViaInviteLink(token: string, userId: string) {
-    const bar = await this.prisma.bar.findUnique({ where: { inviteToken: token } });
+    const bar = await this.prisma.bar.findUnique({
+      where: { inviteToken: token },
+    });
     if (!bar) throw new NotFoundException("Lien d'invitation invalide");
 
     const existing = await this.getMembership(bar.id, userId);
@@ -264,7 +270,11 @@ export class BarsService {
       where: { isPublic: true },
       include: {
         memberships: {
-          select: { userId: true, role: true, user: { select: { username: true } } },
+          select: {
+            userId: true,
+            role: true,
+            user: { select: { username: true } },
+          },
         },
         _count: { select: { memberships: true } },
       },
@@ -282,7 +292,9 @@ export class BarsService {
 
     return bars.map((bar) => {
       const owner = bar.memberships.find((m) => m.role === 'OWNER');
-      const myMembership = userId ? bar.memberships.find((m) => m.userId === userId) : undefined;
+      const myMembership = userId
+        ? bar.memberships.find((m) => m.userId === userId)
+        : undefined;
 
       let myStatus: 'OWNER' | 'MEMBER' | 'PENDING' | 'NONE' = 'NONE';
       if (myMembership?.role === 'OWNER') myStatus = 'OWNER';
@@ -315,7 +327,9 @@ export class BarsService {
     });
 
     if (existing?.status === 'PENDING') {
-      throw new ConflictException('Vous avez déjà une demande en attente pour ce bar');
+      throw new ConflictException(
+        'Vous avez déjà une demande en attente pour ce bar',
+      );
     }
 
     if (existing) {
@@ -364,7 +378,9 @@ export class BarsService {
         request.userId,
       );
       if (existingMembership) {
-        throw new ConflictException('Cet utilisateur est déjà membre de ce bar');
+        throw new ConflictException(
+          'Cet utilisateur est déjà membre de ce bar',
+        );
       }
 
       const [, updated] = await this.prisma.$transaction([

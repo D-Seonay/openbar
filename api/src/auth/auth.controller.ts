@@ -1,4 +1,14 @@
-import { Body, Controller, Get, HttpCode, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Patch,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import type { JwtPayload } from './auth.service';
@@ -24,16 +34,28 @@ export class AuthController {
 
   @Post('signup')
   @HttpCode(200)
-  async signup(@Body() dto: SignupDto, @Res({ passthrough: true }) res: Response) {
-    const { token, user } = await this.authService.signup(dto.username, dto.password);
+  async signup(
+    @Body() dto: SignupDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { token, user } = await this.authService.signup(
+      dto.username,
+      dto.password,
+    );
     this.setSessionCookie(res, token);
     return { user };
   }
 
   @Post('login')
   @HttpCode(200)
-  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
-    const { token, user } = await this.authService.login(dto.username, dto.password);
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { token, user } = await this.authService.login(
+      dto.username,
+      dto.password,
+    );
     this.setSessionCookie(res, token);
     return { user };
   }

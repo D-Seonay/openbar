@@ -41,7 +41,11 @@ export class StockAdjustmentsService {
         if (bottle.volumes.length > 0) {
           if (diff > 0) {
             let toRemove = diff;
-            for (let i = bottle.volumes.length - 1; i >= 0 && toRemove > 0; i--) {
+            for (
+              let i = bottle.volumes.length - 1;
+              i >= 0 && toRemove > 0;
+              i--
+            ) {
               const vol = bottle.volumes[i];
               const removeHere = Math.min(vol.quantity, toRemove);
               if (removeHere > 0) {

@@ -1,10 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { getEvent, listContributions, listBottles, listStockAdjustments, evaluateCocktails, listMyBars, listWishlistItems } from "@/lib/api-client";
+import { getEvent, listContributions, listBottles, listStockAdjustments, evaluateCocktails, listMyBars, listWishlistItems, listEventMedia } from "@/lib/api-client";
 import { getSession } from "@/lib/session";
 import { resolveActiveBar } from "@/lib/active-bar";
 import GuestPanel from "./GuestPanel";
 import WishlistSection from "./WishlistSection";
+import MediaGallery from "./MediaGallery";
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -18,12 +19,13 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const activeBar = await resolveActiveBar(bars);
   if (!activeBar) redirect("/");
 
-  const [bottles, adjustments, availability, contributions, wishlistItems] = await Promise.all([
+  const [bottles, adjustments, availability, contributions, wishlistItems, media] = await Promise.all([
     listBottles(activeBar.id),
     listStockAdjustments(slug),
     evaluateCocktails(activeBar.id),
     listContributions(slug),
     listWishlistItems(slug),
+    listEventMedia(slug),
   ]);
 
   const stock = bottles
@@ -137,6 +139,13 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       />
 
       <WishlistSection slug={slug} items={wishlistItems} canManage={canManageWishlist} currentUserId={session.sub} />
+
+      <MediaGallery
+        slug={slug}
+        items={media}
+        currentUserId={session.sub}
+        canManage={canManageWishlist}
+      />
     </div>
   );
 }

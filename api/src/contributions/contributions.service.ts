@@ -22,13 +22,20 @@ export class ContributionsService {
   async create(slug: string, userId: string, dto: CreateContributionDto) {
     const event = await this.eventsService.findBySlug(slug);
     return this.prisma.contribution.create({
-      data: { eventId: event.id, userId, item: dto.item, quantity: dto.quantity },
+      data: {
+        eventId: event.id,
+        userId,
+        item: dto.item,
+        quantity: dto.quantity,
+      },
       include: { user: { select: { id: true, username: true } } },
     });
   }
 
   async remove(id: string, userId: string) {
-    const contribution = await this.prisma.contribution.findUnique({ where: { id } });
+    const contribution = await this.prisma.contribution.findUnique({
+      where: { id },
+    });
     if (!contribution || contribution.userId !== userId) {
       throw new NotFoundException('Contribution introuvable');
     }

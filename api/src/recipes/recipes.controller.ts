@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, ForbiddenException, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { JwtPayload } from '../auth/auth.service';
@@ -18,16 +28,25 @@ export class RecipesController {
   @Post()
   async create(@Req() req: Request, @Body() dto: CreateRecipeDto) {
     const user = req.user as JwtPayload;
-    const { canSeeVip } = await this.barAccessService.assertMember(dto.barId, user);
+    const { canSeeVip } = await this.barAccessService.assertMember(
+      dto.barId,
+      user,
+    );
     if (!canSeeVip) {
-      throw new ForbiddenException('Réservé aux comptes VIP ou Admin de ce bar');
+      throw new ForbiddenException(
+        'Réservé aux comptes VIP ou Admin de ce bar',
+      );
     }
     return this.recipesService.create(dto, user.sub);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Req() req: Request, @Param('id') id: string, @Body() dto: UpdateRecipeDto) {
+  update(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() dto: UpdateRecipeDto,
+  ) {
     return this.recipesService.update(id, dto, req.user as JwtPayload);
   }
 

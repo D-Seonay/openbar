@@ -21,6 +21,24 @@ export const UPLOAD_EXTENSION_BY_MIME: Record<string, string> = {
 export const UPLOADS_DIR = join(process.cwd(), 'uploads');
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
+/**
+ * Accepted types for the soirée gallery (photos and videos), mapped to the
+ * extension the file is stored under. Same rule as `UPLOAD_EXTENSION_BY_MIME`:
+ * the extension always comes from this table, never from the client's
+ * `originalname`, so a video can't be stored with a `.html` disguise. Videos
+ * are allowed (the soirée gallery is the only consumer of media names).
+ */
+export const MEDIA_EXTENSION_BY_MIME: Record<string, string> = {
+  ...UPLOAD_EXTENSION_BY_MIME,
+  'image/gif': '.gif',
+  'video/mp4': '.mp4',
+  'video/webm': '.webm',
+  'video/quicktime': '.mov',
+};
+
+/** Gallery uploads may be much larger than a single bottle photo. */
+export const MAX_MEDIA_UPLOAD_BYTES = 200 * 1024 * 1024;
+
 /** Public prefix these files are served under, via `useStaticAssets`. */
 export const UPLOAD_URL_PREFIX = '/uploads/';
 
@@ -56,6 +74,13 @@ export function buildUploadFilename(mimetype: string): string | null {
   const ext = UPLOAD_EXTENSION_BY_MIME[mimetype];
   if (!ext) return null;
   return `bottle-${Date.now()}-${randomUUID()}${ext}`;
+}
+
+/** Build the on-disk name for a soirée gallery photo or video. */
+export function buildMediaUploadFilename(mimetype: string): string | null {
+  const ext = MEDIA_EXTENSION_BY_MIME[mimetype];
+  if (!ext) return null;
+  return `media-${Date.now()}-${randomUUID()}${ext}`;
 }
 
 /**

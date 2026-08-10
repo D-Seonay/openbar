@@ -5,6 +5,15 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 
+jest.mock('bcrypt', () => ({
+  hash: jest.fn(async (pw: string) => `hashed-${pw}`),
+  compare: jest.fn(async (pw: string, hash: string) => hash === `hashed-${pw}`),
+  hashSync: jest.fn((pw: string) => `hashed-${pw}`),
+  compareSync: jest.fn((pw: string, hash: string) => hash === `hashed-${pw}`),
+  genSalt: jest.fn(async () => 'mock-salt'),
+  genSaltSync: jest.fn(() => 'mock-salt'),
+}));
+
 describe('AuthService', () => {
   let service: AuthService;
   let usersService: {
@@ -18,7 +27,12 @@ describe('AuthService', () => {
   let jwtService: { sign: jest.Mock };
 
   beforeEach(async () => {
-    usersService = { findByUsername: jest.fn(), create: jest.fn(), findById: jest.fn(), update: jest.fn() };
+    usersService = {
+      findByUsername: jest.fn(),
+      create: jest.fn(),
+      findById: jest.fn(),
+      update: jest.fn(),
+    };
     jwtService = { sign: jest.fn().mockReturnValue('signed.jwt.token') };
 
     const moduleRef = await Test.createTestingModule({
@@ -33,7 +47,7 @@ describe('AuthService', () => {
   });
 
   it('logs in successfully with correct credentials and returns a signed token', async () => {
-    const passwordHash = await bcrypt.hash('secret123', 10);
+    const passwordHash = await bcrypt.hash('demo', 10);
     usersService.findByUsername.mockResolvedValue({
       id: '1',
       username: 'noa',
@@ -43,14 +57,19 @@ describe('AuthService', () => {
       mustChangePassword: false,
     });
 
-    const result = await service.login('noa', 'secret123');
+    const result = await service.login('noa', 'demo');
 
     expect(result.token).toBe('signed.jwt.token');
-    expect(result.user).toEqual({ id: '1', username: 'noa', role: 'ADMIN', vip: true });
+    expect(result.user).toEqual({
+      id: '1',
+      username: 'noa',
+      role: 'ADMIN',
+      vip: true,
+    });
   });
 
   it('signs an ADMIN token with a 24h expiry', async () => {
-    const passwordHash = await bcrypt.hash('secret123', 10);
+    const passwordHash = await bcrypt.hash('demo', 10);
     usersService.findByUsername.mockResolvedValue({
       id: '1',
       username: 'noa',
@@ -60,7 +79,7 @@ describe('AuthService', () => {
       mustChangePassword: false,
     });
 
-    await service.login('noa', 'secret123');
+    await service.login('noa', 'demo');
 
     expect(jwtService.sign).toHaveBeenCalledWith(
       expect.objectContaining({ role: 'ADMIN' }),
@@ -69,7 +88,7 @@ describe('AuthService', () => {
   });
 
   it('signs a USER token with a 30d expiry', async () => {
-    const passwordHash = await bcrypt.hash('secret123', 10);
+    const passwordHash = await bcrypt.hash('demo', 10);
     usersService.findByUsername.mockResolvedValue({
       id: '1',
       username: 'noa',
@@ -79,7 +98,7 @@ describe('AuthService', () => {
       mustChangePassword: false,
     });
 
-    await service.login('noa', 'secret123');
+    await service.login('noa', 'demo');
 
     expect(jwtService.sign).toHaveBeenCalledWith(
       expect.objectContaining({ role: 'USER' }),
@@ -88,7 +107,7 @@ describe('AuthService', () => {
   });
 
   it('rejects login with a wrong password', async () => {
-    const passwordHash = await bcrypt.hash('secret123', 10);
+    const passwordHash = await bcrypt.hash('demo', 10);
     usersService.findByUsername.mockResolvedValue({
       id: '1',
       username: 'noa',
@@ -98,13 +117,17 @@ describe('AuthService', () => {
       mustChangePassword: false,
     });
 
-    await expect(service.login('noa', 'wrong')).rejects.toThrow(UnauthorizedException);
+    await expect(service.login('noa', 'wrong')).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('rejects login for an unknown username', async () => {
     usersService.findByUsername.mockResolvedValue(null);
 
-    await expect(service.login('ghost', 'whatever')).rejects.toThrow(UnauthorizedException);
+    await expect(service.login('ghost', 'whatever')).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('creates a new account and returns a signed token on signup', async () => {
@@ -115,15 +138,23 @@ describe('AuthService', () => {
       vip: false,
     });
 
-    const result = await service.signup('newuser', 'secret123');
+    const result = await service.signup('newuser', 'demo');
 
-    expect(usersService.create).toHaveBeenCalledWith({ username: 'newuser', password: 'secret123' });
+    expect(usersService.create).toHaveBeenCalledWith({
+      username: 'newuser',
+      password: 'demo',
+    });
     expect(result.token).toBe('signed.jwt.token');
-    expect(result.user).toEqual({ id: '2', username: 'newuser', role: 'USER', vip: false });
+    expect(result.user).toEqual({
+      id: '2',
+      username: 'newuser',
+      role: 'USER',
+      vip: false,
+    });
   });
 
   it('includes mustChangePassword: true in the JWT payload when the account must change its password', async () => {
-    const passwordHash = await bcrypt.hash('secret123', 10);
+    const passwordHash = await bcrypt.hash('demo', 10);
     usersService.findByUsername.mockResolvedValue({
       id: '1',
       username: 'noa',
@@ -133,7 +164,7 @@ describe('AuthService', () => {
       mustChangePassword: true,
     });
 
-    await service.login('noa', 'secret123');
+    await service.login('noa', 'demo');
 
     expect(jwtService.sign).toHaveBeenCalledWith(
       expect.objectContaining({ mustChangePassword: true }),
@@ -150,7 +181,7 @@ describe('AuthService', () => {
       mustChangePassword: false,
     });
 
-    await service.signup('newuser', 'secret123');
+    await service.signup('newuser', 'demo');
 
     expect(jwtService.sign).toHaveBeenCalledWith(
       expect.objectContaining({ mustChangePassword: false }),
@@ -160,7 +191,7 @@ describe('AuthService', () => {
 
   describe('changePassword', () => {
     it('updates the password and clears mustChangePassword when the current password is correct', async () => {
-      const passwordHash = await bcrypt.hash('temp1234', 10);
+      const passwordHash = await bcrypt.hash('demo-current', 10);
       usersService.findById.mockResolvedValue({
         id: '1',
         username: 'noa',
@@ -177,10 +208,10 @@ describe('AuthService', () => {
         mustChangePassword: false,
       });
 
-      const result = await service.changePassword('1', 'temp1234', 'newsecret123');
+      const result = await service.changePassword('1', 'demo-current', 'demo');
 
       expect(usersService.update).toHaveBeenCalledWith('1', {
-        password: 'newsecret123',
+        password: 'demo',
         mustChangePassword: false,
       });
       expect(jwtService.sign).toHaveBeenCalledWith(
@@ -191,7 +222,7 @@ describe('AuthService', () => {
     });
 
     it('rejects with UnauthorizedException when the current password is wrong', async () => {
-      const passwordHash = await bcrypt.hash('temp1234', 10);
+      const passwordHash = await bcrypt.hash('demo-current', 10);
       usersService.findById.mockResolvedValue({
         id: '1',
         username: 'noa',
@@ -201,18 +232,18 @@ describe('AuthService', () => {
         mustChangePassword: true,
       });
 
-      await expect(service.changePassword('1', 'wrongpassword', 'newsecret123')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.changePassword('1', 'demo-invalid', 'demo'),
+      ).rejects.toThrow(UnauthorizedException);
       expect(usersService.update).not.toHaveBeenCalled();
     });
 
     it('rejects with UnauthorizedException when the user does not exist', async () => {
       usersService.findById.mockResolvedValue(null);
 
-      await expect(service.changePassword('ghost', 'whatever', 'newsecret123')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.changePassword('ghost', 'whatever', 'demo'),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 
@@ -235,27 +266,37 @@ describe('AuthService', () => {
     it('rejects getProfile with UnauthorizedException when the user does not exist', async () => {
       usersService.findPublicById = jest.fn().mockResolvedValue(null);
 
-      await expect(service.getProfile('ghost')).rejects.toThrow(UnauthorizedException);
+      await expect(service.getProfile('ghost')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('updates the profile fields when the user exists', async () => {
-      usersService.findPublicById = jest.fn().mockResolvedValue({ id: '1', username: 'noa' });
+      usersService.findPublicById = jest
+        .fn()
+        .mockResolvedValue({ id: '1', username: 'noa' });
       usersService.updateProfile = jest.fn().mockResolvedValue({
         id: '1',
         username: 'noa',
         favoriteDrink: 'Mojito',
       });
 
-      const result = await service.updateProfile('1', { favoriteDrink: 'Mojito' });
+      const result = await service.updateProfile('1', {
+        favoriteDrink: 'Mojito',
+      });
 
-      expect(usersService.updateProfile).toHaveBeenCalledWith('1', { favoriteDrink: 'Mojito' });
+      expect(usersService.updateProfile).toHaveBeenCalledWith('1', {
+        favoriteDrink: 'Mojito',
+      });
       expect(result.favoriteDrink).toBe('Mojito');
     });
 
     it('rejects updateProfile with UnauthorizedException when the user does not exist', async () => {
       usersService.findPublicById = jest.fn().mockResolvedValue(null);
 
-      await expect(service.updateProfile('ghost', {})).rejects.toThrow(UnauthorizedException);
+      await expect(service.updateProfile('ghost', {})).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 });

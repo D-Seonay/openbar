@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
@@ -49,9 +53,14 @@ export class RecipesService {
     return { success: true };
   }
 
-  private assertOwnerOrAdmin(recipe: { createdById: string }, user: JwtPayload) {
+  private assertOwnerOrAdmin(
+    recipe: { createdById: string },
+    user: JwtPayload,
+  ) {
     if (recipe.createdById !== user.sub && user.role !== 'ADMIN') {
-      throw new ForbiddenException('Vous ne pouvez modifier que vos propres recettes');
+      throw new ForbiddenException(
+        'Vous ne pouvez modifier que vos propres recettes',
+      );
     }
   }
 }

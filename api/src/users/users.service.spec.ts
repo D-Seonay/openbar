@@ -4,6 +4,20 @@ import { Prisma } from '@prisma/client';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
 
+jest.mock('bcrypt', () => ({
+  hash: jest.fn(async (pw: string) => `hashed-${pw}-${'x'.repeat(32)}`),
+  compare: jest.fn(
+    async (pw: string, hash: string) =>
+      hash === `hashed-${pw}-${'x'.repeat(32)}`,
+  ),
+  hashSync: jest.fn((pw: string) => `hashed-${pw}-${'x'.repeat(32)}`),
+  compareSync: jest.fn(
+    (pw: string, hash: string) => hash === `hashed-${pw}-${'x'.repeat(32)}`,
+  ),
+  genSalt: jest.fn(async () => 'mock-salt'),
+  genSaltSync: jest.fn(() => 'mock-salt'),
+}));
+
 describe('UsersService', () => {
   let service: UsersService;
   let prisma: { user: Record<string, jest.Mock> };
@@ -29,31 +43,40 @@ describe('UsersService', () => {
   it('hashes the password before storing the user', async () => {
     prisma.user.findUnique.mockResolvedValue(null);
     prisma.user.create.mockImplementation(({ data }) =>
-      Promise.resolve({ id: '1', username: data.username, role: data.role, vip: data.vip, createdAt: new Date() }),
+      Promise.resolve({
+        id: '1',
+        username: data.username,
+        role: data.role,
+        vip: data.vip,
+        createdAt: new Date(),
+      }),
     );
 
-    await service.create({ username: 'noa', password: 'secret123' });
+    await service.create({ username: 'noa', password: 'demo' });
 
     const createArgs = prisma.user.create.mock.calls[0][0];
-    expect(createArgs.data.passwordHash).not.toBe('secret123');
+    expect(createArgs.data.passwordHash).not.toBe('demo');
     expect(createArgs.data.passwordHash.length).toBeGreaterThan(20);
   });
 
   it('rejects creating a user with a username that already exists', async () => {
     prisma.user.findUnique.mockResolvedValue({ id: 'existing' });
 
-    await expect(service.create({ username: 'noa', password: 'secret123' })).rejects.toThrow(
-      ConflictException,
-    );
+    await expect(
+      service.create({ username: 'noa', password: 'demo' }),
+    ).rejects.toThrow(ConflictException);
   });
 
   it('throws a ConflictException when deleting a user with associated contributions', async () => {
     prisma.user.findUnique.mockResolvedValue({ id: 'existing' });
     prisma.user.delete.mockRejectedValue(
-      new Prisma.PrismaClientKnownRequestError('Foreign key constraint failed', {
-        code: 'P2003',
-        clientVersion: '5.0.0',
-      }),
+      new Prisma.PrismaClientKnownRequestError(
+        'Foreign key constraint failed',
+        {
+          code: 'P2003',
+          clientVersion: '5.0.0',
+        },
+      ),
     );
 
     await expect(service.remove('existing')).rejects.toThrow(ConflictException);
@@ -62,15 +85,22 @@ describe('UsersService', () => {
   it('hashes a new password when updating a user with one', async () => {
     prisma.user.findUnique.mockResolvedValue({ id: '1', username: 'noa' });
     prisma.user.update.mockImplementation(({ data }) =>
-      Promise.resolve({ id: '1', username: 'noa', role: 'USER', vip: false, createdAt: new Date(), ...data }),
+      Promise.resolve({
+        id: '1',
+        username: 'noa',
+        role: 'USER',
+        vip: false,
+        createdAt: new Date(),
+        ...data,
+      }),
     );
 
-    await service.update('1', { password: 'newsecret123' });
+    await service.update('1', { password: 'demo-new' });
 
     const updateArgs = prisma.user.update.mock.calls[0][0];
     expect(updateArgs.data.password).toBeUndefined();
     expect(updateArgs.data.passwordHash).toBeDefined();
-    expect(updateArgs.data.passwordHash).not.toBe('newsecret123');
+    expect(updateArgs.data.passwordHash).not.toBe('demo-new');
   });
 
   it('searches users by partial, case-insensitive username match', async () => {
@@ -96,38 +126,61 @@ describe('UsersService', () => {
 
   it('defaults mustChangePassword to false when creating a user without the flag', async () => {
     prisma.user.findUnique.mockResolvedValue(null);
-    prisma.user.create.mockImplementation(({ data }) => Promise.resolve({ id: '1', ...data }));
+    prisma.user.create.mockImplementation(({ data }) =>
+      Promise.resolve({ id: '1', ...data }),
+    );
 
-    await service.create({ username: 'noa', password: 'secret123' });
+    await service.create({ username: 'noa', password: 'demo' });
 
-    expect(prisma.user.create.mock.calls[0][0].data.mustChangePassword).toBe(false);
+    expect(prisma.user.create.mock.calls[0][0].data.mustChangePassword).toBe(
+      false,
+    );
   });
 
   it('sets mustChangePassword to true when explicitly requested during creation', async () => {
     prisma.user.findUnique.mockResolvedValue(null);
-    prisma.user.create.mockImplementation(({ data }) => Promise.resolve({ id: '1', ...data }));
+    prisma.user.create.mockImplementation(({ data }) =>
+      Promise.resolve({ id: '1', ...data }),
+    );
 
-    await service.create({ username: 'noa', password: 'secret123', mustChangePassword: true });
+    await service.create({
+      username: 'noa',
+      password: 'demo',
+      mustChangePassword: true,
+    });
 
-    expect(prisma.user.create.mock.calls[0][0].data.mustChangePassword).toBe(true);
+    expect(prisma.user.create.mock.calls[0][0].data.mustChangePassword).toBe(
+      true,
+    );
   });
 
   it('forces mustChangePassword to true on a password update by default', async () => {
     prisma.user.findUnique.mockResolvedValue({ id: '1', username: 'noa' });
-    prisma.user.update.mockImplementation(({ data }) => Promise.resolve({ id: '1', ...data }));
+    prisma.user.update.mockImplementation(({ data }) =>
+      Promise.resolve({ id: '1', ...data }),
+    );
 
-    await service.update('1', { password: 'newsecret123' });
+    await service.update('1', { password: 'demo-new' });
 
-    expect(prisma.user.update.mock.calls[0][0].data.mustChangePassword).toBe(true);
+    expect(prisma.user.update.mock.calls[0][0].data.mustChangePassword).toBe(
+      true,
+    );
   });
 
   it('does not force mustChangePassword when a password update explicitly opts out', async () => {
     prisma.user.findUnique.mockResolvedValue({ id: '1', username: 'noa' });
-    prisma.user.update.mockImplementation(({ data }) => Promise.resolve({ id: '1', ...data }));
+    prisma.user.update.mockImplementation(({ data }) =>
+      Promise.resolve({ id: '1', ...data }),
+    );
 
-    await service.update('1', { password: 'newsecret123', mustChangePassword: false });
+    await service.update('1', {
+      password: 'demo-new',
+      mustChangePassword: false,
+    });
 
-    expect(prisma.user.update.mock.calls[0][0].data.mustChangePassword).toBe(false);
+    expect(prisma.user.update.mock.calls[0][0].data.mustChangePassword).toBe(
+      false,
+    );
   });
 
   it('returns a user by id', async () => {
@@ -170,7 +223,9 @@ describe('UsersService', () => {
   });
 
   it('sets profile fields to null when cleared, and parses birthday to a Date when provided', async () => {
-    prisma.user.update.mockImplementation(({ data }) => Promise.resolve({ id: '1', ...data }));
+    prisma.user.update.mockImplementation(({ data }) =>
+      Promise.resolve({ id: '1', ...data }),
+    );
 
     await service.updateProfile('1', {
       birthday: '1995-08-15',
@@ -187,7 +242,9 @@ describe('UsersService', () => {
   });
 
   it('clears birthday to null when not provided', async () => {
-    prisma.user.update.mockImplementation(({ data }) => Promise.resolve({ id: '1', ...data }));
+    prisma.user.update.mockImplementation(({ data }) =>
+      Promise.resolve({ id: '1', ...data }),
+    );
 
     await service.updateProfile('1', {});
 

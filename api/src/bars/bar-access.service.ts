@@ -21,6 +21,9 @@ export class BarAccessService {
       throw new ForbiddenException("Vous n'avez pas accès à ce bar");
     }
 
-    return { canSeeVip: membership.vip, isOwnerOrAdmin: membership.role === 'OWNER' };
+    return {
+      canSeeVip: membership.vip,
+      isOwnerOrAdmin: membership.role === 'OWNER',
+    };
   }
 }

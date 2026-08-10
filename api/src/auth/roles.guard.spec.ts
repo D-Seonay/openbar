@@ -12,25 +12,33 @@ function makeContext(user: unknown): ExecutionContext {
 
 describe('RolesGuard', () => {
   it('allows access when the route has no @Roles decorator', () => {
-    const reflector = { getAllAndOverride: jest.fn().mockReturnValue(undefined) } as unknown as Reflector;
+    const reflector = {
+      getAllAndOverride: jest.fn().mockReturnValue(undefined),
+    } as unknown as Reflector;
     const guard = new RolesGuard(reflector);
     expect(guard.canActivate(makeContext({ role: 'USER' }))).toBe(true);
   });
 
   it('allows an ADMIN user on a route that requires ADMIN', () => {
-    const reflector = { getAllAndOverride: jest.fn().mockReturnValue(['ADMIN']) } as unknown as Reflector;
+    const reflector = {
+      getAllAndOverride: jest.fn().mockReturnValue(['ADMIN']),
+    } as unknown as Reflector;
     const guard = new RolesGuard(reflector);
     expect(guard.canActivate(makeContext({ role: 'ADMIN' }))).toBe(true);
   });
 
   it('rejects a USER on a route that requires ADMIN', () => {
-    const reflector = { getAllAndOverride: jest.fn().mockReturnValue(['ADMIN']) } as unknown as Reflector;
+    const reflector = {
+      getAllAndOverride: jest.fn().mockReturnValue(['ADMIN']),
+    } as unknown as Reflector;
     const guard = new RolesGuard(reflector);
     expect(guard.canActivate(makeContext({ role: 'USER' }))).toBe(false);
   });
 
   it('rejects when there is no authenticated user on the request', () => {
-    const reflector = { getAllAndOverride: jest.fn().mockReturnValue(['ADMIN']) } as unknown as Reflector;
+    const reflector = {
+      getAllAndOverride: jest.fn().mockReturnValue(['ADMIN']),
+    } as unknown as Reflector;
     const guard = new RolesGuard(reflector);
     expect(guard.canActivate(makeContext(undefined))).toBe(false);
   });

@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
@@ -73,9 +84,18 @@ export class BarsController {
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/members')
-  inviteMember(@Req() req: Request, @Param('id') id: string, @Body() dto: InviteMemberDto) {
+  inviteMember(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() dto: InviteMemberDto,
+  ) {
     const user = req.user as JwtPayload;
-    return this.barsService.inviteMember(id, user.sub, dto.username, dto.vip ?? false);
+    return this.barsService.inviteMember(
+      id,
+      user.sub,
+      dto.username,
+      dto.vip ?? false,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -92,21 +112,33 @@ export class BarsController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id/members/:membershipId')
-  removeMember(@Req() req: Request, @Param('id') id: string, @Param('membershipId') membershipId: string) {
+  removeMember(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Param('membershipId') membershipId: string,
+  ) {
     const user = req.user as JwtPayload;
     return this.barsService.removeMember(id, user.sub, membershipId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id/visibility')
-  setPublic(@Req() req: Request, @Param('id') id: string, @Body() dto: UpdateBarVisibilityDto) {
+  setPublic(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() dto: UpdateBarVisibilityDto,
+  ) {
     const user = req.user as JwtPayload;
     return this.barsService.setPublic(id, user.sub, dto.isPublic);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id/name')
-  rename(@Req() req: Request, @Param('id') id: string, @Body() dto: RenameBarDto) {
+  rename(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() dto: RenameBarDto,
+  ) {
     const user = req.user as JwtPayload;
     return this.barsService.rename(id, user.sub, dto.name);
   }
@@ -141,7 +173,12 @@ export class BarsController {
     @Body() dto: RespondJoinRequestDto,
   ) {
     const user = req.user as JwtPayload;
-    return this.barsService.respondToJoinRequest(id, user.sub, requestId, dto.accept);
+    return this.barsService.respondToJoinRequest(
+      id,
+      user.sub,
+      requestId,
+      dto.accept,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

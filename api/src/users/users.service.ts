@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
 import type { Role } from '@prisma/client';
@@ -31,8 +35,11 @@ export class UsersService {
     vip?: boolean;
     mustChangePassword?: boolean;
   }) {
-    const existing = await this.prisma.user.findUnique({ where: { username: input.username } });
-    if (existing) throw new ConflictException("Ce nom d'utilisateur existe déjà");
+    const existing = await this.prisma.user.findUnique({
+      where: { username: input.username },
+    });
+    if (existing)
+      throw new ConflictException("Ce nom d'utilisateur existe déjà");
 
     const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);
     return this.prisma.user.create({
@@ -52,11 +59,17 @@ export class UsersService {
   }
 
   findPublicById(id: string) {
-    return this.prisma.user.findUnique({ where: { id }, select: PUBLIC_SELECT });
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: PUBLIC_SELECT,
+    });
   }
 
   findAll() {
-    return this.prisma.user.findMany({ select: PUBLIC_SELECT, orderBy: { username: 'asc' } });
+    return this.prisma.user.findMany({
+      select: PUBLIC_SELECT,
+      orderBy: { username: 'asc' },
+    });
   }
 
   findByUsername(username: string) {
@@ -75,7 +88,12 @@ export class UsersService {
 
   async update(
     id: string,
-    input: { role?: Role; vip?: boolean; password?: string; mustChangePassword?: boolean },
+    input: {
+      role?: Role;
+      vip?: boolean;
+      password?: string;
+      mustChangePassword?: boolean;
+    },
   ) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('Utilisateur introuvable');
@@ -92,12 +110,21 @@ export class UsersService {
       data.mustChangePassword = mustChangePassword ?? true;
     }
 
-    return this.prisma.user.update({ where: { id }, data, select: PUBLIC_SELECT });
+    return this.prisma.user.update({
+      where: { id },
+      data,
+      select: PUBLIC_SELECT,
+    });
   }
 
   async updateProfile(
     id: string,
-    input: { birthday?: string; favoriteDrink?: string; allergies?: string; avatarUrl?: string },
+    input: {
+      birthday?: string;
+      favoriteDrink?: string;
+      allergies?: string;
+      avatarUrl?: string;
+    },
   ) {
     return this.prisma.user.update({
       where: { id },
