@@ -84,6 +84,31 @@ export function buildMediaUploadFilename(mimetype: string): string | null {
 }
 
 /**
+ * Turn a user-supplied `originalname` into a safe entry name for an archive.
+ *
+ * `fileName` is whatever the browser sent at upload time and was stored
+ * verbatim, so it can contain path separators, `..`, or control characters.
+ * Written into a zip unchanged, `../../evil.sh` escapes the extraction
+ * directory on unzip ("zip slip"). Only a flat basename survives here, and an
+ * unusable name falls back to the caller's default.
+ */
+export function safeArchiveEntryName(
+  fileName: string | null | undefined,
+  fallback: string,
+): string {
+  const flattened = basename(String(fileName ?? '').replace(/\\/g, '/'))
+    // Control characters, plus the characters Windows refuses in a filename.
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\x00-\x1f\x7f<>:"/\\|?*]/g, '')
+    // A leading dot would produce a hidden file; repeated dots are just noise.
+    .replace(/^\.+/, '')
+    .trim()
+    .slice(0, 120);
+
+  return flattened || fallback;
+}
+
+/**
  * Best-effort removal of an uploaded file. Never throws: the database row is
  * the source of truth, and a leftover file must not fail the request that
  * already removed it.
