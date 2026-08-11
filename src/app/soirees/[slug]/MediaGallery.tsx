@@ -8,6 +8,17 @@ import {
 } from "@/app/actions";
 import type { EventMedia } from "@/lib/types";
 
+/**
+ * `fileName` is whatever the uploader's browser sent, stored verbatim, so it can
+ * contain path segments. Browsers do strip those from a `download` attribute,
+ * but leaning on that would still put `../../../etc/passwd` in the button's
+ * accessible name. Reduce it to a plain filename before showing it.
+ */
+function displayFileName(fileName: string | null | undefined): string | null {
+  const flat = (fileName ?? "").split(/[\\/]/).pop()?.trim();
+  return flat ? flat : null;
+}
+
 export default function MediaGallery({
   slug,
   items,
@@ -22,6 +33,10 @@ export default function MediaGallery({
   const [isUploading, startUpload] = useTransition();
   const [linkError, setLinkError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Only uploads live on our disk. A DRIVE_LINK is somebody else's album, so it
+  // has nothing to put in the zip and no file to hand over one at a time.
+  const downloadableCount = items.filter((m) => m.kind === "UPLOAD").length;
 
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -44,14 +59,27 @@ export default function MediaGallery({
   return (
     <section className="rounded-2xl border border-white/[0.08] bg-ink-2/80 p-5 sm:p-6 space-y-5 shadow-xl backdrop-blur-xl">
       <span className="sr-only">Galerie Photos &amp; Vidéos</span>
-      <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-        <div className="flex items-center gap-2">
+      {/* Wraps rather than overflows: the title is long and the row now carries
+          a second control, which together no longer fit a phone on one line. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-white/[0.08] pb-3">
+        <div className="flex items-center gap-2 min-w-0">
           <span className="text-xl">📸</span>
           <h2 className="font-display text-xl font-bold text-cream">Galerie Photos & Vidéos</h2>
         </div>
-        <span className="text-xs font-mono font-bold text-orange bg-orange/15 px-3 py-1 rounded-full border border-orange/30">
-          {items.length} média{items.length !== 1 ? "s" : ""}
-        </span>
+        <div className="flex items-center gap-2">
+          {downloadableCount > 0 && (
+            <a
+              href={`/soirees/${slug}/media/archive`}
+              download
+              className="tap-target-sm flex items-center px-3 py-1 rounded-full border border-white/[0.12] bg-white/[0.04] text-[10px] uppercase tracking-wider text-cream font-bold hover:border-orange/40 hover:text-orange transition-colors whitespace-nowrap"
+            >
+              ⬇ Tout télécharger
+            </a>
+          )}
+          <span className="text-xs font-mono font-bold text-orange bg-orange/15 px-3 py-1 rounded-full border border-orange/30 whitespace-nowrap">
+            {items.length} média{items.length !== 1 ? "s" : ""}
+          </span>
+        </div>
       </div>
 
       {/* Add controls */}
@@ -109,6 +137,7 @@ export default function MediaGallery({
           {items.map((media) => {
             const canDelete = canManage || media.uploader?.id === currentUserId;
             const isImage = media.mimeType?.startsWith("image/");
+            const downloadName = displayFileName(media.fileName);
             return (
               <li
                 key={media.id}
@@ -154,15 +183,35 @@ export default function MediaGallery({
                   </a>
                 )}
 
-                {canDelete && (
-                  <button
-                    onClick={() => deleteEventMediaAction(slug, media.id)}
-                    className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-ink/90 backdrop-blur border border-red-400/30 text-red-400 text-xs flex items-center justify-center hover:bg-red-500/20 transition-colors cursor-pointer"
-                    aria-label="Retirer ce média"
-                  >
-                    ✕
-                  </button>
-                )}
+                {/* Stacked in one corner so the tile keeps a single control
+                    cluster; the download sits left of the destructive action. */}
+                <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                  {media.kind === "UPLOAD" && (
+                    <a
+                      href={media.url}
+                      // Same-origin thanks to the /uploads rewrite, which is what
+                      // lets `download` restore the guest's original filename
+                      // instead of the generated one on disk. An empty value
+                      // leaves the browser to fall back to the served name.
+                      download={downloadName ?? ""}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-7 h-7 rounded-lg bg-ink/90 backdrop-blur border border-white/[0.15] text-cream text-xs flex items-center justify-center hover:border-orange/50 hover:text-orange transition-colors cursor-pointer"
+                      aria-label={`Télécharger ${downloadName ?? "ce média"}`}
+                      title="Télécharger"
+                    >
+                      ⬇
+                    </a>
+                  )}
+                  {canDelete && (
+                    <button
+                      onClick={() => deleteEventMediaAction(slug, media.id)}
+                      className="w-7 h-7 rounded-lg bg-ink/90 backdrop-blur border border-red-400/30 text-red-400 text-xs flex items-center justify-center hover:bg-red-500/20 transition-colors cursor-pointer"
+                      aria-label="Retirer ce média"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
               </li>
             );
           })}
