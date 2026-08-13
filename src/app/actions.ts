@@ -402,15 +402,39 @@ export async function updateBottleImageAction(id: string, imageUrl: string) {
   }
 }
 
-export async function editBottleAction(id: string, data: { name: string; type: BottleType; notes?: string; vip: boolean }) {
+/** Every field of a bottle that is editable after creation. */
+export interface BottleEdits {
+  name: string;
+  type: BottleType;
+  notes?: string;
+  vip: boolean;
+  tags: string[];
+  /** `null` clears the alert; `undefined` leaves it as it is. */
+  lowStockThreshold?: number | null;
+  /** Empty string clears the stored code. */
+  barcode?: string;
+  volumes?: BottleVolume[];
+}
+
+export async function editBottleAction(id: string, data: BottleEdits) {
   await requireLoggedIn();
+  const { volumes, ...rest } = data;
   try {
-    await api.updateBottle(id, data);
+    await api.updateBottle(id, {
+      ...rest,
+      // Formats are the source of truth for the count, so the total is derived
+      // here rather than trusted from the form — the same rule the volume
+      // editor and the add form already follow.
+      ...(volumes
+        ? { volumes, quantity: volumes.reduce((sum, v) => sum + v.quantity, 0) }
+        : {}),
+    });
     revalidatePath("/stock");
+    revalidatePath("/cocktails");
     revalidatePath("/");
     return { success: true };
-  } catch (error: any) {
-    return { error: error.message };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Modification impossible." };
   }
 }
 

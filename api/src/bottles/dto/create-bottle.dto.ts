@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -42,9 +43,15 @@ export class CreateBottleDto {
   @IsString()
   notes?: string;
 
+  /**
+   * `null` clears the alert. Allowing it explicitly matters: `undefined` means
+   * "leave untouched" on a PATCH, so without this a threshold set once could
+   * never be removed.
+   */
   @IsOptional()
+  @ValidateIf((_, value) => value !== null)
   @IsNumber()
-  lowStockThreshold?: number;
+  lowStockThreshold?: number | null;
 
   @IsOptional()
   @IsString()
