@@ -4,13 +4,21 @@ import { isAdminLoggedIn } from "@/lib/session";
 import PageTransition from "@/components/PageTransition";
 import CreateUserForm from "./CreateUserForm";
 import UserRow from "./UserRow";
+import PaginationLinks from "@/components/PaginationLinks";
+import { paginate } from "@/lib/pagination";
 
-export default async function ComptesPage() {
+export default async function ComptesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   if (!(await isAdminLoggedIn())) {
     redirect("/login");
   }
 
   const users = await listUsers();
+  const { page } = await searchParams;
+  const accounts = paginate(users, page);
 
   return (
     <PageTransition className="space-y-8">
@@ -41,8 +49,16 @@ export default async function ComptesPage() {
               Aucun compte enregistré pour l&apos;instant.
             </div>
           ) : (
-            users.map((user) => <UserRow key={user.id} user={user} />)
+            accounts.items.map((user) => <UserRow key={user.id} user={user} />)
           )}
+        </div>
+
+        <div className="lg:col-span-8 lg:col-start-5">
+          <PaginationLinks
+            currentPage={accounts.currentPage}
+            totalPages={accounts.totalPages}
+            basePath="/comptes"
+          />
         </div>
       </div>
     </PageTransition>

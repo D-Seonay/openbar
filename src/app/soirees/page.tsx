@@ -8,8 +8,14 @@ import CopyLink from "./CopyLink";
 import ShareButton from "./ShareButton";
 import DeleteEventButton from "./DeleteEventButton";
 import PageTransition from "@/components/PageTransition";
+import PaginationLinks from "@/components/PaginationLinks";
+import { paginate } from "@/lib/pagination";
 
-export default async function SoireesPage() {
+export default async function SoireesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; histoire?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
 
@@ -20,8 +26,11 @@ export default async function SoireesPage() {
   const events = await listEvents(activeBar.id);
   const sorted = [...events].sort((a, b) => b.date.localeCompare(a.date));
 
-  const activeEvents = sorted.filter((e) => !e.isClosed);
-  const historyEvents = sorted.filter((e) => e.isClosed);
+  // Two independent lists on one screen, so they get their own query
+  // parameters: paging the history must not move the current soirées.
+  const { page, histoire } = await searchParams;
+  const activeEvents = paginate(sorted.filter((e) => !e.isClosed), page);
+  const historyEvents = paginate(sorted.filter((e) => e.isClosed), histoire);
 
   return (
     <PageTransition className="space-y-8">
@@ -72,19 +81,19 @@ export default async function SoireesPage() {
         <section className="md:col-span-2 space-y-8">
           {/* Active Events */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3 border-b border-orange/10 pb-2">
+            <div id="en-cours" className="flex items-center gap-3 border-b border-orange/10 pb-2">
               <span className="w-1.5 h-3 bg-orange rounded-full" />
               <h2 className="font-display text-xl text-cream">Événements en cours & à venir</h2>
             </div>
 
-            {activeEvents.length === 0 ? (
+            {activeEvents.totalItems === 0 ? (
               <div className="text-center py-8 rounded-xl border border-dashed border-orange/10 bg-ink-2/20">
                 <span className="text-2xl block mb-2">📅</span>
                 <p className="text-muted text-sm">Aucune soirée de planifiée pour le moment.</p>
               </div>
             ) : (
               <div className="grid gap-3">
-                {activeEvents.map((event) => (
+                {activeEvents.items.map((event) => (
                   <div
                     key={event.slug}
                     className="rounded-xl border border-orange/10 bg-ink-2/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-orange/20 transition-all box-orange-glow-hover"
@@ -113,18 +122,26 @@ export default async function SoireesPage() {
                 ))}
               </div>
             )}
+
+            <PaginationLinks
+              currentPage={activeEvents.currentPage}
+              totalPages={activeEvents.totalPages}
+              basePath="/soirees"
+              anchor="en-cours"
+              currentParams={{ page, histoire }}
+            />
           </div>
 
           {/* History Events */}
-          {historyEvents.length > 0 && (
+          {historyEvents.totalItems > 0 && (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 border-b border-white/[0.08] pb-2">
+              <div id="historique" className="flex items-center gap-3 border-b border-white/[0.08] pb-2">
                 <span className="w-1.5 h-3 bg-white/[0.2] rounded-full" />
                 <h2 className="font-display text-xl text-muted">Historique des soirées clôturées</h2>
               </div>
 
               <div className="grid gap-3">
-                {historyEvents.map((event) => (
+                {historyEvents.items.map((event) => (
                   <div
                     key={event.slug}
                     className="rounded-xl border border-white/[0.05] bg-ink/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 opacity-70 hover:opacity-100 transition-opacity"
@@ -159,6 +176,15 @@ export default async function SoireesPage() {
                   </div>
                 ))}
               </div>
+
+              <PaginationLinks
+                currentPage={historyEvents.currentPage}
+                totalPages={historyEvents.totalPages}
+                basePath="/soirees"
+                param="histoire"
+                anchor="historique"
+                currentParams={{ page, histoire }}
+              />
             </div>
           )}
         </section>
