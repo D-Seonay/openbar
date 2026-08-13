@@ -1,3 +1,6 @@
+// Set before the service module is loaded: the budget is read at module scope.
+process.env.DISCORD_BROADCAST_BUDGET_MS = '300';
+
 import { Test } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { DiscordNotifyService } from './notify.service';
@@ -57,16 +60,25 @@ describe('DiscordNotifyService', () => {
         { user: { id: 'u2', discordUserId: '222' } },
         { user: { id: 'u3', discordUserId: null } }, // never linked
       ]);
-      // u1: channel opens, message sends. u2: channel refuses (DMs closed).
-      fetchMock
-        .mockResolvedValueOnce({ id: 'dm-1' })
-        .mockResolvedValueOnce({ id: 'msg-1' })
-        .mockResolvedValueOnce(null);
+      // Keyed on the recipient, not on call order: recipients are processed
+      // concurrently, so the calls interleave. u2 has DMs closed.
+      fetchMock.mockImplementation((path, init) => {
+        if (path === '/users/@me/channels') {
+          const body = init.body as { recipient_id: string };
+          return Promise.resolve(
+            body.recipient_id === '222'
+              ? null
+              : { id: `dm-${body.recipient_id}` },
+          );
+        }
+        return Promise.resolve({ id: 'msg' });
+      });
 
       expect(await service.announceEvent('apero', 'host')).toEqual({
         sent: 1,
         failed: 1,
         unlinked: 1,
+        pending: 0,
       });
     });
 
@@ -80,6 +92,7 @@ describe('DiscordNotifyService', () => {
         sent: 0,
         failed: 0,
         unlinked: 1,
+        pending: 0,
       });
       expect(fetchMock).not.toHaveBeenCalled();
     });
@@ -95,8 +108,30 @@ describe('DiscordNotifyService', () => {
         sent: 0,
         failed: 1,
         unlinked: 0,
+        pending: 0,
       });
       expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('reports the remainder as pending instead of running past its budget', async () => {
+      prisma.event.findUnique.mockResolvedValue(event);
+      // Enough recipients that a slow Discord cannot finish inside the budget.
+      prisma.barMembership.findMany.mockResolvedValue(
+        Array.from({ length: 40 }, (_, i) => ({
+          user: { id: `u${i}`, discordUserId: `${i}` },
+        })),
+      );
+      // Each call takes long enough that the 20s budget runs out first.
+      fetchMock.mockImplementation(
+        () =>
+          new Promise((resolve) => setTimeout(() => resolve({ id: 'x' }), 60)),
+      );
+
+      const res = await service.announceEvent('apero', 'host');
+
+      // Nothing is lost: every recipient is accounted for in one bucket.
+      expect(res.sent + res.failed + res.pending).toBe(40);
+      expect(res.pending).toBeGreaterThan(0);
     });
 
     it('rejects an unknown soirée', async () => {

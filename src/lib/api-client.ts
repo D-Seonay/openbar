@@ -263,7 +263,7 @@ export function deleteEventMedia(slug: string, id: string): Promise<{ success: b
 // Discord announcements and polls
 export function announceEventOnDiscord(
   slug: string,
-): Promise<{ sent: number; failed: number; unlinked: number }> {
+): Promise<{ sent: number; failed: number; unlinked: number; pending: number }> {
   return request(`/auth/discord/announce/${encodeURIComponent(slug)}`, { method: "POST" });
 }
 
