@@ -486,7 +486,7 @@ Chaque primitive suit le même schéma : fichier autonome dans `src/components/u
 
 **Interfaces:**
 - Consumes: tokens de la Task 3
-- Produces: `<Button variant="principal" | "discret" | "danger" size="normal" | "pleine">` — accepte toutes les props d'un `<button>` natif. Utilisé par toutes les tâches d'écran.
+- Produces: `<Button variant="principal" | "discret" | "danger" pleineLargeur?: boolean>` — accepte en plus toutes les props d'un `<button>` natif. Utilisé par toutes les tâches d'écran.
 
 - [ ] **Step 1: Écrire le composant**
 
