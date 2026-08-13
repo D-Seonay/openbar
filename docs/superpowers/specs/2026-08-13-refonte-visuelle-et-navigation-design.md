@@ -43,17 +43,33 @@ compte quatorze, ce qui est une des raisons pour lesquelles rien ne ressort.
 | `--paper` | `#F3EFE7` | fond général |
 | `--paper-sunk` | `#E8E2D7` | blocs, champs, états inactifs |
 | `--ink` | `#26221D` | texte principal |
-| `--ink-soft` | `#776E62` | texte secondaire, méta |
+| `--ink-soft` | `#6B6257` | texte secondaire, méta |
 | `--rule` | `#D9D1C4` | filets et bordures |
 | `--terracotta` | `#A8452A` | accent unique : actions, liens, alertes |
 | `--done` | `#4F6B43` | statut « complet » |
 | `--warn` | `#8A5A12` | statut « alerte stock » |
 
-`--ink-soft`, `--done` et `--warn` sur `--paper` doivent être vérifiés en
-contraste et assombris si le ratio AA n'est pas atteint. Les valeurs ci-dessus
-sont un point de départ, pas un engagement. Les teintes des maquettes
-(`#5F7A52` pour « complet ») ont été assombries d'entrée parce qu'elles ne
-passaient visiblement pas le seuil sur fond papier.
+Ces valeurs ont été vérifiées, pas supposées. Ratios mesurés :
+
+| Paire | sur `--paper` | sur `--paper-sunk` |
+|---|---|---|
+| `--ink` | 13.78 | — |
+| `--ink-soft` | 5.22 | 4.64 |
+| `--terracotta` | 5.16 | — |
+| `--done` | 5.21 | — |
+| `--warn` | 5.16 | — |
+| blanc sur `--terracotta` | 5.92 | — |
+
+Deux corrections issues de cette mesure :
+
+- `--ink-soft` valait `#776E62` dans les maquettes : **4.37 sur papier et 3.89
+  sur fond enfoncé, donc sous le seuil**. Assombri à `#6B6257`, qui passe les
+  deux surfaces.
+- `--done` valait `#5F7A52` : trop clair, assombri à `#4F6B43`.
+
+`--rule` (1.32) n'est pas concerné : c'est un filet décoratif, pas du texte ni
+la bordure d'un contrôle interactif. Les bordures qui délimitent un contrôle
+utilisent `--ink-soft`.
 
 ### Typographie
 
@@ -76,8 +92,12 @@ Le projet auto-héberge aujourd'hui `Outfit` et `Plus Jakarta Sans` — **deux
 sans-serif**. Il n'y a aucune sérif disponible, et la maquette s'appuyait sur
 `Georgia`, absente d'Android.
 
-Décision : **auto-héberger une sérif**, deux graisses, en `.woff2` dans
-`src/app/fonts/`, déclarée avec `next/font/local` comme les deux autres.
+Décision : **auto-héberger `Lora`** (OFL, comme les deux autres) en `.woff2`
+dans `src/app/fonts/`, déclarée avec `next/font/local`.
+
+Lora est servie en **police variable** : le sous-ensemble latin est un seul
+fichier de 37 Ko qui couvre 400 à 700. Une graisse ou quatre coûtent donc le
+même poids. Vérifié en récupérant le fichier réel.
 
 Aucune police n'est chargée depuis un CDN. C'est la leçon de la PR #80 : une URL
 Google Fonts en dur a cassé le déploiement quand le hash a changé côté Google.
@@ -86,12 +106,11 @@ Répartition finale des trois familles :
 
 | Famille | Usage | Sort |
 |---|---|---|
-| sérif (nouvelle) | titres d'écran, labels | à ajouter |
-| `Plus Jakarta Sans` | corps, méta, boutons | conservée |
-| `Outfit` | — | **retirée**, son rôle d'affichage passe à la sérif |
+| `Lora` | titres d'écran, labels | **à ajouter** — 1 fichier |
+| `Plus Jakarta Sans` | corps, méta, boutons | conservée — 3 fichiers |
+| `Outfit` | — | **retirée** — 4 fichiers supprimés |
 
-Retirer `Outfit` allège aussi le chargement : quatre fichiers en moins pour deux
-ajoutés.
+Bilan net : **quatre fichiers de police en moins pour un ajouté.**
 
 ### Ce qui est supprimé
 
