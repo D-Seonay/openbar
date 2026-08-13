@@ -200,3 +200,23 @@ export interface BarAdminDetail {
   memberCount: number;
   ownerUsername: string;
 }
+
+/** One entry in a bar's journal. Denormalised on purpose — see the Prisma model. */
+export interface AuditEntry {
+  id: string;
+  barId: string | null;
+  actorId: string | null;
+  actorName: string;
+  action: string;
+  targetType: string;
+  targetId: string | null;
+  summary: string;
+  createdAt: string;
+}
+
+export interface AuditPage {
+  entries: AuditEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
+}

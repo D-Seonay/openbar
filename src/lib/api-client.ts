@@ -19,6 +19,7 @@ import type {
   WishlistItem,
   WishlistItemAssignment,
   EventMedia,
+  AuditPage,
 } from "./types";
 import type { CocktailRecipe, RecipeAvailability } from "./cocktail-types";
 import { getBaseApiUrl } from "./api";
@@ -155,6 +156,13 @@ export function deleteBottle(id: string): Promise<{ success: boolean }> {
 export function lookupBarcode(barId: string, barcode: string): Promise<BarcodeLookupResult> {
   return request<BarcodeLookupResult>(
     `/bottles/lookup?barId=${encodeURIComponent(barId)}&barcode=${encodeURIComponent(barcode)}`,
+  );
+}
+
+// Audit journal
+export function listBarAudit(barId: string, page: number): Promise<AuditPage> {
+  return request<AuditPage>(
+    `/bars/${encodeURIComponent(barId)}/audit?page=${page}`,
   );
 }
 

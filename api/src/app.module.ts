@@ -11,9 +11,11 @@ import { RecipesModule } from './recipes/recipes.module';
 import { BarsModule } from './bars/bars.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { EventMediaModule } from './event-media/event-media.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
+    AuditModule,
     PrismaModule,
     UsersModule,
     AuthModule,

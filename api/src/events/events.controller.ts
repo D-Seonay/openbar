@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { JwtPayload } from '../auth/auth.service';
 import { BarAccessService } from '../bars/bar-access.service';
 import { EventsService } from './events.service';
+import { AuditService } from '../audit/audit.service';
 import { CreateEventDto } from './dto/create-event.dto';
 
 @UseGuards(JwtAuthGuard)
@@ -23,6 +24,7 @@ export class EventsController {
   constructor(
     private readonly eventsService: EventsService,
     private readonly barAccessService: BarAccessService,
+    private readonly auditService: AuditService,
   ) {}
 
   @Get()
@@ -52,7 +54,15 @@ export class EventsController {
         'Seul le propriétaire du bar peut créer une soirée',
       );
     }
-    return this.eventsService.create(dto);
+    const created = await this.eventsService.create(dto);
+    await this.auditService.record(user, {
+      barId: dto.barId,
+      action: 'event.create',
+      targetType: 'event',
+      targetId: created.id,
+      summary: `a créé la soirée « ${created.name} »`,
+    });
+    return created;
   }
 
   @Delete(':slug')
@@ -68,6 +78,14 @@ export class EventsController {
         'Seul le propriétaire du bar peut supprimer une soirée',
       );
     }
-    return this.eventsService.remove(slug);
+    const result = await this.eventsService.remove(slug);
+    await this.auditService.record(user, {
+      barId: event.barId,
+      action: 'event.delete',
+      targetType: 'event',
+      targetId: event.id,
+      summary: `a supprimé la soirée « ${event.name} »`,
+    });
+    return result;
   }
 }

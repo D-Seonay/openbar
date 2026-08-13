@@ -15,7 +15,10 @@ const NAV = [
   { href: "/annuaire", label: "Annuaire", icon: "👥" },
 ];
 
-const OWNER_NAV = [{ href: "/membres", label: "Membres", icon: "🔑" }];
+const OWNER_NAV = [
+  { href: "/membres", label: "Membres", icon: "🔑" },
+  { href: "/journal", label: "Journal", icon: "📖" },
+];
 
 type NavItem = { href: string; label: string; icon: string; exact?: boolean };
 
