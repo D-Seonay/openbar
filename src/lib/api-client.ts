@@ -260,6 +260,23 @@ export function deleteEventMedia(slug: string, id: string): Promise<{ success: b
   return request(`/events/${slug}/media/${id}`, { method: "DELETE" });
 }
 
+// Discord announcements and polls
+export function announceEventOnDiscord(
+  slug: string,
+): Promise<{ sent: number; failed: number; unlinked: number }> {
+  return request(`/auth/discord/announce/${encodeURIComponent(slug)}`, { method: "POST" });
+}
+
+export function createDiscordPoll(
+  barId: string,
+  input: { question: string; answers: string[]; hours: number },
+): Promise<{ posted: boolean; reason?: string }> {
+  return request(`/auth/discord/poll/${encodeURIComponent(barId)}`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
 // Discord channel binding
 export function setBarDiscordChannel(
   barId: string,
