@@ -223,7 +223,7 @@ export function contrastRatio(a: string, b: string): number {
 - [ ] **Step 6: Lancer le test et vérifier qu'il passe**
 
 Run: `npm test`
-Expected: PASS — 11 tests
+Expected: PASS — 12 tests (4 sur `contrastRatio`, 7 paires de palette, 1 sur la valeur rejetée)
 
 - [ ] **Step 7: Prouver que le test mord**
 
