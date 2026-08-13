@@ -12,6 +12,7 @@ import {
 } from "@/app/actions";
 import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
+import NoticeModal, { type Notice } from "@/components/NoticeModal";
 import ImagePicker from "@/components/ImagePicker";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import AddBottleForm, { type BottlePrefill } from "./AddBottleForm";
@@ -43,6 +44,7 @@ export default function StockStudio({
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<Notice | null>(null);
   // Non-null only while the photo field is being edited; cleared once saved so
   // the picker falls back to whatever the server now holds.
   const [imageDraft, setImageDraft] = useState<string | null>(null);
@@ -195,9 +197,20 @@ export default function StockStudio({
       .join("\n");
     try {
       await navigator.clipboard.writeText(text);
-      alert("Liste copiée dans le presse-papiers !");
+      setNotice({
+        accent: "success",
+        icon: "📋",
+        title: "Liste copiée",
+        description: `${shoppingList.length} référence${shoppingList.length > 1 ? "s" : ""} dans le presse-papiers.`,
+      });
     } catch {
-      alert("Impossible de copier la liste.");
+      setNotice({
+        accent: "danger",
+        icon: "⚠️",
+        title: "Copie impossible",
+        description:
+          "Le navigateur a refusé l'accès au presse-papiers. Sur mobile, cela arrive hors HTTPS.",
+      });
     }
   };
 
@@ -634,6 +647,8 @@ export default function StockStudio({
           document.body
         )}
 
+      <NoticeModal notice={notice} onClose={() => setNotice(null)} />
+
       {isScanning && (
         <BarcodeScanner
           barId={barId}
@@ -654,7 +669,13 @@ export default function StockStudio({
           startDeleteTransition(async () => {
             const res = await deleteBottleAction(id);
             if (res?.error) {
-              alert(res.error);
+              setDeleteTarget(null);
+              setNotice({
+                accent: "danger",
+                icon: "⚠️",
+                title: "Suppression impossible",
+                description: res.error,
+              });
             } else {
               setDeleteTarget(null);
               handleCloseDrawer();

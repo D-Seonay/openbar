@@ -3,11 +3,13 @@
 import { useState, useTransition } from "react";
 import type { AccountUser } from "@/lib/types";
 import { toggleRoleAction, toggleVipAction, resetPasswordAction, deleteUserAction } from "./actions";
+import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 
 export default function UserRow({ user }: { user: AccountUser }) {
   const [isPending, startTransition] = useTransition();
   const [resetResult, setResetResult] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isConfirmingArchive, setIsConfirmingArchive] = useState(false);
 
   return (
     <div className="p-4 sm:p-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:bg-ink-2 transition-colors">
@@ -78,19 +80,33 @@ export default function UserRow({ user }: { user: AccountUser }) {
         </button>
         <button
           disabled={isPending || user.isArchived}
-          onClick={() => {
-            if (!window.confirm(`Voulez-vous vraiment archiver le compte de ${user.username} ?\nLes bars dont il est l'unique propriétaire seront désactivés.`)) return;
-            startTransition(async () => {
-              setDeleteError(null);
-              const result = await deleteUserAction(user.id);
-              if (result.error) setDeleteError(result.error);
-            });
-          }}
+          onClick={() => setIsConfirmingArchive(true)}
           className="tap-target-sm flex items-center px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Archiver
         </button>
       </div>
+
+      {/* Archiving is reversible-ish and is not a deletion, so the dialog says
+          so rather than reusing the "supprimer définitivement" wording. */}
+      <ConfirmDeleteModal
+        isOpen={isConfirmingArchive}
+        icon="📦"
+        title="Archiver ce compte ?"
+        description={`Le compte de ${user.username} sera archivé. Les bars dont il est l'unique propriétaire seront désactivés.`}
+        confirmLabel="Archiver le compte"
+        pendingLabel="Archivage..."
+        isPending={isPending}
+        onCancel={() => setIsConfirmingArchive(false)}
+        onConfirm={() =>
+          startTransition(async () => {
+            setDeleteError(null);
+            const result = await deleteUserAction(user.id);
+            if (result.error) setDeleteError(result.error);
+            setIsConfirmingArchive(false);
+          })
+        }
+      />
     </div>
   );
 }
