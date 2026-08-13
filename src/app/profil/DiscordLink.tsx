@@ -22,9 +22,12 @@ const MESSAGES: Record<string, { tone: "ok" | "ko"; text: string }> = {
 export default function DiscordLink({
   profile,
   status,
+  configured,
 }: {
   profile: MyProfile;
   status?: string;
+  /** False when the server has no Discord credentials set. */
+  configured: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -48,7 +51,16 @@ export default function DiscordLink({
         </p>
       )}
 
-      {profile.discordUserId ? (
+      {!configured && !profile.discordUserId ? (
+        <p className="text-[11px] text-muted/80 leading-relaxed">
+          Discord n&apos;est pas configuré sur ce serveur. L&apos;hôte doit renseigner
+          <span className="font-mono text-cream"> DISCORD_CLIENT_ID</span>,
+          <span className="font-mono text-cream"> DISCORD_CLIENT_SECRET</span> et
+          <span className="font-mono text-cream"> DISCORD_REDIRECT_URI</span>, puis
+          recréer les conteneurs — un simple redémarrage ne recharge pas le fichier
+          d&apos;environnement.
+        </p>
+      ) : profile.discordUserId ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="flex items-center gap-2 min-w-0">
             <span className="w-8 h-8 shrink-0 rounded-lg bg-[#5865F2]/15 border border-[#5865F2]/40 flex items-center justify-center text-sm">
