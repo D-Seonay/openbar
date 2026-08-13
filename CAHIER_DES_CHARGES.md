@@ -1,125 +1,118 @@
-# Cahier des charges — Le Bar de Noa
+# Cahier des charges — OpenBar
 
 ## 1. Contexte et objectif
 
-Toutes les soirées se passent chez la même personne. Ce projet est une application web qui sert de tableau de bord pour cette maison : savoir ce qu'il reste en stock, planifier une soirée et envoyer un lien aux invités pour organiser qui ramène quoi, garder une petite réserve d'alcools haut de gamme réservée à une liste restreinte de proches (VIP), et voir automatiquement quels cocktails sont réalisables avec ce qu'il y a réellement en stock.
+Application web pour organiser les soirées d'un groupe : tenir le stock d'alcool, coordonner qui ramène quoi, calculer les cocktails réalisables avec ce qu'il y a réellement en cave, et garder une trace de la soirée (bilan, photos).
 
-C'est un projet personnel, mono-utilisateur côté administration (l'hôte), avec une page publique légère pour les invités (identification par prénom, sans mot de passe).
+L'application est **multi-utilisateurs et multi-bars**. Chaque bar a ses membres, son stock et ses soirées ; une même personne peut appartenir à plusieurs bars et bascule de l'un à l'autre depuis l'en-tête.
 
-## 2. Périmètre fonctionnel
+## 2. Rôles et accès
 
-### 2.1 Stock (gestion des bouteilles)
-
-- Ajouter, modifier la quantité (+/-), et supprimer une entrée de stock.
-- Chaque entrée a : un nom, un type (whisky, rhum, vodka, gin, tequila, liqueur/apéritif, vin, champagne, bière, mixer, autre), une quantité (nombre, pas forcément entier), une liste de tags libres utilisés pour le matching des cocktails (ex: `rhum blanc`, `citron vert`), un indicateur "réservé VIP", et une note optionnelle.
-- Le type `mixer` sert à noter les ingrédients non alcoolisés (tonic, jus de citron, sucre, soda...) : ils comptent dans le calcul des cocktails mais pas dans le compteur "bouteilles en stock".
-- Deux vues : le stock courant, et une section "Réserve VIP" séparée visuellement, qui liste uniquement les bouteilles marquées VIP.
-
-### 2.2 Moteur de cocktails
-
-- Une bibliothèque de recettes classiques est intégrée à l'application (une vingtaine de cocktails : Mojito, Cuba Libre, Daiquiri, Piña Colada, Old Fashioned, Whisky-Coca, Godfather, Gin Tonic, Negroni, Dry Martini, Moscow Mule, Cosmopolitan, Screwdriver, Espresso Martini, Margarita, Tequila Sunrise, Aperol Spritz, Kir Royal, French 75, Sidecar, Manhattan, Amaretto Sour).
-- Chaque recette a un nom, un verre de service (optionnel), une liste de tags d'ingrédients requis, et des instructions courtes.
-- Le calcul de faisabilité se fait automatiquement à partir du stock : une recette est "réalisable" si chacun de ses tags requis correspond à au moins une bouteille en stock (quantité > 0) portant ce tag (comparaison insensible à la casse).
-- Pour chaque tag requis, si plusieurs bouteilles en stock le couvrent, on privilégie une bouteille non-VIP pour ne pas bloquer inutilement un cocktail derrière la réserve VIP.
-- Une recette est classée "réserve VIP" si, une fois ce choix fait, au moins un de ses ingrédients ne peut être couvert que par une bouteille marquée VIP.
-- Trois listes affichées : réalisables maintenant (sans VIP), réalisables avec la réserve VIP, et "encore un peu de shopping" (recettes non réalisables, avec la liste des tags manquants), triées par nombre d'ingrédients manquants.
-
-### 2.3 Soirées et lien invité
-
-- L'hôte crée une soirée : nom, date, et une liste optionnelle de prénoms VIP (texte libre séparé par virgules).
-- Un identifiant unique lisible (slug) est généré à partir du nom (ex: "Apéro du samedi" → `apero-du-samedi`, avec suffixe numérique en cas de collision).
-- L'hôte obtient un lien unique à partager : `/soirees/<slug>`.
-- Liste de toutes les soirées créées, avec bouton "copier le lien" et suppression.
-
-### 2.4 Page invité (publique, par lien)
-
-- Un invité qui ouvre le lien doit d'abord s'identifier avec son prénom (pas de mot de passe, pas de compte). Le prénom est mémorisé localement dans son navigateur (`localStorage`) pour ne pas avoir à le retaper.
-- Une fois identifié, l'invité voit :
-  - ce qui est déjà sur place (stock non-VIP, hors mixers) ;
-  - la liste de qui ramène quoi (tous les invités ayant déjà répondu) ;
-  - un formulaire pour ajouter ce qu'il ramène (texte libre + quantité optionnelle) ;
-  - les cocktails prévus (réalisables sans VIP) ;
-  - il peut retirer sa propre contribution.
-- Si le prénom saisi correspond (insensible à la casse) à un prénom de la liste VIP de la soirée, l'invité débloque en plus : la réserve VIP (bouteilles) et les cocktails qui en dépendent, affichés dans une section distincte.
-- La liste des prénoms VIP n'est pas un mécanisme de sécurité fort (pas de mot de passe) : c'est un filtre de courtoisie entre proches, pas une protection contre un accès malveillant.
-
-## 3. Modèle de données
-
-Pas de base de données externe : un seul magasin de données `Store` avec trois collections, persistées côté serveur.
-
-| Entité | Champs |
-|---|---|
-| `Bottle` | `id`, `name`, `type` (enum ci-dessus), `quantity` (number), `tags` (string[], lowercase), `vip` (boolean), `notes?` (string), `createdAt` |
-| `EventItem` | `slug` (unique), `name`, `date` (YYYY-MM-DD), `vipNames` (string[]), `createdAt` |
-| `Contribution` | `id`, `eventSlug`, `guestName`, `item`, `quantity?`, `createdAt` |
-
-Règles :
-- `slug` généré depuis `name` (minuscule, accents supprimés, non-alphanumérique → `-`), avec suffixe `-2`, `-3`... en cas de collision.
-- Toute écriture passe par une file d'attente séquentielle (mutex applicatif) pour éviter qu'deux mutations concurrentes ne corrompent le fichier de stockage.
-- Supprimer un événement supprime aussi ses contributions associées.
-
-## 4. Architecture technique
-
-- **Framework** : Next.js (App Router, TypeScript), React avec Server Components par défaut et quelques Client Components pour l'interactivité (compteur de quantité, identification invité, copie de lien).
-- **Mutations** : Server Actions (`"use server"`) plutôt que des routes API REST séparées — formulaires natifs (`<form action={...}>`) et appels directs depuis les composants client.
-- **Persistance** : pas de base de données. Les trois collections sont stockées dans un unique fichier JSON (`data/store.json`), lu/écrit via `fs/promises`. C'est volontairement simple et suffisant pour un usage perso.
-- **Style** : Tailwind CSS v4, avec des tokens de couleur et de police définis une fois via `@theme` dans `globals.css` (voir section DA).
-- **Pas d'authentification** : les pages d'administration (`/stock`, `/soirees`) ne sont pas protégées ; c'est un outil personnel. L'identification invité est un simple prénom stocké côté client.
-
-### Limite connue à documenter
-
-Le stockage par fichier fonctionne très bien en local (`npm run dev` / `npm run start`) ou sur un serveur à disque persistant, mais **pas** sur un hébergeur serverless comme Vercel (système de fichiers éphémère). Si un déploiement "cloud" est nécessaire, prévoir de remplacer `src/lib/db.ts` par une vraie base (Postgres, SQLite via Turso...) — le reste du code ne dépend que des fonctions exportées par ce fichier (`listBottles`, `addBottle`, `createEvent`, etc.), donc l'impact sur le reste de l'app est minimal.
-
-## 5. Arborescence des pages
-
-| Route | Type | Rôle |
+| Rôle | Portée | Peut |
 |---|---|---|
-| `/` | Server Component | Tableau de bord : compteurs (stock, VIP, cocktails prêts, soirées à venir), prochaine soirée |
-| `/stock` | Server Component + formulaire | Ajout/liste des bouteilles, section VIP séparée |
-| `/cocktails` | Server Component | Trois listes : réalisables, VIP, à acheter |
-| `/soirees` | Server Component + formulaire | Création et liste des soirées, lien copiable |
-| `/soirees/[slug]` | Server Component | Page publique invité (identification, contributions, cocktails, VIP conditionnel) |
+| `ADMIN` | Global | Tout, sur tous les bars. Gère les comptes. |
+| `OWNER` | Un bar | Gérer le stock, les soirées, les membres, le journal, Discord. |
+| `MEMBER` | Un bar | Consulter, se déclarer sur la liste « à ramener », déposer des photos. |
+| VIP | Un bar | Voir en plus la réserve VIP et les cocktails qui en dépendent. |
+
+L'accès est authentifié : compte, mot de passe, session JWT en cookie `httpOnly`. Il n'y a pas de page publique en dehors de `/login`, `/signup`, `/decouvrir` et l'aperçu d'une invitation.
+
+Un membre non-VIP ne doit jamais pouvoir déduire le contenu de la réserve VIP — y compris indirectement (recherche, scan de code-barres, flux calendrier, journal).
+
+## 3. Périmètre fonctionnel
+
+### 3.1 Stock
+
+- Bouteille : nom, catégorie, quantité, tags, formats (`70cl`, `1L`…), photo, notes, seuil d'alerte, code-barres, indicateur VIP.
+- **Tous ces champs sont modifiables après création.** La quantité est dérivée des formats quand ceux-ci existent.
+- Scan de code-barres par la caméra : un code déjà présent dans le bar ouvre la bouteille correspondante ; sinon le produit est cherché dans Open Food Facts et le formulaire est prérempli. Un code inconnu de la base publique reste enregistrable pour que le scan suivant le retrouve.
+- Un code-barres est unique **par bar** — deux bars peuvent stocker le même produit.
+- Liste de courses : références sous leur seuil, copiables ou exportables en CSV.
+
+### 3.2 Cocktails
+
+- Bibliothèque de recettes, chacune avec des tags d'ingrédients requis.
+- Une recette est réalisable si chaque tag est couvert par une bouteille en stock (quantité > 0). À couverture égale, une bouteille non-VIP est préférée pour ne pas enfermer inutilement une recette derrière la réserve.
+- Trois listes : réalisables, réalisables via la réserve VIP, et manquantes (avec les tags absents).
+
+### 3.3 Soirées
+
+- Création : nom, date. Un slug unique sert de lien d'invitation.
+- La page soirée affiche **le stock du bar hôte**, jamais celui du bar actif du visiteur.
+- **À ramener** : l'hôte liste ce qu'il faut, avec un nombre de personnes attendues par item. Les invités se déclarent ; l'item se ferme une fois complet. Plusieurs personnes sur un même item est le cas normal.
+- **Bilan** : ajustement du stock en fin de soirée, historisé. Une soirée passée sans bilan est signalée dans la liste.
+- **Galerie** : photos et vidéos, ou lien vers un album partagé. Téléchargement unitaire ou archive zip de l'ensemble.
+- **Calendrier** : export `.ics` d'une soirée, et flux d'abonnement personnel (Google Agenda, iPhone) tenu à jour automatiquement.
+
+### 3.4 Journal
+
+Trace horodatée des actions : bouteille ajoutée, quantité modifiée, bouteille retirée, soirée créée ou supprimée, bilan validé. Consultable par le propriétaire du bar.
+
+Le journal ne doit jamais faire échouer l'action qu'il enregistre.
+
+### 3.5 Discord *(optionnel)*
+
+- Liaison d'un compte OpenBar à un compte Discord (OAuth2, scope `identify`). Un compte Discord ne peut être lié qu'à un seul profil.
+- Un bar peut être relié à un salon. Le tableau « à ramener » y est publié puis **édité sur place** à chaque changement.
+- Annonce d'une soirée en message privé aux membres liés. La livraison partielle est normale et doit être rapportée telle quelle.
+- Sondages natifs Discord lancés depuis la soirée.
+
+Sans configuration Discord, aucune de ces fonctions n'est proposée et aucun appel sortant n'est émis.
+
+## 4. Modèle de données
+
+Postgres, via Prisma. Entités principales :
+
+| Entité | Rôle |
+|---|---|
+| `User` | Compte : identifiants, rôle global, profil, liaison Discord, jeton de calendrier. |
+| `Bar` | Un bar : nom, visibilité, jeton d'invitation, salon Discord. |
+| `BarMembership` | Appartenance d'un utilisateur à un bar, avec rôle et statut VIP. Unique par couple. |
+| `BarJoinRequest` | Demande d'adhésion en attente. |
+| `Bottle` / `BottleVolume` | Stock et formats. Code-barres unique par bar. |
+| `Event` | Soirée : slug unique, date, clôture, message Discord associé. |
+| `WishlistItem` / `WishlistItemAssignment` | « À ramener » et prises. Un utilisateur ne peut se déclarer qu'une fois par item. |
+| `Contribution` | Apports libres annoncés par les invités. |
+| `StockAdjustment` | Historique des bilans. |
+| `EventMedia` | Photos, vidéos, ou lien d'album. |
+| `Recipe` | Recettes propres à un bar. |
+| `AuditLog` | Journal. Dénormalisé : le nom de l'acteur est copié pour rester lisible après archivage du compte. |
+
+### Règles transverses
+
+- Toute écriture concurrente sur une ressource à capacité limitée (prise d'un item « à ramener ») est sérialisée par un verrou de ligne, pas par un simple comptage.
+- Les fichiers uploadés sont stockés sous un nom généré, avec une extension déduite du type MIME validé — jamais du nom fourni par le client.
+- Les intégrations externes (Open Food Facts, Discord) ne peuvent ni bloquer ni faire échouer une requête utilisateur.
+
+## 5. Architecture technique
+
+```
+navigateur ──► web (Next.js 16)  ──►  api (NestJS)  ──►  Postgres
+                    │                      │
+                    │                      └──► Open Food Facts, Discord
+                    └── /uploads/* réécrit vers l'API
+```
+
+- **Web** : Next.js 16, App Router, Server Components par défaut, mutations par Server Actions. Tailwind CSS v4.
+- **API** : NestJS 11, Prisma 6. Aucun port publié : le navigateur ne l'appelle jamais directement.
+- **Seule l'API sort vers l'extérieur.** Les secrets tiers n'existent que dans son environnement.
+- Les téléchargements (archive zip, `.ics`, flux calendrier) passent par des *route handlers* du web, qui relaient l'API : un téléchargement doit arriver au navigateur, ce qu'une Server Action ne permet pas.
+
+### Journalisation
+
+Une ligne JSON par requête HTTP : méthode, chemin, statut, durée, utilisateur, identifiant de corrélation renvoyé en `x-request-id`. Le corps des requêtes n'est jamais lu — il contiendrait les mots de passe de `/auth/login`.
 
 ## 6. Direction artistique
 
-Univers "bar feutré" inspiré d'une esthétique lounge chic (référence : mockup "Velvet Lounge", fond bordeaux/noir avec typographie dorée élégante).
+Voir [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md), **référence unique** pour la palette, la typographie, les composants et les règles mobile.
 
-### Palette (tokens Tailwind `@theme`)
+Ce document ne duplique pas les valeurs de couleur : c'est ce qui l'avait rendu faux.
 
-| Token | Valeur | Usage |
-|---|---|---|
-| `--color-ink` | `#14090a` | Fond général (noir chaud) |
-| `--color-ink-2` | `#1d0e0d` | Fond des cartes sur fond ink |
-| `--color-brick` | `#7a2a1f` | Panneaux principaux (bordeaux) |
-| `--color-brick-light` | `#96392a` | Bordures, hover |
-| `--color-brick-dark` | `#571d15` | Fond des sections VIP |
-| `--color-gold` | `#f0c24c` | Titres, boutons primaires, accents |
-| `--color-gold-dim` | `#c99a52` | Labels secondaires, petites majuscules |
-| `--color-cream` | `#f6ecdf` | Texte principal sur fond sombre |
-| `--color-muted` | `#c7a690` | Texte secondaire (taupe chaud, pas de gris froid) |
+## 7. Critères d'acceptation
 
-### Typographie
-
-- **Titres / display** : `Italiana` (Google Font, un seul poids 400), serif haute, élégante, façon logotype — utilisée pour les `<h1>`, `<h2>` et le nom du site.
-- **Interface / corps** : `Jost` (poids 300 à 600), sans-serif géométrique claire — utilisée pour la nav, les boutons, le corps de texte.
-- Les libellés de navigation et petits labels utilisent des majuscules avec tracking large (`uppercase tracking-caps`, `letter-spacing: 0.18em`).
-
-### Motifs de mise en page
-
-- Header sticky, fond `ink` translucide, logo en `Italiana` doré à gauche, nav en petites majuscules à droite.
-- Page d'accueil en hero deux colonnes : panneau gauche sombre avec dégradé radial façon spot lumineux + accroche, panneau droit `brick` avec grand titre `Italiana` doré, compteurs, et bloc "prochaine soirée".
-- Cartes/sections : coins arrondis, fond `ink-2` ou `brick-dark`/`brick` selon le niveau (standard vs VIP), bordures fines semi-transparentes (`border-cream/10`, `border-gold/25`).
-- Boutons primaires : fond `gold`, texte `ink`, hover vers `cream`.
-- Le contenu VIP est systématiquement distingué visuellement (fond `brick-dark`, bordure `gold/25`) partout où il apparaît (stock, cocktails, page invité).
-
-## 7. Données de démonstration
-
-Le projet doit être livré avec un jeu de données d'exemple dans `data/store.json` (quelques bouteilles courantes + mixers + 2 bouteilles VIP), pour que `/cocktails` affiche immédiatement des résultats sans configuration.
-
-## 8. Critères d'acceptation
-
-- `npm run build` passe sans erreur TypeScript ni erreur de lint.
-- Les quatre routes listées en section 5 répondent en 200 (sauf `/soirees/<slug-inexistant>` qui doit renvoyer une 404).
-- Ajouter une bouteille avec les bons tags dans `/stock` fait apparaître au moins un nouveau cocktail dans `/cocktails` sans rechargement manuel nécessaire (revalidation automatique).
-- Créer une soirée avec un prénom dans `vipNames`, puis s'identifier avec ce prénom exact (insensible à la casse) sur la page invité, déverrouille la section VIP ; un autre prénom ne la déverrouille pas.
-- Aucune dépendance à une base de données externe ; le projet démarre avec `npm install && npm run dev` sans configuration supplémentaire.
+- `npm run build` passe côté web et côté API, sans erreur TypeScript.
+- Un membre non-VIP ne voit aucune bouteille VIP, quel que soit le chemin emprunté.
+- Un invité voit le stock du **bar hôte** sur la page soirée, pas le sien.
+- Une prise concurrente sur le dernier créneau d'un item « à ramener » n'en accepte qu'une.
+- Une intégration externe en panne (Open Food Facts, Discord) ne fait échouer aucune action utilisateur.
+- Aucun secret n'est présent dans le dépôt.

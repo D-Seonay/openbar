@@ -1,51 +1,132 @@
-# Le Bar de Noa 🍸
+# OpenBar 🍸
 
-Petite appli web pour gérer le stock d'alcool de la maison où se passent toutes les soirées : savoir ce qu'il reste, planifier une soirée, envoyer un lien aux invités pour qu'ils indiquent ce qu'ils ramènent, garder une réserve VIP secrète pour les intimes, et voir automatiquement quels cocktails sont réalisables avec ce qu'il y a en stock.
+Application web pour organiser les soirées d'un groupe : tenir le stock d'alcool, savoir qui ramène quoi, calculer les cocktails réalisables avec ce qu'il y a réellement en cave, et partager les photos après coup.
+
+Plusieurs **bars** peuvent coexister — chacun avec ses membres, son stock et ses soirées.
 
 ## Fonctionnalités
 
-- **Stock** (`/stock`) : liste des bouteilles (alcools + mixers comme le tonic, citron, sucre...) avec quantité, type et tags utilisés pour matcher les recettes de cocktails. Case "Réserve VIP" pour les bouteilles à ne pas montrer à tout le monde.
-- **Cocktails** (`/cocktails`) : calcule automatiquement, à partir du stock, quels cocktails sont réalisables maintenant, lesquels nécessitent une bouteille VIP, et ce qu'il manque pour les autres.
-- **Soirées** (`/soirees`) : crée une soirée (nom, date, liste de prénoms VIP optionnelle) et récupère un lien unique à envoyer aux invités.
-- **Page invité** (`/soirees/[slug]`) : chaque invité entre son prénom (pas de mot de passe), voit ce qui est déjà sur place, indique ce qu'il ramène, et voit la liste de tout le monde. Si son prénom est dans la liste VIP de la soirée, il débloque en plus la réserve VIP et les cocktails premium.
+### Stock
 
-## Lancer le projet
+- **Cave** (`/stock`) — bouteilles avec quantité, catégorie, tags, formats (70cl, 1L…), photo, notes et seuil d'alerte. Tous ces champs restent modifiables après création.
+- **Scanner de code-barres** — la caméra lit le code, le produit est cherché dans Open Food Facts et le formulaire est prérempli. Un code déjà en stock ouvre directement la bouteille pour ajuster la quantité.
+- **Réserve VIP** — bouteilles visibles seulement des membres marqués VIP.
+- **Liste de courses** — les références sous leur seuil d'alerte, copiables ou exportables en CSV.
+
+### Cocktails
+
+`/cocktails` calcule à partir du stock réel ce qui est réalisable maintenant, ce qui nécessite la réserve VIP, et ce qu'il manque pour le reste. Le matching se fait sur les tags des bouteilles.
+
+### Soirées
+
+- **Planification** (`/soirees`) — date, lien d'invitation, et un rappel quand une soirée passée n'a pas eu son bilan.
+- **Qui ramène quoi** — l'hôte liste ce qu'il faut, avec le **nombre de personnes attendues** par item ; les invités se déclarent, avatars à l'appui, et l'item se ferme une fois complet.
+- **Bilan** — ajustement du stock en fin de soirée, historisé.
+- **Galerie** — photos et vidéos, téléchargeables une par une ou toutes en une archive zip.
+- **Calendrier** — une soirée s'ajoute à l'agenda en `.ics`, et un flux d'abonnement personnel tient Google Agenda / iPhone à jour automatiquement.
+
+### Discord *(optionnel)*
+
+Chaque membre peut lier son compte Discord depuis `/profil`. Un bar peut ensuite être relié à un salon, ce qui donne :
+
+- le tableau **« à ramener »** publié dans le salon et mis à jour à chaque changement, les invités liés apparaissant en mention ;
+- l'**annonce d'une soirée en message privé** aux membres qui ont lié leur compte ;
+- des **sondages** natifs Discord lancés depuis la soirée.
+
+Sans configuration Discord, ces fonctions sont simplement absentes.
+
+### Administration
+
+- **Comptes** (`/comptes`), **membres du bar** (`/membres`), **annuaire** (`/annuaire`), **découverte des bars publics** (`/decouvrir`).
+- **Journal** (`/journal`) — qui a fait quoi : bouteilles ajoutées ou retirées, quantités ajustées, soirées créées, bilans validés. Réservé au propriétaire du bar.
+
+## Architecture
+
+Deux services, une base Postgres.
+
+```
+navigateur ──► web (Next.js 16)  ──►  api (NestJS)  ──►  Postgres
+                    │                      │
+                    │                      └──► Open Food Facts, Discord
+                    └── /uploads/* réécrit vers l'API
+```
+
+**L'API n'a pas de port publié.** Le navigateur ne l'appelle jamais directement : les pages passent par des Server Actions côté serveur, et les images uploadées transitent par une réécriture `/uploads/*` du service web. Seule l'API sort vers l'extérieur (Open Food Facts, Discord).
+
+| | |
+|---|---|
+| Web | Next.js 16 (App Router, Server Actions), Tailwind CSS v4 |
+| API | NestJS 11, Prisma 6, Postgres 16 |
+| Auth | JWT en cookie httpOnly, comptes et rôles par bar |
+
+> Les guides Next.js de la version installée sont dans `node_modules/next/dist/docs/` — cette version a des ruptures d'API par rapport aux versions antérieures (le middleware s'appelle `proxy.ts`, par exemple).
+
+## Démarrer
+
+### Avec Docker (recommandé)
 
 ```bash
+cp .env.example .env      # renseigner au moins JWT_SECRET
+docker compose up --build
+```
+
+L'application écoute sur [http://localhost:8080](http://localhost:8080).
+
+### En local
+
+```bash
+# API
+cd api
 npm install
-npm run dev
+npx prisma migrate deploy
+npm run start:dev          # port 3001
+
+# Web, dans un autre terminal
+npm install
+npm run dev                # port 3000
 ```
 
-Avant de lancer le serveur, crée un fichier `.env.local` à la racine avec un mot de passe pour les pages d'administration :
+L'API attend une base Postgres joignable via `DATABASE_URL` (voir `api/.env`).
+
+## Configuration
+
+| Variable | Service | Rôle |
+|---|---|---|
+| `JWT_SECRET` | web + api | Signature des sessions. **À changer.** |
+| `DATABASE_URL` | api | Connexion Postgres. |
+| `NEST_API_URL` | web | Adresse interne de l'API. |
+| `WEB_ORIGIN` | api | Origine publique, utilisée dans les liens sortants. |
+| `COOKIE_SECURE` | web | `true` derrière un reverse proxy TLS. |
+| `DISCORD_CLIENT_ID` | web + api | Application Discord. Vide = intégration désactivée. |
+| `DISCORD_CLIENT_SECRET` | api | **Secret.** Jamais côté web, jamais commité. |
+| `DISCORD_REDIRECT_URI` | web + api | `https://<hôte>/api/discord/callback` |
+| `DISCORD_BOT_TOKEN` | api | **Secret.** Nécessaire pour publier le tableau, les MP et les sondages. |
+
+Les secrets se renseignent côté serveur (`.env` non versionné, ou le gestionnaire de secrets du déploiement) — jamais dans le dépôt.
+
+### Activer Discord
+
+1. Créer une application sur [discord.com/developers](https://discord.com/developers/applications).
+2. **OAuth2** → ajouter `https://<hôte>/api/discord/callback` en *redirect URI*, relever le *Client ID* et le *Client Secret*.
+3. **Bot** → créer le bot, relever le *token*, l'inviter sur le serveur avec le droit d'écrire dans le salon voulu.
+4. Renseigner les quatre variables ci-dessus, puis lier le salon dans `/membres` et son compte dans `/profil`.
+
+Le bot n'a **pas besoin d'être joignable depuis Internet** : il n'utilise que l'API REST de Discord, en sortant. Seule la redirection OAuth requiert une URL publique, servie par le web.
+
+## Déploiement
+
+`ansible/` contient les playbooks : création de VM Proxmox, installation du runner GitHub, et ingress Traefik avec certificat Let's Encrypt. Le web est exposé derrière l'ingress ; l'API et Postgres restent sur le réseau interne.
+
+## Tests
 
 ```bash
-echo "ADMIN_PASSWORD=ton-mot-de-passe" > .env.local
+cd api && npx jest         # tests unitaires de l'API
+npm run lint               # web
+cd api && npm run lint     # api
 ```
 
-Sans cette variable, `/stock`, `/soirees` et `/cocktails` restent inaccessibles (redirection vers `/login`) — seule la page invité `/soirees/<slug>` reste publique.
+## Documents
 
-Puis ouvre [http://localhost:3000](http://localhost:3000).
-
-Un jeu de données d'exemple est déjà présent dans `data/store.json` (quelques bouteilles, dont 2 en VIP). Tu peux vider ce fichier ou modifier son contenu directement, ou simplement gérer tout depuis l'interface `/stock`.
-
-## Comment ça stocke les données
-
-Pas de base de données externe : tout est écrit dans `data/store.json` par le serveur (via des Server Actions Next.js). Simple, sans dépendance, et suffisant pour un usage perso entre potes.
-
-**Attention** : ce mode de stockage par fichier fonctionne très bien en local (`npm run dev` / `npm run start` sur ta machine ou un petit serveur) mais **pas sur des hébergeurs serverless comme Vercel**, où le système de fichiers est éphémère (les données seraient perdues à chaque redéploiement/mise en veille).
-
-### Pour héberger le site (accessible par lien à tes potes)
-
-Deux options simples :
-1. **Sur ta machine à la maison** : lance `npm run build && npm run start`, puis partage l'accès via ton réseau local, ou un tunnel comme [Tailscale](https://tailscale.com) ou [ngrok](https://ngrok.com) si tu veux que ça marche même depuis l'extérieur.
-2. **Sur un petit serveur avec disque persistant** (Railway, Render, un VPS...) : le code marche tel quel, il suffit que le dossier `data/` persiste entre les redémarrages.
-
-Si un jour tu veux passer à une vraie base de données (Postgres, SQLite via Turso...) pour déployer sur Vercel, la seule chose à changer est le fichier `src/lib/db.ts` : toutes les pages et Server Actions passent déjà par ses fonctions (`listBottles`, `addBottle`, `createEvent`, etc.), donc le reste du code n'a pas besoin de bouger.
-
-## Ajouter tes propres cocktails
-
-Les recettes sont dans `src/lib/cocktails.ts`. Chaque recette a une liste de `tags` (ex: `"rhum blanc"`, `"citron vert"`) qui doivent correspondre aux tags que tu mets sur tes bouteilles/mixers dans le stock. Ajoute une recette dans le tableau `COCKTAILS` pour l'inclure dans le calcul automatique.
-
-## Stack
-
-Next.js 16 (App Router, TypeScript, Server Actions) + Tailwind CSS. Aucune base de données ni service externe requis.
+- [`CAHIER_DES_CHARGES.md`](CAHIER_DES_CHARGES.md) — périmètre fonctionnel et modèle de données.
+- [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) — palette, composants et **règles mobile obligatoires**.
+- [`AGENTS.md`](AGENTS.md) — consignes pour les agents travaillant sur le dépôt.
