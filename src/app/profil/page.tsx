@@ -1,9 +1,15 @@
 import PageTransition from "@/components/PageTransition";
 import ProfileForm from "./ProfileForm";
+import DiscordLink from "./DiscordLink";
 import { getMyProfileForForm } from "./actions";
 
-export default async function ProfilPage() {
+export default async function ProfilPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ discord?: string }>;
+}) {
   const profile = await getMyProfileForForm();
+  const { discord } = await searchParams;
 
   return (
     <PageTransition className="space-y-8 max-w-lg">
@@ -21,6 +27,8 @@ export default async function ProfilPage() {
       </div>
 
       <ProfileForm profile={profile} />
+
+      <DiscordLink profile={profile} status={discord} />
     </PageTransition>
   );
 }

@@ -63,6 +63,11 @@ model User {
   /// asked for, and regenerating it revokes every subscription at once —
   /// calendar clients poll without cookies, so the URL is the only credential.
   calendarToken       String?                  @unique
+  /// Discord account this profile is linked to. Unique, so one Discord user
+  /// cannot be attached to two OpenBar accounts and receive another person's
+  /// soirées. The name is cached only to display the link without a round trip.
+  discordUserId       String?                  @unique
+  discordUsername     String?
   createdAt           DateTime                 @default(now())
   isArchived          Boolean                  @default(false)
   contributions       Contribution[]

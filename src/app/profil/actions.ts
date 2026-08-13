@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getMyProfile, updateMyProfile } from "@/lib/api-client";
+import { getMyProfile, updateMyProfile, unlinkDiscord } from "@/lib/api-client";
 import { getSession } from "@/lib/session";
 
 export async function updateProfileAction(
@@ -38,4 +38,16 @@ export async function getMyProfileForForm() {
   const session = await getSession();
   if (!session) redirect("/login");
   return getMyProfile();
+}
+
+export async function unlinkDiscordAction() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  try {
+    await unlinkDiscord();
+    revalidatePath("/profil");
+    return { success: true };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Impossible de délier le compte." };
+  }
 }
