@@ -4,10 +4,15 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { join } from 'path';
+import { requestContext } from './common/logging/request-context';
+import { httpLogging } from './common/logging/http-logging.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.use(cookieParser());
+  // Order matters: the id is attached first so every logged line carries one.
+  app.use(requestContext);
+  app.use(httpLogging);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.enableCors({
     origin: process.env.WEB_ORIGIN ?? 'http://localhost:3000',
