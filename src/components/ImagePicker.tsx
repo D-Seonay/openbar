@@ -5,6 +5,16 @@ import { useState, useTransition, useRef } from "react";
 interface ImagePickerProps {
   value: string;
   onChange: (url: string) => void;
+  /**
+   * Called when the choice is settled rather than on every keystroke: on blur
+   * or Enter for a typed URL, and immediately for an upload or a removal.
+   *
+   * Callers that only keep the value in local state (a form that saves later)
+   * can ignore this. Callers that persist have to use it — `onChange` fires per
+   * character in URL mode, which would otherwise mean one write per keystroke,
+   * each racing the others and fighting the controlled input.
+   */
+  onCommit?: (url: string) => void;
   onUpload: (formData: FormData) => Promise<string | null>;
   label?: string;
 }
@@ -12,6 +22,7 @@ interface ImagePickerProps {
 export default function ImagePicker({
   value,
   onChange,
+  onCommit,
   onUpload,
   label = "Photo de la bouteille",
 }: ImagePickerProps) {
@@ -30,6 +41,8 @@ export default function ImagePicker({
         const uploadedUrl = await onUpload(formData);
         if (uploadedUrl) {
           onChange(uploadedUrl);
+          // A finished upload is already a settled choice, so commit it too.
+          onCommit?.(uploadedUrl);
         }
       } catch {
         // silent
@@ -103,6 +116,14 @@ export default function ImagePicker({
           type="url"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onBlur={(e) => onCommit?.(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return;
+            // Committing here rather than letting the keypress bubble keeps a
+            // picker inside a <form> from submitting it by accident.
+            e.preventDefault();
+            onCommit?.(e.currentTarget.value);
+          }}
           placeholder="Ex: https://image.com/bouteille.png"
           className="w-full bg-ink border border-white/[0.12] rounded-xl px-3.5 py-2.5 text-xs placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/40 transition-all text-cream"
         />
@@ -128,7 +149,10 @@ export default function ImagePicker({
           </div>
           <button
             type="button"
-            onClick={() => onChange("")}
+            onClick={() => {
+              onChange("");
+              onCommit?.("");
+            }}
             className="tap-target-sm shrink-0 flex items-center text-xs text-red-400 hover:text-red-300 bg-red-500/10 px-2.5 py-1 rounded-lg border border-red-500/20 cursor-pointer"
           >
             Retirer
