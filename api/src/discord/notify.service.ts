@@ -13,7 +13,23 @@ export interface DmOutcome {
   failed: number;
   /** Members of the bar who never linked Discord, so could not be reached. */
   unlinked: number;
+  /** Not attempted because the overall budget ran out. Never silently dropped. */
+  pending: number;
 }
+
+/**
+ * A few at a time. Sequential meant a bar of thirty could hold the host's
+ * request open for minutes; unbounded parallelism would just trip Discord's
+ * rate limiter, which the REST client then has to sit out.
+ */
+const CONCURRENCY = 4;
+
+/**
+ * Whole-broadcast budget. Past this the remainder is reported as pending
+ * rather than left to time out somewhere in a proxy. Overridable so the tests
+ * can exercise the cutoff without waiting twenty seconds for it.
+ */
+const BUDGET_MS = Number(process.env.DISCORD_BROADCAST_BUDGET_MS) || 20000;
 
 @Injectable()
 export class DiscordNotifyService {
@@ -46,8 +62,9 @@ export class DiscordNotifyService {
       .filter((u) => u.discordUserId && u.id !== senderId);
     const unlinked = members.length - recipients.length;
 
-    if (!isBotConfigured())
-      return { sent: 0, failed: recipients.length, unlinked };
+    if (!isBotConfigured()) {
+      return { sent: 0, failed: recipients.length, unlinked, pending: 0 };
+    }
 
     const date = new Date(event.date).toLocaleDateString('fr-FR', {
       weekday: 'long',
@@ -61,31 +78,46 @@ export class DiscordNotifyService {
 
     let sent = 0;
     let failed = 0;
-    for (const recipient of recipients) {
+    const startedAt = Date.now();
+
+    const queue = [...recipients];
+    const dmOne = async (discordUserId: string): Promise<boolean> => {
       // A DM needs its own channel, opened once per recipient.
       const channel = await discordFetch<{ id?: string }>(
         '/users/@me/channels',
         {
           method: 'POST',
-          body: { recipient_id: recipient.discordUserId },
+          body: { recipient_id: discordUserId },
         },
       );
-      if (!channel?.id) {
-        failed += 1;
-        continue;
-      }
+      if (!channel?.id) return false;
       const message = await discordFetch(`/channels/${channel.id}/messages`, {
         method: 'POST',
         body: { content },
       });
-      if (message) sent += 1;
-      else failed += 1;
-    }
+      return Boolean(message);
+    };
+
+    const worker = async () => {
+      while (queue.length > 0) {
+        // Checked per item so a slow run stops cleanly instead of overrunning.
+        if (Date.now() - startedAt > BUDGET_MS) return;
+        const next = queue.shift();
+        if (!next?.discordUserId) continue;
+        if (await dmOne(next.discordUserId)) sent += 1;
+        else failed += 1;
+      }
+    };
+
+    await Promise.all(
+      Array.from({ length: Math.min(CONCURRENCY, recipients.length) }, worker),
+    );
+    const pending = queue.length;
 
     this.logger.log(
-      `Annonce ${slug} : ${sent} envoyés, ${failed} échoués, ${unlinked} non liés`,
+      `Annonce ${slug} : ${sent} envoyés, ${failed} échoués, ${unlinked} non liés, ${pending} en attente`,
     );
-    return { sent, failed, unlinked };
+    return { sent, failed, unlinked, pending };
   }
 
   /**

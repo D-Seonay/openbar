@@ -32,6 +32,11 @@ export default function DiscordActions({ slug, barId }: { slug: string; barId: s
       const parts = [`${res.sent} invité${res.sent > 1 ? "s" : ""} prévenu${res.sent > 1 ? "s" : ""}`];
       if (res.failed > 0) parts.push(`${res.failed} injoignable${res.failed > 1 ? "s" : ""}`);
       if (res.unlinked > 0) parts.push(`${res.unlinked} sans Discord lié`);
+      // Surfaced explicitly: left silent, the host would believe the whole bar
+      // was reached and never press the button again.
+      if (res.pending > 0) {
+        parts.push(`${res.pending} pas encore prévenu${res.pending > 1 ? "s" : ""} — relance pour finir`);
+      }
       setFeedback({ tone: res.sent > 0 ? "ok" : "ko", text: parts.join(" · ") });
     });
   };
