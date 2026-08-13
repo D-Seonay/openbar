@@ -24,7 +24,8 @@ export interface Bottle {
   tags: string[];
   vip: boolean;
   notes?: string;
-  lowStockThreshold?: number;
+  /** `null` clears the alert; absent leaves it untouched on a PATCH. */
+  lowStockThreshold?: number | null;
   createdAt: string;
   volumes?: BottleVolume[];
   imageUrl?: string;

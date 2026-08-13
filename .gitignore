@@ -59,3 +59,7 @@ api/dist
 
 # legacy file-based data store (replaced by Postgres, see api/)
 /data
+
+# Throwaway seed/scratch scripts used while testing locally.
+*-tmp.js
+*-tmp.ts
