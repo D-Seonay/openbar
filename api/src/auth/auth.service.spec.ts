@@ -87,6 +87,44 @@ describe('AuthService', () => {
     );
   });
 
+  it('lifts the admin cap to 30d when the person asked to stay signed in', async () => {
+    const passwordHash = await bcrypt.hash('demo', 10);
+    usersService.findByUsername.mockResolvedValue({
+      id: '1',
+      username: 'noa',
+      passwordHash,
+      role: 'ADMIN',
+      vip: true,
+      mustChangePassword: false,
+    });
+
+    await service.login('noa', 'demo', true);
+
+    expect(jwtService.sign).toHaveBeenCalledWith(
+      expect.objectContaining({ role: 'ADMIN', remember: true }),
+      { expiresIn: '30d' },
+    );
+  });
+
+  it('records the choice in the payload so a re-issue can preserve it', async () => {
+    const passwordHash = await bcrypt.hash('demo', 10);
+    usersService.findByUsername.mockResolvedValue({
+      id: '1',
+      username: 'noa',
+      passwordHash,
+      role: 'USER',
+      vip: false,
+      mustChangePassword: false,
+    });
+
+    await service.login('noa', 'demo');
+
+    expect(jwtService.sign).toHaveBeenCalledWith(
+      expect.objectContaining({ remember: false }),
+      expect.anything(),
+    );
+  });
+
   it('signs a USER token with a 30d expiry', async () => {
     const passwordHash = await bcrypt.hash('demo', 10);
     usersService.findByUsername.mockResolvedValue({

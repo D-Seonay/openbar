@@ -28,11 +28,12 @@ const API_URL = getBaseApiUrl();
 export async function apiLogin(
   username: string,
   password: string,
+  rememberMe: boolean,
 ): Promise<{ token: string } | null> {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, password, rememberMe }),
     cache: "no-store",
   });
 

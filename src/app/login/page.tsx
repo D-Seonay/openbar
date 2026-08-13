@@ -37,6 +37,17 @@ export default async function LoginPage({
           autoComplete="current-password"
           className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-3 text-sm sm:text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
         />
+        {/* Checked by default: staying signed in is what almost everyone wants
+            here, and unticking is the deliberate "this is not my device" case. */}
+        <label className="tap-target flex items-center justify-center gap-2.5 text-xs text-muted cursor-pointer select-none">
+          <input
+            type="checkbox"
+            name="rememberMe"
+            defaultChecked
+            className="w-4 h-4 rounded border-orange/30 bg-ink accent-orange cursor-pointer"
+          />
+          <span>Rester connecté sur cet appareil</span>
+        </label>
         {error && <p className="text-xs text-red-400 text-center">Mot de passe incorrect.</p>}
         <button
           type="submit"
