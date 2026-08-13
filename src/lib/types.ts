@@ -84,6 +84,8 @@ export interface WishlistItem {
   id: string;
   eventId: string;
   label: string;
+  /** How many guests the host wants on this item. Always at least 1. */
+  neededCount: number;
   createdAt: string;
   assignments: WishlistItemAssignment[];
 }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsService } from '../events/events.service';
@@ -33,10 +37,10 @@ export class WishlistService {
     });
   }
 
-  async create(slug: string, label: string) {
+  async create(slug: string, label: string, neededCount = 1) {
     const event = await this.eventsService.findBySlug(slug);
     return this.prisma.wishlistItem.create({
-      data: { eventId: event.id, label },
+      data: { eventId: event.id, label, neededCount },
       include: {
         assignments: {
           include: { user: { select: ASSIGNEE_SELECT } },
@@ -68,10 +72,26 @@ export class WishlistService {
       include: { user: { select: ASSIGNEE_SELECT } },
     });
     if (existing) return existing;
+
     try {
-      return await this.prisma.wishlistItemAssignment.create({
-        data: { wishlistItemId: itemId, userId },
-        include: { user: { select: ASSIGNEE_SELECT } },
+      return await this.prisma.$transaction(async (tx) => {
+        // Lock the item row for the duration of the transaction. Counting and
+        // then inserting without this is a race: two guests both read "2 of 3
+        // taken" and both insert, and the item ends up over-subscribed. The
+        // lock is on the parent, so it only serialises claims on this one item.
+        await tx.$queryRaw`SELECT id FROM "WishlistItem" WHERE id = ${itemId} FOR UPDATE`;
+
+        const taken = await tx.wishlistItemAssignment.count({
+          where: { wishlistItemId: itemId },
+        });
+        if (taken >= item.neededCount) {
+          throw new ConflictException('Cet item est déjà complet');
+        }
+
+        return tx.wishlistItemAssignment.create({
+          data: { wishlistItemId: itemId, userId },
+          include: { user: { select: ASSIGNEE_SELECT } },
+        });
       });
     } catch (error) {
       if (

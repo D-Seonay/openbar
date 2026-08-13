@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { addWishlistItemAction, deleteWishlistItemAction, assignWishlistItemAction, unassignWishlistItemAction } from "@/app/actions";
 import type { WishlistItem, WishlistItemAssignment } from "@/lib/types";
 
@@ -41,13 +41,40 @@ function WishlistItemRow({
   currentUserId: string;
 }) {
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   const isAssignedToMe = wishlistItem.assignments.some((a) => a.user.id === currentUserId);
+
+  const taken = wishlistItem.assignments.length;
+  const needed = wishlistItem.neededCount;
+  const isFull = taken >= needed;
+
+  const claim = () => {
+    setError(null);
+    startTransition(async () => {
+      const res = await assignWishlistItemAction(slug, wishlistItem.id);
+      if (res?.error) setError(res.error);
+    });
+  };
 
   return (
     <li className="rounded-xl border border-white/[0.08] bg-ink/70 px-3.5 sm:px-4 py-3 space-y-2 text-xs text-cream hover:border-orange/30 transition-all">
       <div className="flex items-center justify-between gap-3">
         <span className="font-semibold text-cream break-words">{wishlistItem.label}</span>
-        {canManage && (
+        <span className="flex items-center gap-2 shrink-0">
+          {/* Only worth showing when the host asked for more than one person;
+              a plain item would just read "0/1". */}
+          {needed > 1 && (
+            <span
+              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border whitespace-nowrap ${
+                isFull
+                  ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
+                  : "bg-orange/15 border-orange/30 text-orange"
+              }`}
+            >
+              {isFull ? `✓ complet ${taken}/${needed}` : `${taken}/${needed} pris`}
+            </span>
+          )}
+          {canManage && (
           <button
             disabled={isPending}
             onClick={() => startTransition(() => deleteWishlistItemAction(slug, wishlistItem.id))}
@@ -55,7 +82,8 @@ function WishlistItemRow({
           >
             Retirer
           </button>
-        )}
+          )}
+        </span>
       </div>
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -83,16 +111,22 @@ function WishlistItemRow({
           >
             Je ne peux plus
           </button>
+        ) : isFull ? (
+          <span className="shrink-0 text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
+            Complet
+          </span>
         ) : (
           <button
             disabled={isPending}
-            onClick={() => startTransition(() => assignWishlistItemAction(slug, wishlistItem.id))}
+            onClick={claim}
             className="tap-target-sm shrink-0 flex items-center px-2.5 py-1 rounded-lg bg-orange/15 hover:bg-orange/25 border border-orange/40 text-[10px] text-orange font-bold uppercase tracking-wider transition-colors cursor-pointer"
           >
             Je m&apos;en occupe
           </button>
         )}
       </div>
+
+      {error && <p className="text-[10px] text-red-400">{error}</p>}
     </li>
   );
 }
@@ -130,9 +164,25 @@ export default function WishlistSection({
           <input
             name="label"
             required
-            placeholder="Ex: 2 sacs de glaçons"
-            className="flex-1 bg-ink border border-white/[0.12] rounded-xl px-3.5 py-2.5 text-xs placeholder:text-muted/60 focus:outline-none focus:border-orange text-cream font-medium"
+            placeholder="Ex: sacs de glaçons"
+            className="flex-1 min-w-0 bg-ink border border-white/[0.12] rounded-xl px-3.5 py-2.5 text-xs placeholder:text-muted/60 focus:outline-none focus:border-orange text-cream font-medium"
           />
+          {/* How many guests are wanted on this item. 1 keeps the previous
+              behaviour, so the field can simply be ignored. */}
+          <label className="flex items-center gap-1.5 shrink-0">
+            <span className="sr-only">Nombre de personnes souhaitées</span>
+            <span aria-hidden className="text-xs text-muted">×</span>
+            <input
+              name="neededCount"
+              type="number"
+              min="1"
+              max="50"
+              step="1"
+              defaultValue={1}
+              inputMode="numeric"
+              className="w-14 bg-ink border border-white/[0.12] rounded-xl px-2 py-2.5 text-xs text-center focus:outline-none focus:border-orange text-cream font-medium"
+            />
+          </label>
           <button
             type="submit"
             className="tap-target flex items-center justify-center bg-orange text-ink font-extrabold rounded-xl px-4 py-2.5 text-xs hover:bg-orange-hover box-orange-glow transition-all uppercase tracking-wider cursor-pointer"

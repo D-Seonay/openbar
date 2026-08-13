@@ -50,7 +50,7 @@ export class WishlistController {
         "Seul l'hôte de la soirée peut gérer la liste à ramener",
       );
     }
-    return this.wishlistService.create(slug, dto.label);
+    return this.wishlistService.create(slug, dto.label, dto.neededCount);
   }
 
   @UseGuards(JwtAuthGuard)

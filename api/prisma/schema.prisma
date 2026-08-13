@@ -127,10 +127,14 @@ model Contribution {
 }
 
 model WishlistItem {
-  id          String                   @id @default(cuid())
-  eventId     String
-  event       Event                    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  label       String
+  id      String @id @default(cuid())
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  label   String
+
+  /// How many guests the host needs for this item. 1 is the previous
+  /// behaviour, so existing rows keep working unchanged.
+  neededCount Int                      @default(1)
   createdAt   DateTime                 @default(now())
   assignments WishlistItemAssignment[]
 }
