@@ -156,6 +156,8 @@ export interface MyProfile {
   favoriteDrink: string | null;
   allergies: string | null;
   avatarUrl: string | null;
+  discordUserId: string | null;
+  discordUsername: string | null;
 }
 
 export interface BarDirectoryEntry {

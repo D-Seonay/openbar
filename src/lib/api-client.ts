@@ -260,6 +260,11 @@ export function deleteEventMedia(slug: string, id: string): Promise<{ success: b
   return request(`/events/${slug}/media/${id}`, { method: "DELETE" });
 }
 
+// Discord account link
+export function unlinkDiscord(): Promise<{ success: boolean }> {
+  return request("/auth/discord/link", { method: "DELETE" });
+}
+
 // Stock Adjustments
 export function listStockAdjustments(slug: string): Promise<StockAdjustment[]> {
   return request<StockAdjustment[]>(`/events/${slug}/stock-adjustments`);

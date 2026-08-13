@@ -26,6 +26,10 @@ services:
       DATABASE_URL: postgresql://bardenoa:bardenoa@postgres:5432/bardenoa
       JWT_SECRET: ${JWT_SECRET}
       WEB_ORIGIN: http://web:3000
+      # The API owns the Discord secret: the web container never sees it.
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
+      DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI:-}
     volumes:
       - uploads_data:/app/uploads
     # No published port: the browser never calls the API directly. Uploaded
@@ -47,6 +51,9 @@ services:
     environment:
       NEST_API_URL: http://api:3001
       JWT_SECRET: ${JWT_SECRET}
+      # Public values only — used to build the authorize redirect.
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
+      DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI:-}
     ports:
       - "8080:3000"
 

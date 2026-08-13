@@ -21,6 +21,8 @@ const PUBLIC_SELECT = {
   favoriteDrink: true,
   allergies: true,
   avatarUrl: true,
+  discordUserId: true,
+  discordUsername: true,
   isArchived: true,
 } as const;
 

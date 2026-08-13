@@ -13,11 +13,13 @@ import { WishlistModule } from './wishlist/wishlist.module';
 import { EventMediaModule } from './event-media/event-media.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { AuditModule } from './audit/audit.module';
+import { DiscordModule } from './discord/discord.module';
 
 @Module({
   imports: [
     CalendarModule,
     AuditModule,
+    DiscordModule,
     PrismaModule,
     UsersModule,
     AuthModule,
