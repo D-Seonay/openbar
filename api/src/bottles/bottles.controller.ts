@@ -21,6 +21,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { JwtPayload } from '../auth/auth.service';
 import { BarAccessService } from '../bars/bar-access.service';
 import { BottlesService } from './bottles.service';
+import { AuditService } from '../audit/audit.service';
 import { CreateBottleDto } from './dto/create-bottle.dto';
 import { UpdateBottleDto } from './dto/update-bottle.dto';
 import {
@@ -36,6 +37,7 @@ export class BottlesController {
   constructor(
     private readonly bottlesService: BottlesService,
     private readonly barAccessService: BarAccessService,
+    private readonly auditService: AuditService,
   ) {}
 
   @Get()
@@ -118,7 +120,15 @@ export class BottlesController {
         'Seul le propriétaire du bar peut gérer le stock',
       );
     }
-    return this.bottlesService.create(dto);
+    const created = await this.bottlesService.create(dto);
+    await this.auditService.record(user, {
+      barId: dto.barId,
+      action: 'bottle.create',
+      targetType: 'bottle',
+      targetId: created.id,
+      summary: `a ajouté « ${created.name} » au stock`,
+    });
+    return created;
   }
 
   @Patch(':id')
@@ -138,7 +148,20 @@ export class BottlesController {
         'Seul le propriétaire du bar peut gérer le stock',
       );
     }
-    return this.bottlesService.update(id, dto);
+    const updated = await this.bottlesService.update(id, dto);
+    await this.auditService.record(user, {
+      barId: bottle.barId,
+      action: 'bottle.update',
+      targetType: 'bottle',
+      targetId: id,
+      // Quantity is the field that changes most and matters most, so it is
+      // spelled out rather than hidden behind a generic "modifiée".
+      summary:
+        dto.quantity !== undefined && dto.quantity !== bottle.quantity
+          ? `a passé « ${updated.name} » de ${bottle.quantity} à ${updated.quantity} bouteille(s)`
+          : `a modifié la fiche de « ${updated.name} »`,
+    });
+    return updated;
   }
 
   @Delete(':id')
@@ -154,6 +177,14 @@ export class BottlesController {
         'Seul le propriétaire du bar peut gérer le stock',
       );
     }
-    return this.bottlesService.remove(id);
+    const result = await this.bottlesService.remove(id);
+    await this.auditService.record(user, {
+      barId: bottle.barId,
+      action: 'bottle.delete',
+      targetType: 'bottle',
+      targetId: id,
+      summary: `a supprimé « ${bottle.name} » du stock`,
+    });
+    return result;
   }
 }

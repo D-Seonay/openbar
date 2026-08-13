@@ -16,6 +16,11 @@ import { CalendarModule } from './calendar/calendar.module';
 @Module({
   imports: [
     CalendarModule,
+import { AuditModule } from './audit/audit.module';
+
+@Module({
+  imports: [
+    AuditModule,
     PrismaModule,
     UsersModule,
     AuthModule,

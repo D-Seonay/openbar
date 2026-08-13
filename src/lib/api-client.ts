@@ -19,6 +19,7 @@ import type {
   WishlistItem,
   WishlistItemAssignment,
   EventMedia,
+  AuditPage,
 } from "./types";
 import type { CocktailRecipe, RecipeAvailability } from "./cocktail-types";
 import { getBaseApiUrl } from "./api";
@@ -163,6 +164,10 @@ export function issueCalendarToken(rotate = false): Promise<{ token: string }> {
   return request<{ token: string }>(
     rotate ? "/calendar/token/rotate" : "/calendar/token",
     { method: "POST" },
+// Audit journal
+export function listBarAudit(barId: string, page: number): Promise<AuditPage> {
+  return request<AuditPage>(
+    `/bars/${encodeURIComponent(barId)}/audit?page=${page}`,
   );
 }
 

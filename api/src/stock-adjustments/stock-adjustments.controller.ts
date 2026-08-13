@@ -14,6 +14,7 @@ import type { JwtPayload } from '../auth/auth.service';
 import { BarAccessService } from '../bars/bar-access.service';
 import { EventsService } from '../events/events.service';
 import { StockAdjustmentsService } from './stock-adjustments.service';
+import { AuditService } from '../audit/audit.service';
 import { ApplyStockAdjustmentsDto } from './dto/apply-stock-adjustments.dto';
 
 @UseGuards(JwtAuthGuard)
@@ -23,6 +24,7 @@ export class StockAdjustmentsController {
     private readonly stockAdjustmentsService: StockAdjustmentsService,
     private readonly eventsService: EventsService,
     private readonly barAccessService: BarAccessService,
+    private readonly auditService: AuditService,
   ) {}
 
   @Get()
@@ -50,6 +52,14 @@ export class StockAdjustmentsController {
         'Seul le propriétaire du bar peut valider un bilan de stock',
       );
     }
-    return this.stockAdjustmentsService.apply(slug, dto);
+    const result = await this.stockAdjustmentsService.apply(slug, dto);
+    await this.auditService.record(user, {
+      barId: event.barId,
+      action: 'stock.bilan',
+      targetType: 'event',
+      targetId: event.id,
+      summary: `a validé le bilan de « ${event.name} » (${dto.changes.length} référence(s) ajustée(s))`,
+    });
+    return result;
   }
 }

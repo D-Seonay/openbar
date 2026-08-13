@@ -16,6 +16,7 @@ import NoticeModal, { type Notice } from "@/components/NoticeModal";
 import ImagePicker from "@/components/ImagePicker";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import AddBottleForm, { type BottlePrefill } from "./AddBottleForm";
+import EditBottleDetails from "./EditBottleDetails";
 import BottleImage from "@/components/BottleImage";
 import Pagination from "@/components/Pagination";
 
@@ -559,6 +560,16 @@ export default function StockStudio({
                             )}
                           </div>
                         )}
+                        {/* Keyed on the bottle so switching selection loads the
+                            new bottle's values instead of the previous one's. */}
+                        {isAdmin && (
+                          <EditBottleDetails
+                            key={selectedBottle.id}
+                            bottle={selectedBottle}
+                            canSeeVip={isVip}
+                          />
+                        )}
+
                         <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4">
                           <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
                             <span className="text-[10px] uppercase tracking-caps text-muted block">Catégorie</span>

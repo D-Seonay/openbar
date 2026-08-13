@@ -71,6 +71,7 @@ model User {
   barMemberships      BarMembership[]
   barJoinRequests     BarJoinRequest[]
   eventMedia          EventMedia[]
+  auditEntries        AuditLog[]
 }
 
 model Bottle {
@@ -181,6 +182,31 @@ model EventMedia {
   @@index([eventId])
 }
 
+/// Who did what, in business terms. Deliberately append-only and denormalised:
+/// an entry has to stay readable after the bottle or the guest it refers to has
+/// been deleted, so names are copied in rather than joined at read time.
+model AuditLog {
+  id     String @id @default(cuid())
+  /// Null for actions that are not scoped to a bar (account administration).
+  barId  String?
+  bar    Bar?    @relation(fields: [barId], references: [id], onDelete: Cascade)
+  /// SetNull rather than Cascade: archiving an account must not erase the trail
+  /// of what it did. `actorName` keeps the entry readable afterwards.
+  actorId   String?
+  actor     User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorName String
+
+  action     String
+  targetType String
+  targetId   String?
+  /// Human-readable, already in French, so the page needs no lookup table.
+  summary    String
+  createdAt  DateTime @default(now())
+
+  @@index([barId, createdAt])
+  @@index([createdAt])
+}
+
 model Recipe {
   id              String           @id @default(cuid())
   name            String
@@ -211,6 +237,7 @@ model Bar {
   events       Event[]
   recipes      Recipe[]
   joinRequests BarJoinRequest[]
+  auditEntries AuditLog[]
 }
 
 model BarMembership {
