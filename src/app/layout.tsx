@@ -22,17 +22,14 @@ import BarSwitcher from "@/components/BarSwitcher";
  * were roughly ten times the bytes for nothing. Both families are OFL-licensed,
  * so redistributing them here is fine.
  */
-const outfit = localFont({
-  src: [
-    { path: "./fonts/Outfit-500.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/Outfit-600.woff2", weight: "600", style: "normal" },
-    { path: "./fonts/Outfit-700.woff2", weight: "700", style: "normal" },
-    { path: "./fonts/Outfit-800.woff2", weight: "800", style: "normal" },
-  ],
-  variable: "--font-outfit",
+const lora = localFont({
+  src: [{ path: "./fonts/Lora-latin.woff2", weight: "400 700", style: "normal" }],
+  variable: "--font-lora",
   display: "swap",
-  // Keeps the layout from jumping when the webfont replaces the fallback.
-  adjustFontFallback: "Arial",
+  // Georgia est la sérif système la plus proche ; elle limite le saut de
+  // gabarit à la substitution. Absente d'Android, où la pile retombe sur
+  // Noto Serif — d'où le fichier auto-hébergé plutôt qu'une pile système.
+  adjustFontFallback: "Times New Roman",
 });
 
 const jakarta = localFont({
@@ -79,7 +76,7 @@ export default async function RootLayout({
   const profile = session ? await getMyProfile() : null;
 
   return (
-    <html lang="fr" className={`h-full ${outfit.variable} ${jakarta.variable}`}>
+    <html lang="fr" className={`h-full ${lora.variable} ${jakarta.variable}`}>
       <body className="min-h-full flex flex-col bg-ink text-cream selection:bg-orange/30 selection:text-white font-sans antialiased relative overflow-x-hidden">
         {/* Subtle Warm Lounge Ambient Lighting — smaller blur radii on phones,
             where a 500px/140px-blur layer is expensive to composite. */}
