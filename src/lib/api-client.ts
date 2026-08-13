@@ -260,6 +260,17 @@ export function deleteEventMedia(slug: string, id: string): Promise<{ success: b
   return request(`/events/${slug}/media/${id}`, { method: "DELETE" });
 }
 
+// Discord channel binding
+export function setBarDiscordChannel(
+  barId: string,
+  channelId: string,
+): Promise<{ id: string; discordChannelId: string | null }> {
+  return request(`/bars/${encodeURIComponent(barId)}/discord`, {
+    method: "PATCH",
+    body: JSON.stringify({ channelId }),
+  });
+}
+
 // Discord account link
 export function unlinkDiscord(): Promise<{ success: boolean }> {
   return request("/auth/discord/link", { method: "DELETE" });

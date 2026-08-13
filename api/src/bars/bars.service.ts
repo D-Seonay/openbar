@@ -60,6 +60,9 @@ export class BarsService {
       myVip: bar.memberships[0].vip,
       isPublic: bar.isPublic,
       inviteToken: bar.memberships[0].role === 'OWNER' ? bar.inviteToken : null,
+      // Only the owner configures it, and only the owner needs to see it.
+      discordChannelId:
+        bar.memberships[0].role === 'OWNER' ? bar.discordChannelId : null,
     }));
   }
 
@@ -430,5 +433,22 @@ export class BarsService {
         'Seul le propriétaire du bar peut effectuer cette action',
       );
     }
+  }
+
+  /**
+   * Store the channel id, digits only.
+   *
+   * Discord snowflakes are numeric, so anything else is a paste of a channel
+   * name or a URL — rejecting it here means a typo surfaces immediately rather
+   * than as a silent 404 the next time the board tries to publish.
+   */
+  async setDiscordChannel(barId: string, requesterId: string, raw: string | null) {
+    await this.assertOwner(barId, requesterId);
+    const channelId = raw?.replace(/\D/g, '') || null;
+    return this.prisma.bar.update({
+      where: { id: barId },
+      data: { discordChannelId: channelId },
+      select: { id: true, discordChannelId: true },
+    });
   }
 }

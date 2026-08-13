@@ -23,6 +23,7 @@ import { UpdateMemberDto } from './dto/update-member.dto';
 import { RespondJoinRequestDto } from './dto/respond-join-request.dto';
 import { UpdateBarVisibilityDto } from './dto/update-bar-visibility.dto';
 import { RenameBarDto } from './dto/rename-bar.dto';
+import { SetDiscordChannelDto } from './dto/set-discord-channel.dto';
 
 @Controller('bars')
 export class BarsController {
@@ -76,6 +77,21 @@ export class BarsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  /**
+   * Bind (or clear) the Discord channel the "à ramener" board is published to.
+   * Owner-only: it decides where the bar's activity is broadcast.
+   */
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/discord')
+  async setDiscordChannel(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() dto: SetDiscordChannelDto,
+  ) {
+    const user = req.user as JwtPayload;
+    return this.barsService.setDiscordChannel(id, user.sub, dto.channelId ?? null);
+  }
+
   @Get(':id/members')
   findMembers(@Req() req: Request, @Param('id') id: string) {
     const user = req.user as JwtPayload;
