@@ -158,6 +158,14 @@ export function lookupBarcode(barId: string, barcode: string): Promise<BarcodeLo
   );
 }
 
+// Calendar subscription
+export function issueCalendarToken(rotate = false): Promise<{ token: string }> {
+  return request<{ token: string }>(
+    rotate ? "/calendar/token/rotate" : "/calendar/token",
+    { method: "POST" },
+  );
+}
+
 // Events
 export function listEvents(barId: string): Promise<EventItem[]> {
   return request<EventItem[]>(`/events?barId=${barId}`);

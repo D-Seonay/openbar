@@ -414,3 +414,19 @@ export async function editBottleAction(id: string, data: { name: string; type: B
   }
 }
 
+
+/**
+ * Hand back the personal calendar feed URL, minting the secret on first use.
+ *
+ * Returns a path rather than a full URL: the caller knows its own origin, and
+ * the server does not reliably know the public one behind a proxy.
+ */
+export async function calendarFeedPathAction(rotate = false) {
+  await requireLoggedIn();
+  try {
+    const { token } = await api.issueCalendarToken(rotate);
+    return { path: `/calendrier/${token}` };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Calendrier indisponible." };
+  }
+}
