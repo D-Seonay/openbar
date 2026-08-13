@@ -1,6 +1,6 @@
-# Design System — Le Bar de Noa (Cocktail Club & Codes Couleurs)
+# Design System — OpenBar (Cocktail Club & Codes Couleurs)
 
-Référence unique et définitive pour le style du projet **Le Bar de Noa**. Basé sur l'esthétique **"Cocktail Club & Codes Couleurs"** : fond sombre feutré (`ink`), effets de verre poli sombre (*glassmorphism*), lueurs subtiles (*glows*) et codes couleurs distincts par catégorie d'alcool.
+Référence unique et définitive pour le style du projet **OpenBar**. Basé sur l'esthétique **"Cocktail Club & Codes Couleurs"** : fond sombre feutré (`ink`), effets de verre poli sombre (*glassmorphism*), lueurs subtiles (*glows*) et codes couleurs distincts par catégorie d'alcool.
 
 ## 1. Principes Fondamentaux
 

@@ -123,6 +123,10 @@ model Event {
   stockAdjustments StockAdjustment[]
   wishlistItems    WishlistItem[]
   media            EventMedia[]
+
+  /// The board message for this soirée, so updates edit it in place instead of
+  /// posting a new one every time somebody claims an item.
+  discordMessageId String?
 }
 
 model Contribution {
@@ -243,6 +247,10 @@ model Bar {
   recipes      Recipe[]
   joinRequests BarJoinRequest[]
   auditEntries AuditLog[]
+
+  /// Channel the "à ramener" board is published to. Null means the bar has not
+  /// connected Discord, and nothing is ever posted.
+  discordChannelId String?
 }
 
 model BarMembership {
