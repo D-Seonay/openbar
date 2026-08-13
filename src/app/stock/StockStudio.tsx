@@ -4,9 +4,15 @@ import { useState, useTransition, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Bottle, BottleType } from "@/lib/types";
-import { updateBottleQuantity, deleteBottleAction } from "@/app/actions";
+import {
+  updateBottleQuantity,
+  deleteBottleAction,
+  updateBottleImageAction,
+  uploadBottleImage,
+} from "@/app/actions";
 import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
+import ImagePicker from "@/components/ImagePicker";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import AddBottleForm, { type BottlePrefill } from "./AddBottleForm";
 import BottleImage from "@/components/BottleImage";
@@ -36,6 +42,10 @@ export default function StockStudio({
   const [drawerMode, setDrawerMode] = useState<"inspect" | "add" | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+  // Non-null only while the photo field is being edited; cleared once saved so
+  // the picker falls back to whatever the server now holds.
+  const [imageDraft, setImageDraft] = useState<string | null>(null);
   // Set by a scan, consumed by AddBottleForm. Cleared whenever the drawer
   // closes so a manual "+ Ajouter" never reopens on stale scan data.
   const [prefill, setPrefill] = useState<BottlePrefill | undefined>(undefined);
@@ -123,6 +133,8 @@ export default function StockStudio({
 
   const handleInspect = (bottle: Bottle) => {
     setSelectedBottleId(bottle.id);
+    setImageDraft(null);
+    setImageError(null);
     setDrawerMode("inspect");
   };
 
@@ -136,6 +148,8 @@ export default function StockStudio({
     setDrawerMode(null);
     setSelectedBottleId(null);
     setPrefill(undefined);
+    setImageDraft(null);
+    setImageError(null);
   };
 
   // A scan that found nothing in stock hands the code (and whatever the product
@@ -154,6 +168,19 @@ export default function StockStudio({
       size: product?.size ?? undefined,
     });
     setDrawerMode("add");
+  };
+
+  const saveBottleImage = (id: string, nextImageUrl: string) => {
+    setImageError(null);
+    startTransition(async () => {
+      const res = await updateBottleImageAction(id, nextImageUrl);
+      if (res?.error) {
+        setImageError(res.error);
+        return;
+      }
+      // Hand the field back to the (now refreshed) server value.
+      setImageDraft(null);
+    });
   };
 
   const quickAdjust = (id: string, currentQuantity: number, delta: number) => {
@@ -490,6 +517,33 @@ export default function StockStudio({
                             <div className="w-28 h-36 sm:w-32 sm:h-40 flex items-center justify-center overflow-hidden">
                               <BottleImage bottle={selectedBottle} />
                             </div>
+                          </div>
+                        )}
+
+                        {/* A bottle added in a hurry — or scanned for a product
+                            the database had no photo of — arrives without one.
+                            Keyed on the bottle so switching selection resets the
+                            picker instead of carrying the previous state over. */}
+                        {isAdmin && (
+                          <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
+                            <ImagePicker
+                              key={selectedBottle.id}
+                              // Draft while typing, saved value otherwise, so the
+                              // field is not overwritten by the server round-trip
+                              // mid-edit.
+                              value={imageDraft ?? selectedBottle.imageUrl ?? ""}
+                              onChange={setImageDraft}
+                              onCommit={(next) => saveBottleImage(selectedBottle.id, next)}
+                              onUpload={uploadBottleImage}
+                              label={
+                                selectedBottle.imageUrl
+                                  ? "Changer la photo (fichier local ou URL)"
+                                  : "Ajouter une photo (fichier local ou URL)"
+                              }
+                            />
+                            {imageError && (
+                              <p className="text-[11px] text-red-400 mt-2">{imageError}</p>
+                            )}
                           </div>
                         )}
                         <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4">

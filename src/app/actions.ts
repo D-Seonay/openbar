@@ -372,6 +372,26 @@ export async function uploadProfileImage(formData: FormData): Promise<string | n
   return uploadBottleImage(formData);
 }
 
+/**
+ * Set or clear the photo of a bottle that already exists.
+ *
+ * Deliberately not routed through `updateBottleVolumes`, which recomputes
+ * `quantity` from the volume list: a bottle with no volumes recorded would have
+ * its stock silently reset to 0 just for gaining a picture. Patching `imageUrl`
+ * alone also lets the API delete the file the bottle was pointing at before.
+ */
+export async function updateBottleImageAction(id: string, imageUrl: string) {
+  await requireLoggedIn();
+  try {
+    await api.updateBottle(id, { imageUrl });
+    revalidatePath("/stock");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Mise à jour de la photo impossible." };
+  }
+}
+
 export async function editBottleAction(id: string, data: { name: string; type: BottleType; notes?: string; vip: boolean }) {
   await requireLoggedIn();
   try {
