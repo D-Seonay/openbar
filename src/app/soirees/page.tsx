@@ -30,6 +30,13 @@ export default async function SoireesPage({
   // Two independent lists on one screen, so they get their own query
   // parameters: paging the history must not move the current soirées.
   const { page, histoire } = await searchParams;
+  // A soirée whose date has gone by but which was never closed: the host still
+  // owes it a bilan, and the stock is wrong until they do it. Compared on the
+  // date string, which is stored as YYYY-MM-DD and therefore sorts correctly.
+  const today = new Date().toISOString().slice(0, 10);
+  const isOverdue = (event: (typeof sorted)[number]) => !event.isClosed && event.date < today;
+  const overdue = sorted.filter(isOverdue);
+
   const activeEvents = paginate(sorted.filter((e) => !e.isClosed), page);
   const historyEvents = paginate(sorted.filter((e) => e.isClosed), histoire);
 
@@ -42,6 +49,49 @@ export default async function SoireesPage({
           Planifiez vos soirées et générez des liens d&apos;invitation pour permettre à vos convives d&apos;indiquer ce qu&apos;ils apportent.
         </p>
       </div>
+
+      {overdue.length > 0 && (
+        <div className="rounded-2xl border border-orange/40 bg-orange/[0.07] p-4 sm:p-5 space-y-3">
+          <div className="flex items-start gap-3">
+            <span className="w-9 h-9 shrink-0 rounded-xl bg-orange/20 border border-orange/30 text-orange flex items-center justify-center text-lg">
+              ⏰
+            </span>
+            <div className="min-w-0">
+              <h2 className="font-display text-base sm:text-lg font-bold text-cream">
+                {overdue.length === 1
+                  ? "Une soirée attend son bilan"
+                  : `${overdue.length} soirées attendent leur bilan`}
+              </h2>
+              <p className="text-xs text-muted mt-0.5 leading-relaxed">
+                La date est passée mais la clôture n&apos;a pas été faite : le stock
+                reste faux tant que le bilan n&apos;est pas validé.
+              </p>
+            </div>
+          </div>
+
+          <ul className="flex flex-wrap gap-2">
+            {overdue.map((event) => (
+              <li key={event.slug}>
+                <Link
+                  href={`/soirees/${event.slug}/bilan`}
+                  className="tap-target-sm flex items-center gap-2 px-3 py-1.5 rounded-xl bg-ink border border-orange/30 text-xs text-cream hover:border-orange hover:text-orange transition-colors"
+                >
+                  <span className="font-semibold">{event.name}</span>
+                  <span className="text-[10px] font-mono text-muted">
+                    {new Date(event.date).toLocaleDateString("fr-FR", {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </span>
+                  <span className="text-[10px] uppercase font-bold text-orange">
+                    Faire le bilan →
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="grid md:grid-cols-3 gap-6 items-start">
         {/* Create Event Card */}
@@ -104,9 +154,16 @@ export default async function SoireesPage({
                     className="rounded-xl border border-orange/10 bg-ink-2/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-orange/20 transition-all box-orange-glow-hover"
                   >
                     <div>
-                      <Link href={`/soirees/${event.slug}`} className="font-display text-lg text-cream hover:text-orange transition-colors">
-                        {event.name}
-                      </Link>
+                      <span className="flex flex-wrap items-center gap-2">
+                        <Link href={`/soirees/${event.slug}`} className="font-display text-lg text-cream hover:text-orange transition-colors">
+                          {event.name}
+                        </Link>
+                        {isOverdue(event) && (
+                          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-orange/20 text-orange border border-orange/30 whitespace-nowrap">
+                            ⏰ Bilan à faire
+                          </span>
+                        )}
+                      </span>
                       <p className="text-xs text-muted mt-1 flex flex-wrap gap-2 items-center">
                         <span className="text-orange-dim capitalize font-mono text-[10px]">
                           {new Date(event.date).toLocaleDateString("fr-FR", {
