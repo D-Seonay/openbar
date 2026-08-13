@@ -59,6 +59,10 @@ model User {
   favoriteDrink       String?
   allergies           String?
   avatarUrl           String?
+  /// Secret in the URL of the personal calendar feed. Null until the feed is
+  /// asked for, and regenerating it revokes every subscription at once —
+  /// calendar clients poll without cookies, so the URL is the only credential.
+  calendarToken       String?                  @unique
   createdAt           DateTime                 @default(now())
   isArchived          Boolean                  @default(false)
   contributions       Contribution[]

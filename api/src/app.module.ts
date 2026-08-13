@@ -11,6 +11,11 @@ import { RecipesModule } from './recipes/recipes.module';
 import { BarsModule } from './bars/bars.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { EventMediaModule } from './event-media/event-media.module';
+import { CalendarModule } from './calendar/calendar.module';
+
+@Module({
+  imports: [
+    CalendarModule,
 import { AuditModule } from './audit/audit.module';
 
 @Module({

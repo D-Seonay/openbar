@@ -8,6 +8,7 @@ import CopyLink from "./CopyLink";
 import ShareButton from "./ShareButton";
 import DeleteEventButton from "./DeleteEventButton";
 import PageTransition from "@/components/PageTransition";
+import CalendarSubscribe from "./CalendarSubscribe";
 import PaginationLinks from "@/components/PaginationLinks";
 import { paginate } from "@/lib/pagination";
 
@@ -77,6 +78,10 @@ export default async function SoireesPage({
           </form>
         </section>
 
+        <div className="md:col-span-1">
+          <CalendarSubscribe />
+        </div>
+
         {/* Events list */}
         <section className="md:col-span-2 space-y-8">
           {/* Active Events */}
@@ -116,6 +121,15 @@ export default async function SoireesPage({
                     <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-3 border-t sm:border-0 border-orange/5 pt-3 sm:pt-0 shrink-0">
                       <CopyLink path={`/soirees/${event.slug}`} />
                       <ShareButton path={`/soirees/${event.slug}`} title={event.name} />
+                      {/* Plain link, so the browser handles the download and the
+                          phone offers to open it in its calendar app. */}
+                      <a
+                        href={`/soirees/${event.slug}/calendar`}
+                        className="tap-target-sm flex items-center whitespace-nowrap text-xs text-muted/65 hover:text-orange font-medium transition-colors px-2 py-1.5 rounded"
+                        title="Ajouter à mon calendrier"
+                      >
+                        🗓️ Calendrier
+                      </a>
                       <DeleteEventButton slug={event.slug} name={event.name} />
                     </div>
                   </div>
