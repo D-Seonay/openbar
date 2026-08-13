@@ -2,7 +2,6 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getEvent, listContributions, listBottles, listStockAdjustments, evaluateCocktails, listMyBars, listWishlistItems, listEventMedia } from "@/lib/api-client";
 import { getSession } from "@/lib/session";
-import { resolveActiveBar } from "@/lib/active-bar";
 import GuestPanel from "./GuestPanel";
 import WishlistSection from "./WishlistSection";
 import MediaGallery from "./MediaGallery";
@@ -15,14 +14,18 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const event = await getEvent(slug);
   if (!event) notFound();
 
+  // This page is about the host's bar, not whichever bar the viewer happens to
+  // have selected in the switcher. `GET /events/:slug` already refused anyone
+  // who is not a member of `event.barId`, so reading that bar's stock here is
+  // always allowed — and the API scopes VIP visibility to the viewer's
+  // membership in *that* bar.
   const bars = await listMyBars();
-  const activeBar = await resolveActiveBar(bars);
-  if (!activeBar) redirect("/");
+  const hostBar = bars.find((bar) => bar.id === event.barId) ?? null;
 
   const [bottles, adjustments, availability, contributions, wishlistItems, media] = await Promise.all([
-    listBottles(activeBar.id),
+    listBottles(event.barId),
     listStockAdjustments(slug),
-    evaluateCocktails(activeBar.id),
+    evaluateCocktails(event.barId),
     listContributions(slug),
     listWishlistItems(slug),
     listEventMedia(slug),
@@ -39,8 +42,10 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const readyCocktails = availability.filter((a) => a.makeable && !a.usesVip);
   const vipCocktails = availability.filter((a) => a.makeable && a.usesVip);
 
-  const canManageWishlist =
-    session.role === "ADMIN" || (event.barId === activeBar.id && activeBar.myRole === "OWNER");
+  // Hosting is a property of the soirée's own bar. Keying this off the selected
+  // bar meant an owner lost control of their own party as soon as they switched
+  // the switcher to another bar.
+  const canManageWishlist = session.role === "ADMIN" || hostBar?.myRole === "OWNER";
 
   const netAdjustments = Object.values(
     adjustments.reduce((acc, adj) => {
