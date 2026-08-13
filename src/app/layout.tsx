@@ -26,9 +26,9 @@ const lora = localFont({
   src: [{ path: "./fonts/Lora-latin.woff2", weight: "400 700", style: "normal" }],
   variable: "--font-lora",
   display: "swap",
-  // Georgia est la sérif système la plus proche ; elle limite le saut de
-  // gabarit à la substitution. Absente d'Android, où la pile retombe sur
-  // Noto Serif — d'où le fichier auto-hébergé plutôt qu'une pile système.
+  // `adjustFontFallback` n'accepte que 'Arial' | 'Times New Roman' | false.
+  // On prend la seule sérif de la liste : les métriques de repli se calent
+  // ainsi sur une sérif, ce qui limite le saut de gabarit à la substitution.
   adjustFontFallback: "Times New Roman",
 });
 
