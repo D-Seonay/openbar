@@ -88,7 +88,9 @@ export function buildCalendar(name: string, events: IcsEvent[]): string {
       `DTSTART;VALUE=DATE:${icsDate(event.date)}`,
       `DTEND;VALUE=DATE:${nextDay(event.date)}`,
       `SUMMARY:${escapeText(event.summary)}`,
-      ...(event.description ? [`DESCRIPTION:${escapeText(event.description)}`] : []),
+      ...(event.description
+        ? [`DESCRIPTION:${escapeText(event.description)}`]
+        : []),
       ...(event.url ? [`URL:${escapeText(event.url)}`] : []),
       'END:VEVENT',
     );

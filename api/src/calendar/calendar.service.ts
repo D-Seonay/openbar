@@ -68,7 +68,8 @@ export class CalendarService {
     });
     // A vague 404 rather than a 403: an unauthenticated caller should not learn
     // whether a token exists.
-    if (!user || user.isArchived) throw new NotFoundException('Calendrier introuvable');
+    if (!user || user.isArchived)
+      throw new NotFoundException('Calendrier introuvable');
 
     const events = await this.prisma.event.findMany({
       where: { bar: { memberships: { some: { userId: user.id } } } },

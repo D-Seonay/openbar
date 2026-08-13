@@ -13,7 +13,9 @@ describe('buildCalendar', () => {
 
   it('uses CRLF, which some clients reject the absence of', () => {
     const ics = buildCalendar('x', [base]);
-    expect(ics.split('\n').every((l) => l === '' || l.endsWith('\r'))).toBe(true);
+    expect(ics.split('\n').every((l) => l === '' || l.endsWith('\r'))).toBe(
+      true,
+    );
   });
 
   it('writes an all-day event whose end is the following day', () => {
@@ -35,7 +37,15 @@ describe('buildCalendar', () => {
     // Written with explicit escapes: a literal '\;' in TypeScript collapses to
     // ';' and would assert the bug rather than the fix.
     expect(ics).toContain(
-      ['SUMMARY:Apéro', String.raw`\,`, ' chez Léa', String.raw`\;`, ' ambiance', String.raw`\\`, 'rétro'].join(''),
+      [
+        'SUMMARY:Apéro',
+        String.raw`\,`,
+        ' chez Léa',
+        String.raw`\;`,
+        ' ambiance',
+        String.raw`\\`,
+        'rétro',
+      ].join(''),
     );
   });
 
