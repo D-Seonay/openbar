@@ -63,3 +63,6 @@ api/dist
 # Throwaway seed/scratch scripts used while testing locally.
 *-tmp.js
 *-tmp.ts
+
+# Brainstorming visual companion scratch files.
+.superpowers/
