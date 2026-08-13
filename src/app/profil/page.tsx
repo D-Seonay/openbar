@@ -1,6 +1,7 @@
 import PageTransition from "@/components/PageTransition";
 import ProfileForm from "./ProfileForm";
 import DiscordLink from "./DiscordLink";
+import { isDiscordConfigured } from "@/lib/discord";
 import { getMyProfileForForm } from "./actions";
 
 export default async function ProfilPage({
@@ -28,7 +29,10 @@ export default async function ProfilPage({
 
       <ProfileForm profile={profile} />
 
-      <DiscordLink profile={profile} status={discord} />
+      {/* Read on the server: the button is only worth offering when the
+          deployment actually has Discord credentials, otherwise it can do
+          nothing but return a bare 503. */}
+      <DiscordLink profile={profile} status={discord} configured={isDiscordConfigured()} />
     </PageTransition>
   );
 }
