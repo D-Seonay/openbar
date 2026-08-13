@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { WishlistService } from './wishlist.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -28,6 +28,13 @@ describe('WishlistService', () => {
         deleteMany: jest.fn(),
       },
     };
+    // `assign` now runs inside a transaction that locks the item row, so the
+    // double has to provide both the transaction wrapper and the raw lock.
+    (prisma as Record<string, unknown>).$queryRaw = jest.fn();
+    (prisma as Record<string, unknown>).$transaction = jest.fn(
+      (fn: (tx: unknown) => unknown) => fn(prisma),
+    );
+    prisma.wishlistItemAssignment.count = jest.fn().mockResolvedValue(0);
     eventsService = { findBySlug: jest.fn() };
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -73,7 +80,7 @@ describe('WishlistService', () => {
     const result = await service.create('apero-du-samedi-a1b2c3d4', 'Glaçons');
 
     expect(prisma.wishlistItem.create).toHaveBeenCalledWith({
-      data: { eventId: 'event-1', label: 'Glaçons' },
+      data: { eventId: 'event-1', label: 'Glaçons', neededCount: 1 },
       include: {
         assignments: {
           include: {
@@ -96,6 +103,7 @@ describe('WishlistService', () => {
       id: 'item-1',
       eventId: 'event-1',
       label: 'Glaçons',
+      neededCount: 1,
     });
 
     const result = await service.remove('apero-du-samedi-a1b2c3d4', 'item-1');
@@ -135,6 +143,7 @@ describe('WishlistService', () => {
       id: 'item-1',
       eventId: 'event-1',
       label: 'Glaçons',
+      neededCount: 1,
     });
     prisma.wishlistItemAssignment.findUnique.mockResolvedValue(null);
     const created = {
@@ -170,6 +179,7 @@ describe('WishlistService', () => {
       id: 'item-1',
       eventId: 'event-1',
       label: 'Glaçons',
+      neededCount: 1,
     });
     const existing = {
       id: 'assign-1',
@@ -212,6 +222,7 @@ describe('WishlistService', () => {
       id: 'item-1',
       eventId: 'event-1',
       label: 'Glaçons',
+      neededCount: 1,
     });
     const createdByConcurrentRequest = {
       id: 'assign-1',
@@ -248,6 +259,7 @@ describe('WishlistService', () => {
       id: 'item-1',
       eventId: 'event-1',
       label: 'Glaçons',
+      neededCount: 1,
     });
     prisma.wishlistItemAssignment.deleteMany.mockResolvedValue({ count: 1 });
 
@@ -269,11 +281,99 @@ describe('WishlistService', () => {
       id: 'item-1',
       eventId: 'event-1',
       label: 'Glaçons',
+      neededCount: 1,
     });
     prisma.wishlistItemAssignment.deleteMany.mockResolvedValue({ count: 0 });
 
     await expect(
       service.unassign('apero-du-samedi-a1b2c3d4', 'item-1', 'user-1'),
     ).rejects.toThrow(NotFoundException);
+  });
+
+  describe('neededCount', () => {
+    it('stores how many guests the host asked for', async () => {
+      eventsService.findBySlug.mockResolvedValue({ id: 'event-1' });
+      prisma.wishlistItem.create.mockResolvedValue({ id: 'item-1' });
+
+      await service.create('slug', 'Sacs de glaçons', 3);
+
+      expect(prisma.wishlistItem.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            eventId: 'event-1',
+            label: 'Sacs de glaçons',
+            neededCount: 3,
+          },
+        }),
+      );
+    });
+
+    it('defaults to one guest, which is what every item did before', async () => {
+      eventsService.findBySlug.mockResolvedValue({ id: 'event-1' });
+      prisma.wishlistItem.create.mockResolvedValue({ id: 'item-1' });
+
+      await service.create('slug', 'Glaçons');
+
+      expect(prisma.wishlistItem.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { eventId: 'event-1', label: 'Glaçons', neededCount: 1 },
+        }),
+      );
+    });
+
+    it('lets a second guest join an item that wants three', async () => {
+      eventsService.findBySlug.mockResolvedValue({ id: 'event-1' });
+      prisma.wishlistItem.findUnique.mockResolvedValue({
+        id: 'item-1',
+        eventId: 'event-1',
+        neededCount: 3,
+      });
+      prisma.wishlistItemAssignment.findUnique.mockResolvedValue(null);
+      prisma.wishlistItemAssignment.count.mockResolvedValue(1);
+      prisma.wishlistItemAssignment.create.mockResolvedValue({
+        id: 'assign-2',
+      });
+
+      await service.assign('slug', 'item-1', 'user-2');
+
+      expect(prisma.wishlistItemAssignment.create).toHaveBeenCalled();
+    });
+
+    it('refuses a claim once every slot is taken', async () => {
+      eventsService.findBySlug.mockResolvedValue({ id: 'event-1' });
+      prisma.wishlistItem.findUnique.mockResolvedValue({
+        id: 'item-1',
+        eventId: 'event-1',
+        neededCount: 2,
+      });
+      prisma.wishlistItemAssignment.findUnique.mockResolvedValue(null);
+      prisma.wishlistItemAssignment.count.mockResolvedValue(2);
+
+      await expect(service.assign('slug', 'item-1', 'user-3')).rejects.toThrow(
+        ConflictException,
+      );
+      expect(prisma.wishlistItemAssignment.create).not.toHaveBeenCalled();
+    });
+
+    it('locks the item row before counting, so two guests cannot take one slot', async () => {
+      eventsService.findBySlug.mockResolvedValue({ id: 'event-1' });
+      prisma.wishlistItem.findUnique.mockResolvedValue({
+        id: 'item-1',
+        eventId: 'event-1',
+        neededCount: 1,
+      });
+      prisma.wishlistItemAssignment.findUnique.mockResolvedValue(null);
+      prisma.wishlistItemAssignment.count.mockResolvedValue(0);
+      prisma.wishlistItemAssignment.create.mockResolvedValue({
+        id: 'assign-1',
+      });
+
+      await service.assign('slug', 'item-1', 'user-1');
+
+      const raw = (prisma as unknown as { $queryRaw: jest.Mock }).$queryRaw;
+      expect(raw).toHaveBeenCalled();
+      const lockCalls = raw.mock.calls as unknown as unknown[][];
+      expect(String(lockCalls[0][0])).toContain('FOR UPDATE');
+    });
   });
 });

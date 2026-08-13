@@ -233,7 +233,12 @@ export async function addWishlistItemAction(slug: string, formData: FormData) {
   const label = String(formData.get("label") ?? "").trim();
   if (!label) return;
 
-  await api.addWishlistItem(slug, label);
+  // The API validates and caps this; clamping here only keeps an empty or
+  // nonsense field from becoming a 400 the guest has to decipher.
+  const parsed = Number(formData.get("neededCount"));
+  const neededCount = Number.isFinite(parsed) ? Math.min(Math.max(Math.trunc(parsed), 1), 50) : 1;
+
+  await api.addWishlistItem(slug, label, neededCount);
   revalidatePath(`/soirees/${slug}`);
 }
 
@@ -245,7 +250,12 @@ export async function deleteWishlistItemAction(slug: string, id: string) {
 
 export async function assignWishlistItemAction(slug: string, itemId: string) {
   await requireLoggedIn();
-  await api.assignWishlistItem(slug, itemId);
+  try {
+    await api.assignWishlistItem(slug, itemId);
+  } catch (err) {
+    // Most likely the last slot went to somebody else between render and click.
+    return { error: err instanceof Error ? err.message : "Impossible de se déclarer." };
+  }
   revalidatePath(`/soirees/${slug}`);
 }
 

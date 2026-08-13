@@ -203,10 +203,14 @@ export function listWishlistItems(slug: string): Promise<WishlistItem[]> {
   return request<WishlistItem[]>(`/events/${slug}/wishlist`);
 }
 
-export function addWishlistItem(slug: string, label: string): Promise<WishlistItem> {
+export function addWishlistItem(
+  slug: string,
+  label: string,
+  neededCount: number,
+): Promise<WishlistItem> {
   return request<WishlistItem>(`/events/${slug}/wishlist`, {
     method: "POST",
-    body: JSON.stringify({ label }),
+    body: JSON.stringify({ label, neededCount }),
   });
 }
 
