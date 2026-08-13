@@ -1,47 +1,36 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ink: #110d0c;
-  --color-ink-2: #1b1614;
-  --color-ink-3: #231c19;
-  --color-brick: #3d231a;
-  --color-brick-light: #573023;
-  --color-brick-dark: #2a1711;
-  --color-gold: #E8A563;
-  --color-gold-dim: #BFA082;
-  --color-cream: #FAF6F2;
-  --color-muted: #A8988C;
-  --color-orange: #FF6B35;
-  --color-orange-hover: #FF8254;
-  --color-orange-dim: #D45524;
-  --color-orange-dark: #5E230E;
+  /* Papier chaud. Six rôles, deux statuts, un seul accent.
+     Les valeurs sont verrouillées par src/lib/contrast.test.ts — les changer
+     sans relancer les tests casse la lisibilité. */
+  --color-paper: #F3EFE7;
+  --color-paper-sunk: #E8E2D7;
+  --color-ink: #26221D;
+  --color-ink-soft: #6B6257;
+  --color-rule: #D9D1C4;
+  --color-terracotta: #A8452A;
+  --color-done: #4F6B43;
+  --color-warn: #8A5A12;
 
-  /* Cocktail Club Signature Category Colors */
-  --color-cat-whisky: #D97706;
-  --color-cat-gin: #10B981;
-  --color-cat-rhum: #F59E0B;
-  --color-cat-vodka: #94A3B8;
-  --color-cat-tequila: #EAB308;
-  --color-cat-vin: #E11D48;
-  --color-cat-liqueur: #F43F5E;
-  --color-cat-biere: #FBBF24;
-  --color-cat-mixer: #34D399;
-
-  --font-display: var(--font-outfit), sans-serif;
+  --font-display: var(--font-lora), Georgia, serif;
   --font-sans: var(--font-jakarta), sans-serif;
 
-  /* Small-phone breakpoint: below this (iPhone SE / mini, 320–400px) even
-     two-up layouts have to collapse. Tailwind ships nothing under sm (640px). */
+  /* Échelle de la spec. Le plancher est 13px : plus rien en dessous. */
+  --text-meta: 0.8125rem;   /* 13px */
+  --text-body: 0.9375rem;   /* 15px */
+  --text-section: 1.0625rem; /* 17px */
+  --text-screen: 1.6875rem; /* 27px */
+
   --breakpoint-xs: 25rem;
 }
 
 :root {
-  --background: var(--color-ink);
-  --foreground: var(--color-cream);
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
 }
 
 html {
-  /* Stop iOS/Android from inflating text in landscape. */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -50,20 +39,20 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-  /* No grey flash on tap, no rubber-band bounce behind the fixed header. */
+  font-size: var(--text-body);
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
-  /* Long bottle names / invite URLs must never widen the page. */
   overflow-wrap: break-word;
 }
 
 h1, h2, h3, .font-display {
   font-family: var(--font-display);
-  letter-spacing: -0.015em;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
 input, select, textarea {
-  color-scheme: dark;
+  color-scheme: light;
   font-family: var(--font-sans);
 }
 
@@ -76,82 +65,21 @@ input, select, textarea {
   }
 }
 
-/* Opt-in comfortable thumb target: 44px is the iOS/Android minimum. Applied to
-   the small pill-shaped controls that would otherwise be ~28px tall. */
-@media (pointer: coarse) {
-  .tap-target {
-    min-height: 44px;
-  }
-  .tap-target-sm {
-    min-height: 36px;
-  }
+/* 44px est le minimum iOS/Android. La spec en fait une règle sans exception,
+   donc plus de variante réduite et plus de conditionnement au type de pointeur :
+   un audit à 390px doit pouvoir la vérifier dans un navigateur de test. */
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .tracking-caps {
   letter-spacing: 0.14em;
 }
 
-/* Glow effects and subtle glass styling */
-.orange-glow {
-  text-shadow: 0 0 16px rgba(255, 107, 53, 0.4);
-}
-
-.gold-glow {
-  text-shadow: 0 0 18px rgba(232, 165, 99, 0.45);
-}
-
-.box-orange-glow {
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 107, 53, 0.08);
-}
-
-/* Hover-only affordances are gated so a tap on a phone doesn't leave the card
-   stuck in its hovered state until the next tap elsewhere. */
-@media (hover: hover) and (pointer: fine) {
-  .box-orange-glow-hover:hover {
-    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 107, 53, 0.16);
-  }
-}
-
-/* Glassmorphism Dark Cards */
-.glass-card {
-  background: rgba(27, 22, 20, 0.75);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(250, 246, 242, 0.08);
-}
-
-.glass-card-hover {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-@media (hover: hover) and (pointer: fine) {
-  .glass-card-hover:hover {
-    background: rgba(35, 28, 25, 0.85);
-    border-color: rgba(232, 165, 99, 0.25);
-    transform: translateY(-2px);
-  }
-}
-
-/* VIP Vault Card Style */
-.vip-vault-card {
-  background: linear-gradient(135deg, rgba(61, 35, 26, 0.85) 0%, rgba(42, 23, 17, 0.95) 100%);
-  border: 1px solid rgba(232, 165, 99, 0.35);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(232, 165, 99, 0.2);
-}
-
-/* Custom scrollbar for premium menu feel */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-ink);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-brick-dark);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-orange-dark);
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-paper-sunk); }
+::-webkit-scrollbar-thumb { background: var(--color-rule); border-radius: 3px; }
 
 /* Horizontal filter rails (categories, rayons) scroll by swipe on mobile and
    must not show a scrollbar eating into the pill row. */
@@ -191,5 +119,3 @@ input, select, textarea {
     scroll-behavior: auto !important;
   }
 }
-
-
