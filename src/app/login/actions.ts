@@ -8,6 +8,9 @@ import { SESSION_COOKIE } from "@/lib/session";
 export async function login(formData: FormData) {
   const username = String(formData.get("username") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  // Unchecked boxes are simply absent from a FormData, so this reads false only
+  // when the person actively unticked it.
+  const rememberMe = formData.get("rememberMe") === "on";
   const rawRedirectTo = String(formData.get("redirectTo") ?? "/");
   const redirectTo =
     rawRedirectTo.startsWith("/") && !rawRedirectTo.startsWith("//") ? rawRedirectTo : "/";
@@ -16,7 +19,7 @@ export async function login(formData: FormData) {
     redirect("/login?error=1");
   }
 
-  const result = await apiLogin(username, password);
+  const result = await apiLogin(username, password, rememberMe);
   if (!result) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     redirect("/login?error=1");
@@ -27,7 +30,10 @@ export async function login(formData: FormData) {
     httpOnly: true,
     secure: process.env.COOKIE_SECURE === "true",
     sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 30,
+    // Leaving maxAge off makes this a session cookie, so an unticked box means
+    // the session really ends when the browser closes — the point of the
+    // control on a shared device.
+    ...(rememberMe ? { maxAge: 60 * 60 * 24 * 30 } : {}),
     path: "/",
   });
   redirect(redirectTo);

@@ -23,12 +23,17 @@ import { SESSION_COOKIE } from './jwt.strategy';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  private setSessionCookie(res: Response, token: string) {
+  /**
+   * `remember` false leaves `maxAge` off, which makes it a session cookie: it
+   * dies when the browser closes, which is the point of unticking the box on a
+   * borrowed device.
+   */
+  private setSessionCookie(res: Response, token: string, remember = true) {
     res.cookie(SESSION_COOKIE, token, {
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      ...(remember ? { maxAge: 30 * 24 * 60 * 60 * 1000 } : {}),
     });
   }
 
@@ -52,11 +57,14 @@ export class AuthController {
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
+    // Absent means "as before": the old token lifetimes, and a 30-day cookie.
+    // Only an explicit `false` shortens the cookie to the browser session.
     const { token, user } = await this.authService.login(
       dto.username,
       dto.password,
+      dto.rememberMe === true,
     );
-    this.setSessionCookie(res, token);
+    this.setSessionCookie(res, token, dto.rememberMe !== false);
     return { user };
   }
 
@@ -76,12 +84,17 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const currentUser = req.user as JwtPayload;
+    // Carry the existing choice over, so changing a password does not quietly
+    // shorten a session the person asked to keep. Tokens minted before this
+    // field existed have no preference, which reads as the old behaviour.
+    const remember = currentUser.remember === true;
     const { token, user } = await this.authService.changePassword(
       currentUser.sub,
       dto.currentPassword,
       dto.newPassword,
+      remember,
     );
-    this.setSessionCookie(res, token);
+    this.setSessionCookie(res, token, remember);
     return { user };
   }
 
