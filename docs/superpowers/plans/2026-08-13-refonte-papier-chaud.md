@@ -288,9 +288,9 @@ const lora = localFont({
   src: [{ path: "./fonts/Lora-latin.woff2", weight: "400 700", style: "normal" }],
   variable: "--font-lora",
   display: "swap",
-  // Georgia est la sérif système la plus proche ; elle limite le saut de
-  // gabarit à la substitution. Absente d'Android, où la pile retombe sur
-  // Noto Serif — d'où le fichier auto-hébergé plutôt qu'une pile système.
+  // `adjustFontFallback` n'accepte que 'Arial' | 'Times New Roman' | false.
+  // On prend la seule sérif de la liste : les métriques de repli se calent
+  // ainsi sur une sérif, ce qui limite le saut de gabarit à la substitution.
   adjustFontFallback: "Times New Roman",
 });
 ```
@@ -314,11 +314,14 @@ Expected: `exit=1` (aucune correspondance). `--font-outfit` est encore référen
 
 - [ ] **Step 6: Vérifier qu'aucune police externe n'est chargée**
 
+Le commentaire d'en-tête de `layout.tsx` *mentionne* `next/font/google` et `fonts.gstatic.com` pour expliquer pourquoi on ne s'en sert plus. Un `grep` nu le compte donc comme une occurrence. Ce qu'on veut vérifier, c'est le code, pas la prose :
+
 ```bash
-grep -rn "fonts.googleapis\|fonts.gstatic\|next/font/google" src/ ; echo "exit=$?"
+grep -rn "fonts.googleapis\|fonts.gstatic\|next/font/google" src/ \
+  | grep -v "^\S*: *\*" | grep -v "^\S*: *//" ; echo "exit=$?"
 ```
 
-Expected: `exit=1`
+Expected: `exit=1` — aucune occurrence hors commentaire.
 
 - [ ] **Step 7: Commit**
 
@@ -1486,6 +1489,12 @@ La table de correspondance est reproduite ici pour éviter d'avoir à revenir en
 - Modify: `src/app/soirees/[slug]/page.tsx`
 - Modify: `src/app/soirees/[slug]/GuestPanel.tsx` (340 lignes)
 - Modify: `src/app/soirees/[slug]/MediaGallery.tsx` (221 lignes)
+- Modify: `src/app/soirees/[slug]/WishlistSection.tsx`
+- Modify: `src/app/soirees/[slug]/DiscordActions.tsx`
+- Modify: `src/app/soirees/CalendarSubscribe.tsx`
+- Modify: `src/app/soirees/CopyLink.tsx`
+- Modify: `src/app/soirees/DeleteEventButton.tsx`
+- Modify: `src/app/soirees/ShareButton.tsx`
 
 **Interfaces:**
 - Consumes: `Button`, `Card`, `Row`, `Badge`, `EmptyState`, `Sheet`
@@ -1604,6 +1613,10 @@ La plus grosse tâche du plan. `StockStudio.tsx` fait 699 lignes ; on le ramène
 - Modify: `src/app/stock/AddBottleForm.tsx` (264 lignes)
 - Modify: `src/app/stock/EditBottleDetails.tsx` (294 lignes)
 - Modify: `src/app/stock/BottlePreview.tsx` (266 lignes)
+- Modify: `src/app/stock/page.tsx`
+- Modify: `src/app/stock/ManageAlertsModal.tsx`
+- Modify: `src/app/stock/AlertsManagerTrigger.tsx`
+- Modify: `src/components/BarcodeScanner.tsx` — **habillage seulement, logique ZXing intouchée**
 
 **Interfaces:**
 - Consumes: `Sheet`, `Button`, `Row`, `Badge`, `Field`, `EmptyState`
@@ -1632,9 +1645,9 @@ grep -n "export .*Bottle\|export type\|export interface" src/lib/api-client.ts |
 
 - [ ] **Step 3: Extraire le scanner**
 
-Créer `src/app/stock/ScannerSheet.tsx`, enveloppant le `BarcodeScanner` existant (`src/components/BarcodeScanner.tsx`, 346 lignes, non modifié) dans un `<Sheet>`.
+Créer `src/app/stock/ScannerSheet.tsx`, enveloppant le `BarcodeScanner` existant (`src/components/BarcodeScanner.tsx`, 346 lignes) dans un `<Sheet>`.
 
-Ne pas toucher à la logique ZXing : elle fonctionne et sa modification est hors périmètre.
+**Ne pas toucher à la logique ZXing** : elle fonctionne et sa modification est hors périmètre. En revanche ce fichier porte une trentaine de classes du thème sombre, qui doivent bien être reskinées — « logique intouchée » ne veut pas dire « habillage intouché ».
 
 - [ ] **Step 4: Extraire l'édition**
 
@@ -1688,6 +1701,8 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 - Modify: `src/app/cocktails/CocktailStudio.tsx` (450 lignes)
 - Modify: `src/app/cocktails/CocktailGrid.tsx` (293 lignes)
 - Modify: `src/app/cocktails/CreateRecipeModal.tsx` (266 lignes)
+- Modify: `src/app/cocktails/page.tsx`
+- Modify: `src/app/cocktails/ShoppingList.tsx`
 
 **Interfaces:**
 - Consumes: `Sheet`, `Button`, `Row`, `Card`, `Field`, `EmptyState`
@@ -1732,6 +1747,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 **Files:**
 - Modify: `src/app/membres/page.tsx`
+- Modify: `src/app/membres/MemberRow.tsx`
+- Modify: `src/app/membres/PendingRequests.tsx`
+- Modify: `src/app/membres/InviteMemberForm.tsx`
+- Modify: `src/app/membres/InviteLinkSection.tsx`
+- Modify: `src/app/membres/BarNameSection.tsx`
+- Modify: `src/app/membres/BarVisibilitySection.tsx`
+- Modify: `src/app/membres/DiscordChannelBinding.tsx`
 - Modify: `src/app/annuaire/page.tsx` (devient une redirection)
 - Delete: `src/app/bar/page.tsx`
 
@@ -1797,35 +1819,101 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ---
 
-### Task 18: Les écrans restants
+### Task 18: Accueil et parcours d'entrée
 
 **Files:**
-- Modify: `src/app/page.tsx` (310 lignes), `src/app/profil/page.tsx`, `src/app/journal/page.tsx`, `src/app/comptes/page.tsx`, `src/app/decouvrir/page.tsx`, `src/app/creer/page.tsx`, `src/app/rejoindre/[token]/page.tsx`, `src/app/changer-mot-de-passe/page.tsx`, `src/app/login/page.tsx`, `src/app/signup/page.tsx`
+- Modify: `src/app/page.tsx` (310 lignes)
+- Modify: `src/app/GuestLanding.tsx`
+- Modify: `src/app/login/page.tsx`
+- Modify: `src/app/signup/page.tsx`
+- Modify: `src/app/creer/page.tsx`
+- Modify: `src/app/rejoindre/[token]/page.tsx`
+- Modify: `src/app/changer-mot-de-passe/page.tsx`
+- Modify: `src/app/changer-mot-de-passe/ChangePasswordForm.tsx`
+
+**Interfaces:**
+- Consumes: `Button`, `Card`, `Field` + `champClasses`, `EmptyState`
+- Produces: rien
+
+- [ ] **Step 1: Traiter l'accueil**
+
+`src/app/page.tsx` est la racine. Avec la barre d'onglets, elle n'est plus un point d'entrée navigué — elle redirige vers `/soirees` pour un utilisateur connecté, et reste la page d'accueil publique sinon. `GuestLanding.tsx` porte la vue publique.
+
+- [ ] **Step 2: Reskin des formulaires**
+
+`login`, `signup`, `creer`, `rejoindre`, `changer-mot-de-passe` : tous passent par `<Field>` + `champClasses` + `<Button pleineLargeur>`.
+
+`login` porte le bouton « rester connecté » ajouté précédemment. **Vérifier qu'il fonctionne encore après le reskin** — c'est une case à cocher dont l'état pilote la durée de session, facile à casser en refaisant le balisage.
+
+- [ ] **Step 3: Auditer**
+
+```bash
+npx playwright test -g "/login"
+```
+
+`/login` n'est pas dans la liste `PAGES` de l'audit, qui suppose une session. Ajouter dans `e2e/audit.spec.ts` un test sans fixture pour les pages publiques :
+
+```ts
+import { test as base, expect } from "@playwright/test";
+
+// Ces pages s'affichent sans session : elles ne passent pas par la fixture.
+for (const chemin of ["/login", "/signup"]) {
+  base(`${chemin} respecte les cibles et la densité`, async ({ page }) => {
+    await page.goto(chemin);
+    await page.waitForLoadState("networkidle");
+    const d = await page.evaluate(() => ({
+      scroll: document.documentElement.scrollWidth,
+      client: document.documentElement.clientWidth,
+    }));
+    expect(d.scroll - d.client).toBeLessThanOrEqual(1);
+  });
+}
+```
+
+- [ ] **Step 4: Vérifier le parcours à la main**
+
+Se connecter avec « rester connecté » coché, puis décoché. Vérifier que la session persiste dans le premier cas.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/app/page.tsx src/app/GuestLanding.tsx src/app/login src/app/signup \
+        src/app/creer src/app/rejoindre src/app/changer-mot-de-passe e2e/
+git commit -m "feat: refonte papier chaud de l'accueil et des parcours d'entree
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 19: Profil, listes et composants partagés
+
+**Files:**
+- Modify: `src/app/profil/page.tsx`, `src/app/profil/ProfileForm.tsx`, `src/app/profil/DiscordLink.tsx`
+- Modify: `src/app/journal/page.tsx`
+- Modify: `src/app/comptes/page.tsx`, `src/app/comptes/UserRow.tsx`, `src/app/comptes/CreateUserForm.tsx`
+- Modify: `src/app/decouvrir/page.tsx`, `src/app/BarDirectory.tsx`
 - Modify: `src/components/AccountMenu.tsx`, `src/components/BarSwitcher.tsx`, `src/components/Pagination.tsx`, `src/components/PaginationLinks.tsx`, `src/components/ImagePicker.tsx`, `src/components/BottleImage.tsx`, `src/components/PageTransition.tsx`
 
 **Interfaces:**
 - Consumes: toutes les primitives
 - Produces: rien
 
-- [ ] **Step 1: Traiter l'accueil**
+- [ ] **Step 1: Reskin des listes**
 
-`src/app/page.tsx` est la racine. Avec la barre d'onglets, elle n'est plus un point d'entrée navigué — elle redirige vers `/soirees` pour un utilisateur connecté, et reste la page d'accueil publique sinon.
+`journal`, `comptes`, `decouvrir` : `<Row>` + la pagination existante, reskinée.
 
-- [ ] **Step 2: Reskin des formulaires**
+- [ ] **Step 2: Reskin du profil**
 
-`login`, `signup`, `creer`, `rejoindre`, `changer-mot-de-passe` : tous passent par `<Field>` + `champClasses` + `<Button pleineLargeur>`.
+`ProfileForm` utilise `ImagePicker`, qui porte un `onCommit` optionnel pour ne pas écrire à chaque frappe. **Ne pas retirer ce mécanisme** en refaisant l'habillage.
 
-`login` porte le bouton « rester connecté » ajouté précédemment — vérifier qu'il fonctionne toujours après le reskin.
+- [ ] **Step 3: Reskin des composants partagés**
 
-- [ ] **Step 3: Reskin des listes**
+Appliquer la table de correspondance. `PageTransition` utilise framer-motion : ne toucher qu'aux couleurs, jamais à l'animation.
 
-`journal`, `comptes`, `decouvrir` : `<Row>` + la pagination existante.
+- [ ] **Step 4: Vérifier qu'aucune classe legacy ne subsiste dans tout `src/`**
 
-- [ ] **Step 4: Reskin des composants partagés**
-
-Appliquer la table de correspondance. `PageTransition` utilise framer-motion : ne pas toucher à l'animation, seulement aux couleurs si elle en porte.
-
-- [ ] **Step 5: Vérifier qu'aucune classe legacy ne subsiste**
+C'est le contrôle de complétude de toute la phase D. À ce stade, plus rien ne doit rester nulle part.
 
 ```bash
 grep -rn "glass-card\|box-orange-glow\|vip-vault-card\|orange-glow\|gold-glow\|text-cat-\|tap-target-sm" src/ ; echo "exit=$?"
@@ -1834,12 +1922,18 @@ grep -rn "glass-card\|box-orange-glow\|vip-vault-card\|orange-glow\|gold-glow\|t
 Expected: `exit=1`
 
 ```bash
+grep -rn "text-cream\|text-muted\|text-orange\|text-gold\|bg-ink-\|bg-brick" src/ ; echo "exit=$?"
+```
+
+Expected: `exit=1` — ces classes ne correspondent plus à aucun token depuis la Task 3.
+
+```bash
 grep -rn "text-\[10px\]\|text-\[11px\]" src/ | grep -v "tracking-caps"
 ```
 
 Expected: aucune sortie, ou uniquement des labels sérif en majuscules (le seul usage autorisé sous 13px).
 
-- [ ] **Step 6: Audit complet**
+- [ ] **Step 5: Audit complet**
 
 ```bash
 npm run build && npm start
@@ -1848,18 +1942,18 @@ AUDIT_EMAIL=… AUDIT_PASSWORD=… npm run audit
 
 Expected: **tous les tests passent.** C'est le retour à zéro de la référence relevée en Task 12 Step 7.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add src/
-git commit -m "feat: refonte papier chaud des ecrans restants
+git commit -m "feat: refonte papier chaud du profil, des listes et des composants partages
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ```
 
 ---
 
-### Task 19: Administration
+### Task 20: Administration
 
 La spec range ces pages en « minimum syndical » : elles ont leur propre logique et ne sont pas utilisées pendant une soirée.
 
@@ -1892,7 +1986,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ---
 
-### Task 20: Vérification finale et build Docker
+### Task 21: Vérification finale et build Docker
 
 **Files:**
 - Modify: `README.md` (capture ou description du thème, si elle mentionne l'ancien)
@@ -1954,8 +2048,9 @@ Les quatre doivent fonctionner comme avant la refonte.
 - [ ] **Step 6: Vérifier les critères d'acceptation de la spec, un par un**
 
 ```bash
-# Aucune police externe
-grep -rn "fonts.googleapis\|fonts.gstatic\|next/font/google" src/ ; echo "exit attendu 1 : $?"
+# Aucune police externe (hors le commentaire qui explique pourquoi)
+grep -rn "fonts.googleapis\|fonts.gstatic\|next/font/google" src/ \
+  | grep -v "^\S*: *\*" | grep -v "^\S*: *//" ; echo "exit attendu 1 : $?"
 # Aucune classe legacy
 grep -rn "glass-card\|box-orange-glow\|vip-vault-card" src/ ; echo "exit attendu 1 : $?"
 # /bar n'existe plus
@@ -1990,9 +2085,9 @@ Ouvrir la PR vers `main` en listant, dans le corps, les critères d'acceptation 
 |---|---|
 | §3 Palette | Task 1 (verrou), Task 3 (pose) |
 | §3 Typographie et polices | Task 2, Task 3 |
-| §3 Ce qui est supprimé | Task 3, Task 18 Step 5 |
+| §3 Ce qui est supprimé | Task 3, Task 19 Step 4 |
 | §4 Navigation, 4 onglets | Task 9, Task 11 |
-| §4 Où vont les 23 pages | Task 11 (Moi), Tasks 13-19 |
+| §4 Où vont les 23 pages | Task 11 (Moi), Tasks 13-20 |
 | §4 Fusion annuaire/membres, suppression /bar | Task 17 |
 | §5 Les 8 primitives | Tasks 4-9 |
 | §5 Modales reskinnées non réécrites | Task 10 |
@@ -2001,13 +2096,15 @@ Ouvrir la PR vers `main` en listant, dans le corps, les critères d'acceptation 
 | §6 Cave, éclatement de StockStudio | Task 15 |
 | §6 Cocktails, sélecteur retiré | Task 16 Step 1 |
 | §6 Moi | Task 11 Step 5 |
-| §7 Périmètre, API intouchée | contrainte globale, vérifiée Task 20 |
-| §8 Une branche, fondations d'abord | phases A→D, Task 20 Step 1 |
-| §9 Vérification | Task 1, Task 12, Task 20 |
-| §10 Critères d'acceptation | Task 20 Step 6 |
+| §7 Périmètre, API intouchée | contrainte globale, vérifiée Task 21 |
+| §8 Une branche, fondations d'abord | phases A→D, Task 21 Step 1 |
+| §9 Vérification | Task 1, Task 12, Task 21 |
+| §10 Critères d'acceptation | Task 21 Step 6 |
 
 Aucune section sans tâche.
 
-**Points où ce plan reste volontairement moins prescriptif :** les tâches 13, 16, 17, 18 et 19 décrivent la transformation à appliquer et la porte de sortie qui la valide, sans reproduire le code cible. Écrire à l'avance le remplacement verbatim de ~5 000 lignes de JSX produirait du code spéculatif, écrit sans le fichier sous les yeux, plus coûteux à corriger qu'à écrire. La table de correspondance et l'audit automatisé sont ce qui rend ces tâches vérifiables — c'est l'audit, pas le plan, qui dit si l'écran est terminé.
+**Couverture des fichiers.** Les 71 fichiers `.tsx` de `src/` ont été inventoriés et affectés à une tâche. Le contrôle de complétude est la Task 19 Step 4, qui exige qu'aucune classe du thème sombre ne subsiste **nulle part** dans `src/` — pas seulement dans les fichiers que la tâche vient de toucher.
+
+**Points où ce plan reste volontairement moins prescriptif :** les tâches 13 et 16 à 20 décrivent la transformation à appliquer et la porte de sortie qui la valide, sans reproduire le code cible. Écrire à l'avance le remplacement verbatim de ~5 000 lignes de JSX produirait du code spéculatif, écrit sans le fichier sous les yeux, plus coûteux à corriger qu'à écrire. La table de correspondance et l'audit automatisé sont ce qui rend ces tâches vérifiables — c'est l'audit, pas le plan, qui dit si l'écran est terminé.
 
 **Risque le plus sérieux :** la Task 15. C'est la seule qui restructure de la logique plutôt que de l'habillage, sur le fichier le plus gros du dépôt, et le stock est le cœur fonctionnel de l'application. Elle mérite d'être relue avec plus d'attention que les autres.
