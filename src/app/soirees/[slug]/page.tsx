@@ -4,6 +4,7 @@ import { getEvent, listContributions, listBottles, listStockAdjustments, evaluat
 import { getSession } from "@/lib/session";
 import GuestPanel from "./GuestPanel";
 import WishlistSection from "./WishlistSection";
+import DiscordActions from "./DiscordActions";
 import MediaGallery from "./MediaGallery";
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -142,6 +143,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         readyCocktails={readyCocktails}
         vipCocktails={vipCocktails}
       />
+
+      {canManageWishlist && <DiscordActions slug={slug} barId={event.barId} />}
 
       <WishlistSection slug={slug} items={wishlistItems} canManage={canManageWishlist} currentUserId={session.sub} />
 

@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { WishlistService } from './wishlist.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsService } from '../events/events.service';
+import { DiscordBoardService } from '../discord/board.service';
 
 describe('WishlistService', () => {
   let service: WishlistService;
@@ -12,6 +13,7 @@ describe('WishlistService', () => {
     wishlistItemAssignment: Record<string, jest.Mock>;
   };
   let eventsService: { findBySlug: jest.Mock };
+  let board: { publish: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
@@ -36,11 +38,15 @@ describe('WishlistService', () => {
     );
     prisma.wishlistItemAssignment.count = jest.fn().mockResolvedValue(0);
     eventsService = { findBySlug: jest.fn() };
+    board = { publish: jest.fn().mockResolvedValue(undefined) };
     const moduleRef = await Test.createTestingModule({
       providers: [
         WishlistService,
         { provide: PrismaService, useValue: prisma },
         { provide: EventsService, useValue: eventsService },
+        // The board is refreshed fire-and-forget; the double records the calls
+        // so the tests can assert it never blocks or throws into the caller.
+        { provide: DiscordBoardService, useValue: board },
       ],
     }).compile();
     service = moduleRef.get(WishlistService);
@@ -374,6 +380,63 @@ describe('WishlistService', () => {
       expect(raw).toHaveBeenCalled();
       const lockCalls = raw.mock.calls as unknown as unknown[][];
       expect(String(lockCalls[0][0])).toContain('FOR UPDATE');
+    });
+  });
+
+  describe('tableau Discord', () => {
+    it('rafraîchit le tableau après une prise', async () => {
+      eventsService.findBySlug.mockResolvedValue({ id: 'event-1' });
+      prisma.wishlistItem.findUnique.mockResolvedValue({
+        id: 'item-1',
+        eventId: 'event-1',
+        neededCount: 2,
+      });
+      prisma.wishlistItemAssignment.findUnique.mockResolvedValue(null);
+      prisma.wishlistItemAssignment.count.mockResolvedValue(0);
+      prisma.wishlistItemAssignment.create.mockResolvedValue({
+        id: 'assign-1',
+      });
+
+      await service.assign('slug', 'item-1', 'user-1');
+
+      expect(board.publish).toHaveBeenCalledWith('slug');
+    });
+
+    it("n'appelle pas le tableau quand la prise est refusée", async () => {
+      eventsService.findBySlug.mockResolvedValue({ id: 'event-1' });
+      prisma.wishlistItem.findUnique.mockResolvedValue({
+        id: 'item-1',
+        eventId: 'event-1',
+        neededCount: 1,
+      });
+      prisma.wishlistItemAssignment.findUnique.mockResolvedValue(null);
+      prisma.wishlistItemAssignment.count.mockResolvedValue(1);
+
+      await expect(
+        service.assign('slug', 'item-1', 'user-2'),
+      ).rejects.toThrow();
+      expect(board.publish).not.toHaveBeenCalled();
+    });
+
+    it('la prise réussit même si Discord échoue', async () => {
+      // The whole point of fire-and-forget: Discord being down must not turn a
+      // successful claim into an error for the guest.
+      board.publish.mockRejectedValue(new Error('Discord indisponible'));
+      eventsService.findBySlug.mockResolvedValue({ id: 'event-1' });
+      prisma.wishlistItem.findUnique.mockResolvedValue({
+        id: 'item-1',
+        eventId: 'event-1',
+        neededCount: 2,
+      });
+      prisma.wishlistItemAssignment.findUnique.mockResolvedValue(null);
+      prisma.wishlistItemAssignment.count.mockResolvedValue(0);
+      prisma.wishlistItemAssignment.create.mockResolvedValue({
+        id: 'assign-1',
+      });
+
+      await expect(service.assign('slug', 'item-1', 'user-1')).resolves.toEqual(
+        { id: 'assign-1' },
+      );
     });
   });
 });

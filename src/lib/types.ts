@@ -131,6 +131,8 @@ export interface Bar {
   myVip: boolean;
   isPublic: boolean;
   inviteToken: string | null;
+  /** Discord channel the "à ramener" board is published to, if bound. */
+  discordChannelId?: string | null;
 }
 
 export interface BarMember {

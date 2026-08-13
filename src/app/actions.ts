@@ -454,3 +454,28 @@ export async function calendarFeedPathAction(rotate = false) {
     return { error: err instanceof Error ? err.message : "Calendrier indisponible." };
   }
 }
+
+/** DM the soirée to every bar member who linked Discord. Host only. */
+export async function announceOnDiscordAction(slug: string) {
+  await requireLoggedIn();
+  try {
+    return await api.announceEventOnDiscord(slug);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Annonce impossible." };
+  }
+}
+
+/** Post a poll in the bar's Discord channel. Host only. */
+export async function createDiscordPollAction(
+  barId: string,
+  question: string,
+  answers: string[],
+  hours: number,
+) {
+  await requireLoggedIn();
+  try {
+    return await api.createDiscordPoll(barId, { question, answers, hours });
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Sondage impossible." };
+  }
+}

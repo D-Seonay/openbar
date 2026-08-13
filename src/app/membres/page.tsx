@@ -8,6 +8,7 @@ import MemberRow from "./MemberRow";
 import PendingRequests from "./PendingRequests";
 import BarVisibilitySection from "./BarVisibilitySection";
 import InviteLinkSection from "./InviteLinkSection";
+import DiscordChannelBinding from "./DiscordChannelBinding";
 import BarNameSection from "./BarNameSection";
 
 export default async function BarMembresPage() {
@@ -45,7 +46,12 @@ export default async function BarMembresPage() {
             <InviteMemberForm barId={activeBar.id} />
           </div>
           <BarVisibilitySection barId={activeBar.id} isPublic={activeBar.isPublic} />
-          <InviteLinkSection barId={activeBar.id} inviteToken={activeBar.inviteToken} />
+          <DiscordChannelBinding
+        barId={activeBar.id}
+        channelId={activeBar.discordChannelId ?? null}
+      />
+
+      <InviteLinkSection barId={activeBar.id} inviteToken={activeBar.inviteToken} />
         </div>
 
         <div className="lg:col-span-8 rounded-2xl bg-ink-2/60 border border-white/[0.08] overflow-hidden divide-y divide-white/[0.06] shadow-xl">
