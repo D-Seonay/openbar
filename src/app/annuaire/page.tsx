@@ -3,12 +3,18 @@ import { listMyBars, listBarMembers } from "@/lib/api-client";
 import { getSession } from "@/lib/session";
 import { resolveActiveBar } from "@/lib/active-bar";
 import PageTransition from "@/components/PageTransition";
+import PaginationLinks from "@/components/PaginationLinks";
+import { paginate } from "@/lib/pagination";
 
 function formatBirthday(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
 }
 
-export default async function AnnuairePage() {
+export default async function AnnuairePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
 
@@ -17,6 +23,8 @@ export default async function AnnuairePage() {
   if (!activeBar) redirect("/");
 
   const members = await listBarMembers(activeBar.id);
+  const { page } = await searchParams;
+  const roster = paginate(members, page);
 
   return (
     <PageTransition className="space-y-8">
@@ -31,7 +39,7 @@ export default async function AnnuairePage() {
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {members.map((member) => (
+        {roster.items.map((member) => (
           <div
             key={member.id}
             className="rounded-2xl bg-ink-2/60 border border-white/[0.08] p-5 shadow-xl space-y-3"
@@ -73,6 +81,12 @@ export default async function AnnuairePage() {
           </div>
         ))}
       </div>
+
+      <PaginationLinks
+        currentPage={roster.currentPage}
+        totalPages={roster.totalPages}
+        basePath="/annuaire"
+      />
     </PageTransition>
   );
 }

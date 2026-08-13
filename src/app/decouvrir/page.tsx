@@ -1,9 +1,17 @@
 import { listBarsDirectory } from "@/lib/api-client";
 import PageTransition from "@/components/PageTransition";
+import PaginationLinks from "@/components/PaginationLinks";
 import BarDirectory from "@/app/BarDirectory";
+import { paginate } from "@/lib/pagination";
 
-export default async function DecouvrirPage() {
+export default async function DecouvrirPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const directory = await listBarsDirectory();
+  const { page } = await searchParams;
+  const bars = paginate(directory, page);
 
   return (
     <PageTransition className="space-y-8">
@@ -17,7 +25,13 @@ export default async function DecouvrirPage() {
         </h1>
       </div>
 
-      <BarDirectory entries={directory} guestMode />
+      <BarDirectory entries={bars.items} guestMode />
+
+      <PaginationLinks
+        currentPage={bars.currentPage}
+        totalPages={bars.totalPages}
+        basePath="/decouvrir"
+      />
     </PageTransition>
   );
 }
