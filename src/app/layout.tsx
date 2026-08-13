@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import Link from "next/link";
 import "./globals.css";
 import { getSession } from "@/lib/session";
@@ -9,16 +9,41 @@ import Navigation from "@/components/Navigation";
 import AccountMenu from "@/components/AccountMenu";
 import BarSwitcher from "@/components/BarSwitcher";
 
-const outfit = Outfit({
-  weight: ["500", "600", "700", "800"],
-  subsets: ["latin"],
+/**
+ * Fonts are served from the repo, not fetched from Google at build time.
+ *
+ * `next/font/google` downloads the files during `next build`, which made every
+ * deploy depend on fonts.gstatic.com answering consistently. It stopped doing
+ * so: Google rotated the file hashes behind an unchanged version, the build
+ * asked for URLs that had become 404s, and the image failed to build for a
+ * reason that had nothing to do with this repository.
+ *
+ * Only the latin subset is kept — the app is in French, and the other subsets
+ * were roughly ten times the bytes for nothing. Both families are OFL-licensed,
+ * so redistributing them here is fine.
+ */
+const outfit = localFont({
+  src: [
+    { path: "./fonts/Outfit-500.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/Outfit-600.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/Outfit-700.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/Outfit-800.woff2", weight: "800", style: "normal" },
+  ],
   variable: "--font-outfit",
+  display: "swap",
+  // Keeps the layout from jumping when the webfont replaces the fallback.
+  adjustFontFallback: "Arial",
 });
 
-const jakarta = Plus_Jakarta_Sans({
-  weight: ["400", "500", "600"],
-  subsets: ["latin"],
+const jakarta = localFont({
+  src: [
+    { path: "./fonts/PlusJakartaSans-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/PlusJakartaSans-500.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/PlusJakartaSans-600.woff2", weight: "600", style: "normal" },
+  ],
   variable: "--font-jakarta",
+  display: "swap",
+  adjustFontFallback: "Arial",
 });
 
 export const metadata: Metadata = {
