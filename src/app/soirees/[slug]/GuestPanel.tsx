@@ -105,7 +105,7 @@ export default function GuestPanel({
             <div className="flex items-center justify-between">
               <h2 className="font-display text-[17px] text-ink">Qui ramène quoi</h2>
               <Badge ton="neutre">
-                {contributions.length} contribution{contributions.length !== 1 ? "s" : ""}
+                {contributions.length} Contribution{contributions.length !== 1 ? "s" : ""}
               </Badge>
             </div>
 
@@ -221,7 +221,7 @@ export default function GuestPanel({
           <Card className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-[17px] text-ink">Cocktails Servis ce Soir</h2>
-              <Badge ton="complet">{readyCocktails.length} prêts</Badge>
+              <Badge ton="complet">{readyCocktails.length} Prêts</Badge>
             </div>
 
             {readyCocktails.length === 0 ? (

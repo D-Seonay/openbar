@@ -161,7 +161,7 @@ export default async function SoireesPage({
                         titre={event.name}
                         sousTitre={formatDate(event.date)}
                         droite={
-                          isOverdue(event) ? <Badge ton="alerte">Bilan à faire</Badge> : undefined
+                          isOverdue(event) ? <Badge ton="alerte">⏰ Bilan à faire</Badge> : undefined
                         }
                         href={`/soirees/${event.slug}`}
                         chevron

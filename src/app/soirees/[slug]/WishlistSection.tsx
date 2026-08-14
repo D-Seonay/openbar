@@ -143,7 +143,7 @@ export default function WishlistSection({
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-display text-[17px] text-ink">À ramener</h2>
         <Badge ton="neutre">
-          {items.length} item{items.length !== 1 ? "s" : ""}
+          {items.length} Item{items.length !== 1 ? "s" : ""}
         </Badge>
       </div>
 

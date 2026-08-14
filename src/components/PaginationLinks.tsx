@@ -48,11 +48,16 @@ export default function PaginationLinks({
   };
 
   const buttonClass =
-    "tap-target px-3 inline-flex items-center justify-center rounded-xl bg-paper-sunk border border-rule text-ink hover:bg-paper-sunk hover:text-terracotta transition-colors text-[13px] font-bold uppercase tracking-wider";
+    "tap-target px-3 inline-flex items-center justify-center rounded-xl bg-paper-sunk border border-rule text-ink hover:text-terracotta transition-colors text-[13px] font-bold uppercase tracking-wider";
   const disabledClass =
     "tap-target px-3 inline-flex items-center justify-center rounded-xl bg-paper-sunk border border-rule text-ink opacity-50 cursor-not-allowed text-[13px] font-bold uppercase tracking-wider";
 
   return (
+    // `flex-wrap`: this row's own width is correctly bounded by its ancestors
+    // (the grid-level bug that used to blow that up is fixed upstream in
+    // soirees/page.tsx). What it still protects against is unbounded page
+    // counts — "Page 128 sur 356" next to two buttons can outgrow a narrow
+    // column on its own, and wrapping is cheaper than truncating a number.
     <nav
       aria-label="Pagination"
       className="flex flex-wrap items-center justify-center gap-2 mt-6 pt-4 border-t border-rule"
