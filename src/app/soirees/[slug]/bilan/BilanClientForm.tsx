@@ -4,6 +4,7 @@ import { useState, useMemo, useTransition } from "react";
 import type { Bottle } from "@/lib/types";
 import { submitBilan } from "@/app/actions";
 import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
+import { Badge, Button, Card, EmptyState, Field, champClasses } from "@/components/ui";
 
 const GROCERY_AISLES = [
   { id: "", label: "🛒 Tous les rayons" },
@@ -112,29 +113,41 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Search & Aisles Controls */}
-      <div className="space-y-4 bg-ink-2/80 border border-white/[0.08] p-4 sm:p-5 rounded-2xl shadow-xl">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-          <div className="relative flex-1">
-            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-muted text-sm pointer-events-none">
-              🔍
-            </span>
-            <input
-              type="text"
-              placeholder="Rechercher une bouteille (Ricard, Gin, Coca...)"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full bg-ink border border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-cream placeholder:text-muted/60 focus:outline-none focus:border-orange transition-colors"
-            />
+      <Card className="space-y-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <Field label="Rechercher une bouteille" htmlFor="bilan-search">
+              <div className="relative">
+                <span
+                  aria-hidden
+                  className="absolute inset-y-0 left-0 pl-3 flex items-center text-ink-soft pointer-events-none"
+                >
+                  🔍
+                </span>
+                <input
+                  id="bilan-search"
+                  type="text"
+                  placeholder="Ricard, Gin, Coca..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className={`pl-9 ${champClasses}`}
+                />
+              </div>
+            </Field>
           </div>
 
-          <label className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-ink border border-white/[0.08] cursor-pointer hover:border-orange/40 transition-colors">
+          <label
+            htmlFor="bilan-only-modified"
+            className="tap-target flex items-center gap-2.5 px-3.5 rounded-lg bg-paper-sunk border border-rule cursor-pointer hover:border-terracotta/40 transition-colors shrink-0"
+          >
             <input
+              id="bilan-only-modified"
               type="checkbox"
               checked={onlyModified}
               onChange={(e) => setOnlyModified(e.target.checked)}
-              className="rounded accent-orange"
+              className="w-[18px] h-[18px] accent-terracotta"
             />
-            <span className="text-xs font-semibold text-cream select-none">
+            <span className="text-[13px] font-semibold text-ink select-none">
               Modifiés uniquement ({modifiedBottlesCount})
             </span>
           </label>
@@ -149,10 +162,10 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
                 key={aisle.id}
                 type="button"
                 onClick={() => setSelectedAisle(aisle.id)}
-                className={`tap-target-sm flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                className={`tap-target flex items-center px-3 rounded-lg text-[13px] font-semibold transition-colors shrink-0 cursor-pointer ${
                   active
-                    ? "bg-orange text-ink shadow-sm shadow-orange/30"
-                    : "bg-white/[0.04] text-muted hover:text-cream hover:bg-white/[0.08]"
+                    ? "bg-terracotta text-paper"
+                    : "bg-paper-sunk border border-rule text-ink-soft hover:text-ink"
                 }`}
               >
                 {aisle.label}
@@ -160,92 +173,93 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
             );
           })}
         </div>
-      </div>
+      </Card>
 
       {/* Bottles List */}
-      <div className="rounded-2xl border border-white/[0.08] bg-ink-2/60 divide-y divide-white/[0.06] shadow-xl">
+      <Card className="p-0 divide-y divide-rule overflow-hidden">
         {filteredBottles.length === 0 ? (
-          <div className="py-12 text-center text-muted text-xs">
-            Aucune bouteille ne correspond à votre filtre.
-          </div>
+          <EmptyState
+            titre="Aucune bouteille"
+            message="Aucune bouteille ne correspond à votre filtre."
+          />
         ) : (
           filteredBottles.map((b) => {
             const original = b.originalQuantity ?? b.quantity;
             const currentQty = quantities[b.id] ?? b.quantity;
             const diff = currentQty - original;
             const totalLiters = calculateBottleTotalLiters(b);
+            const inputId = `bilan-qty-${b.id}`;
 
             return (
               <div
                 key={b.id}
-                className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/[0.02] transition-colors"
+                className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 {/* Left: Bottle details & before stock */}
-                <div className="flex items-start gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-xl shrink-0">
+                <div className="flex items-start gap-3.5 min-w-0">
+                  <div className="w-10 h-10 rounded-lg bg-paper-sunk border border-rule flex items-center justify-center text-xl shrink-0">
                     🍾
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-cream font-bold text-sm">{b.name}</span>
-                      <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-md bg-white/[0.06] text-muted">
+                      <span className="text-ink font-bold text-[15px]">{b.name}</span>
+                      <span className="text-[13px] uppercase font-semibold px-2 py-0.5 rounded-md bg-paper-sunk text-ink-soft border border-rule">
                         {b.type}
                       </span>
-                      {diff < 0 && (
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-red-500/15 text-red-400 border border-red-500/30">
-                          🔥 {diff} btl consommée(s)
-                        </span>
-                      )}
-                      {diff > 0 && (
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                          ➕ +{diff} btl
-                        </span>
-                      )}
+                      {diff < 0 && <Badge ton="alerte">🔥 {diff} btl consommée(s)</Badge>}
+                      {diff > 0 && <Badge ton="complet">➕ +{diff} btl</Badge>}
                     </div>
-                    <p className="text-xs text-muted mt-1">
+                    <p className="text-[13px] text-ink-soft mt-1">
                       Stock initial :{" "}
-                      <strong className="text-cream font-mono">{original} btl</strong> •{" "}
+                      <strong className="text-ink font-mono">{original} btl</strong> •{" "}
                       {formatLiters(totalLiters)}
                     </p>
                   </div>
                 </div>
 
                 {/* Right: Interactive Stepper & Shortcuts */}
-                <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/[0.05] shrink-0">
-                  <button
+                <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-rule shrink-0">
+                  <Button
                     type="button"
+                    variant="danger"
                     onClick={() => handleAdjust(b.id, -1)}
                     disabled={currentQty <= 0}
-                    className="tap-target-sm flex items-center px-2.5 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/30 text-red-400 text-xs font-bold transition-colors cursor-pointer disabled:opacity-30"
+                    className="px-3 text-[13px]"
                     title="-1 bouteille consommée"
                   >
                     −1 consommée
-                  </button>
+                  </Button>
 
-                  <div className="flex items-center gap-1 bg-ink border border-white/[0.1] rounded-xl p-1">
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => handleAdjust(b.id, -0.5)}
                       disabled={currentQty <= 0}
                       aria-label="Retirer une demi-bouteille"
-                      className="w-9 h-9 sm:w-7 sm:h-7 rounded-lg bg-white/[0.05] hover:bg-orange/20 hover:text-orange text-cream font-bold text-xs flex items-center justify-center cursor-pointer disabled:opacity-30"
+                      className="tap-target px-3 rounded-lg border border-rule bg-paper hover:bg-paper-sunk hover:text-terracotta text-ink font-bold text-[15px] flex items-center justify-center disabled:opacity-30"
                     >
                       −
                     </button>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.5"
-                      inputMode="decimal"
-                      value={currentQty}
-                      onChange={(e) => handleSetExact(b.id, Number(e.target.value))}
-                      className="w-16 sm:w-14 bg-transparent text-center font-mono text-sm sm:text-xs font-bold text-cream focus:outline-none"
-                    />
+                    <div>
+                      <label htmlFor={inputId} className="sr-only">
+                        Quantité restante pour {b.name}
+                      </label>
+                      <input
+                        id={inputId}
+                        type="number"
+                        min="0"
+                        step="0.5"
+                        inputMode="decimal"
+                        value={currentQty}
+                        onChange={(e) => handleSetExact(b.id, Number(e.target.value))}
+                        className={`w-20 text-center font-mono font-bold ${champClasses}`}
+                      />
+                    </div>
                     <button
                       type="button"
                       onClick={() => handleAdjust(b.id, 0.5)}
                       aria-label="Ajouter une demi-bouteille"
-                      className="w-9 h-9 sm:w-7 sm:h-7 rounded-lg bg-white/[0.05] hover:bg-orange/20 hover:text-orange text-cream font-bold text-xs flex items-center justify-center cursor-pointer"
+                      className="tap-target px-3 rounded-lg border border-rule bg-paper hover:bg-paper-sunk hover:text-terracotta text-ink font-bold text-[15px] flex items-center justify-center"
                     >
                       +
                     </button>
@@ -255,7 +269,7 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
                     <button
                       type="button"
                       onClick={() => handleSetExact(b.id, original)}
-                      className="tap-target-sm flex items-center text-[11px] text-muted hover:text-cream px-2 py-1 rounded-lg hover:bg-white/[0.05] transition-colors"
+                      className="tap-target flex items-center text-[13px] text-ink-soft hover:text-ink px-2 rounded-lg hover:bg-paper-sunk transition-colors"
                       title="Annuler la modification pour cette bouteille"
                     >
                       Réinitialiser
@@ -266,38 +280,34 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
             );
           })
         )}
-      </div>
+      </Card>
 
       {/* Sticky Bottom Bar */}
-      <div className="sticky bottom-safe z-40 bg-ink/95 backdrop-blur-xl border border-orange/40 rounded-2xl p-4 sm:p-5 shadow-2xl box-orange-glow flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+      <div className="sticky bottom-safe z-40 bg-paper border border-terracotta/40 rounded-xl p-4 sm:p-5 shadow-lg flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4 sm:gap-6">
           <div className="min-w-0">
-            <span className="text-[10px] uppercase font-bold text-muted block">
+            <span className="text-[13px] uppercase font-bold text-ink-soft block">
               Bouteilles modifiées
             </span>
-            <span className="font-display text-base sm:text-xl font-bold text-cream">
+            <span className="font-display text-[17px] sm:text-[21px] font-bold text-ink">
               {modifiedBottlesCount} référence{modifiedBottlesCount > 1 ? "s" : ""}
             </span>
           </div>
-          <div className="border-l border-white/[0.1] pl-4 sm:pl-6 min-w-0">
-            <span className="text-[10px] uppercase font-bold text-muted block">
+          <div className="border-l border-rule pl-4 sm:pl-6 min-w-0">
+            <span className="text-[13px] uppercase font-bold text-ink-soft block">
               Consommation nette
             </span>
-            <span className="font-display text-base sm:text-xl font-bold text-orange">
+            <span className="font-display text-[17px] sm:text-[21px] font-bold text-terracotta">
               {totalConsumedBottles} btl consommée{totalConsumedBottles > 1 ? "s" : ""}
             </span>
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="tap-target w-full sm:w-auto flex items-center justify-center px-6 py-3 rounded-xl bg-gradient-to-r from-orange to-gold text-ink font-bold text-xs uppercase tracking-wider shadow-lg shadow-orange/30 hover:opacity-95 transition-all cursor-pointer disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isPending} pleineLargeur className="sm:w-auto">
           {isPending
             ? "Enregistrement en cours..."
             : "✨ Valider et enregistrer le Bilan"}
-        </button>
+        </Button>
       </div>
     </form>
   );

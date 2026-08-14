@@ -45,13 +45,13 @@ export default async function BilanPage({ params }: { params: Promise<{ slug: st
   return (
     <div className="space-y-8">
       <div>
-        <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">
+        <span className="text-[13px] uppercase tracking-caps text-terracotta font-semibold">
           Bilan de fin de soirée
         </span>
-        <h1 className="font-display text-3xl sm:text-4xl text-cream mt-1">
+        <h1 className="font-display text-[27px] text-ink mt-1">
           {event.name}
         </h1>
-        <p className="text-muted text-xs mt-2 max-w-xl leading-relaxed">
+        <p className="text-ink-soft text-[13px] mt-2 max-w-xl leading-relaxed">
           Ajustez les stocks après votre soirée. Indiquez le nombre de bouteilles consommées ou le nouveau stock restant : le système synchronisera automatiquement les quantités et les volumes de votre cave.
         </p>
       </div>

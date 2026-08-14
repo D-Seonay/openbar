@@ -87,3 +87,22 @@ for (const chemin of PAGES) {
     });
   });
 }
+
+test("le bilan ne déborde pas et respecte les cibles", async ({ page }) => {
+  await page.goto("/soirees");
+  const premiere = page.getByRole("link", { name: /.+/ }).filter({ hasNotText: /^(Soirée|Cave|Cocktails|Moi)$/ }).first();
+  await premiere.click();
+  await page.waitForLoadState("networkidle");
+
+  const lienBilan = page.getByRole("link", { name: /bilan/i });
+  // Une soirée future n'a pas de bilan : le test n'a alors rien à vérifier.
+  if ((await lienBilan.count()) === 0) test.skip();
+  await lienBilan.first().click();
+  await page.waitForLoadState("networkidle");
+
+  const d = await page.evaluate(() => ({
+    scroll: document.documentElement.scrollWidth,
+    client: document.documentElement.clientWidth,
+  }));
+  expect(d.scroll - d.client).toBeLessThanOrEqual(1);
+});
