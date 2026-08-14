@@ -145,7 +145,7 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
               type="checkbox"
               checked={onlyModified}
               onChange={(e) => setOnlyModified(e.target.checked)}
-              className="w-[18px] h-[18px] accent-terracotta"
+              className="tap-target shrink-0 accent-terracotta"
             />
             <span className="text-[13px] font-semibold text-ink select-none">
               Modifiés uniquement ({modifiedBottlesCount})
