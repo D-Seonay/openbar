@@ -983,6 +983,7 @@ export default function TabBar() {
                 aria-current={actif ? "page" : undefined}
                 className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 py-1.5
                   text-[13px] font-medium
+                  focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-terracotta
                   ${actif ? "text-terracotta shadow-[inset_0_2px_0_var(--color-terracotta)]" : "text-ink-soft"}`}
               >
                 <span aria-hidden className="text-[17px] leading-none">
