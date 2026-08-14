@@ -59,7 +59,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   // Never block pinch-zoom — users must be able to zoom the cocktail sheets.
   maximumScale: 5,
-  // Let the ambient background bleed into the notch / home-indicator areas.
+  // Nécessaire pour que env(safe-area-inset-bottom) soit renseigné : la barre
+  // d'onglets s'en sert pour ne pas passer sous l'indicateur d'accueil iOS.
   viewportFit: "cover",
   themeColor: "#F3EFE7",
 };

@@ -17,7 +17,7 @@ export default async function MoiPage() {
       <h1 className="font-display text-[27px] text-ink mb-5">Moi</h1>
 
       <section className="mb-7">
-        <h2 className="text-[11px] font-display uppercase tracking-caps text-ink-soft mb-1">
+        <h2 className="text-[13px] font-display uppercase tracking-caps text-ink-soft mb-1">
           Mon compte
         </h2>
         <Row titre="Profil" href="/profil" chevron />
@@ -26,7 +26,7 @@ export default async function MoiPage() {
 
       {activeBar ? (
         <section className="mb-7">
-          <h2 className="text-[11px] font-display uppercase tracking-caps text-ink-soft mb-1">
+          <h2 className="text-[13px] font-display uppercase tracking-caps text-ink-soft mb-1">
             {activeBar.name}
           </h2>
           <Row titre="Membres" href="/membres" chevron />
@@ -42,7 +42,7 @@ export default async function MoiPage() {
       ) : null}
 
       <section className="mb-7">
-        <h2 className="text-[11px] font-display uppercase tracking-caps text-ink-soft mb-1">
+        <h2 className="text-[13px] font-display uppercase tracking-caps text-ink-soft mb-1">
           Ailleurs
         </h2>
         <Row titre="Découvrir des bars" href="/decouvrir" chevron />
