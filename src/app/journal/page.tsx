@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { resolveActiveBar } from "@/lib/active-bar";
 import PageTransition from "@/components/PageTransition";
 import PaginationLinks from "@/components/PaginationLinks";
+import { Badge, Row } from "@/components/ui";
 
 /** Groups entries under a day heading, so a busy evening reads as one block. */
 function dayLabel(iso: string): string {
@@ -63,28 +64,27 @@ export default async function JournalPage({
 
   return (
     <PageTransition className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-orange/15">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-rule">
         <div>
-          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-caps text-gold mb-2">
-            <span className="w-2 h-2 rounded-full bg-orange animate-pulse" />
-            <span>{activeBar.name}</span>
-          </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-cream tracking-tight">
+          <span className="text-[13px] uppercase tracking-caps text-terracotta font-semibold">
+            {activeBar.name}
+          </span>
+          <h1 className="font-display text-[27px] text-ink mt-1">
             Journal du bar
           </h1>
-          <p className="text-muted text-xs mt-2 max-w-lg leading-relaxed">
+          <p className="text-ink-soft text-[13px] mt-2 max-w-lg leading-relaxed">
             Qui a fait quoi, du plus récent au plus ancien.
           </p>
         </div>
-        <span className="shrink-0 text-xs font-mono font-bold text-orange bg-orange/15 px-3 py-1 rounded-full border border-orange/30">
+        <Badge>
           {journal.total} entrée{journal.total !== 1 ? "s" : ""}
-        </span>
+        </Badge>
       </div>
 
       {journal.entries.length === 0 ? (
-        <div className="text-center py-12 rounded-2xl bg-ink-2/40 border border-dashed border-white/[0.08]">
+        <div className="text-center py-12 rounded-2xl bg-paper-sunk border border-dashed border-rule">
           <p className="text-3xl mb-2">📖</p>
-          <p className="text-muted text-xs italic">
+          <p className="text-ink-soft text-[13px] italic">
             Rien encore. Les ajouts, retraits et bilans apparaîtront ici.
           </p>
         </div>
@@ -92,30 +92,29 @@ export default async function JournalPage({
         <div className="space-y-6">
           {[...days.entries()].map(([day, entries]) => (
             <section key={day} className="space-y-2">
-              <h2 className="text-[10px] uppercase tracking-caps text-gold-dim font-bold capitalize">
+              <h2 className="text-[13px] uppercase tracking-caps text-ink-soft font-bold capitalize">
                 {day}
               </h2>
-              <ul className="rounded-2xl border border-white/[0.08] bg-ink-2/60 divide-y divide-white/[0.06] overflow-hidden">
+              <div className="rounded-2xl border border-rule bg-paper overflow-hidden">
                 {entries.map((entry) => (
-                  <li
-                    key={entry.id}
-                    className="flex items-start gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors"
-                  >
-                    <span className="w-8 h-8 shrink-0 rounded-lg bg-ink border border-white/[0.08] flex items-center justify-center text-sm">
-                      {ICONS[entry.action] ?? "•"}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs text-cream break-words">
-                        <span className="font-semibold">{entry.actorName}</span>{" "}
-                        <span className="text-muted">{entry.summary}</span>
-                      </p>
-                      <p className="text-[10px] text-muted/70 font-mono mt-0.5">
-                        {timeLabel(entry.createdAt)}
-                      </p>
-                    </div>
-                  </li>
+                  <div key={entry.id} className="px-4">
+                    <Row
+                      titre={
+                        <span className="flex items-center gap-3 min-w-0">
+                          <span className="w-8 h-8 shrink-0 rounded-lg bg-paper-sunk border border-rule flex items-center justify-center text-[15px]">
+                            {ICONS[entry.action] ?? "•"}
+                          </span>
+                          <span className="truncate min-w-0">
+                            {entry.actorName}{" "}
+                            <span className="font-normal text-ink-soft">{entry.summary}</span>
+                          </span>
+                        </span>
+                      }
+                      sousTitre={timeLabel(entry.createdAt)}
+                    />
+                  </div>
                 ))}
-              </ul>
+              </div>
             </section>
           ))}
         </div>

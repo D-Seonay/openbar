@@ -2,16 +2,17 @@
 
 import { useState, useTransition } from "react";
 import { createUserAction } from "./actions";
+import { Button } from "@/components/ui";
 
 export default function CreateUserForm() {
   const [isPending, startTransition] = useTransition();
   const [generatedPassword, setGeneratedPassword] = useState<{ username: string; password: string } | null>(null);
 
   return (
-    <section className="bg-ink-2/40 border border-orange/10 p-6 rounded-xl space-y-4">
+    <section className="bg-paper-sunk/40 border border-rule p-5 sm:p-6 rounded-xl space-y-4">
       <div>
-        <h2 className="font-display text-xl text-cream">Créer un compte</h2>
-        <p className="text-muted text-[11px] mt-0.5">Un mot de passe temporaire est généré automatiquement.</p>
+        <h2 className="font-display text-[17px] text-ink">Créer un compte</h2>
+        <p className="text-ink-soft text-[13px] mt-0.5">Un mot de passe temporaire est généré automatiquement.</p>
       </div>
       <form
         action={(formData) => {
@@ -26,31 +27,31 @@ export default function CreateUserForm() {
           name="username"
           required
           placeholder="Identifiant"
-          className="w-full bg-ink border border-orange/10 rounded-xl px-3 py-2 text-xs placeholder:text-muted/40 focus:outline-none focus:border-orange transition-all text-cream"
+          className="w-full min-h-[44px] bg-paper-sunk border border-rule rounded-xl px-3 py-2 text-[15px] placeholder:text-ink-soft focus:outline-none focus:border-terracotta transition-all text-ink"
         />
-        <label className="flex items-center gap-2 text-xs text-muted">
-          <input type="checkbox" name="vip" className="accent-gold" />
+        <label className="flex items-center gap-2 text-[13px] text-ink-soft">
+          <input
+            type="checkbox"
+            name="vip"
+            className="tap-target shrink-0 rounded border-rule accent-terracotta cursor-pointer"
+          />
           Réserve VIP
         </label>
         <select
           name="role"
-          className="w-full bg-ink border border-orange/10 rounded-xl px-3 py-2 text-xs text-cream"
+          className="w-full min-h-[44px] bg-paper-sunk border border-rule rounded-xl px-3 py-2 text-[15px] text-ink"
         >
           <option value="USER">Utilisateur</option>
           <option value="ADMIN">Administrateur</option>
         </select>
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full bg-orange text-white font-medium rounded-xl py-2.5 hover:bg-orange-hover transition-all text-xs uppercase tracking-wider font-semibold"
-        >
+        <Button type="submit" pleineLargeur disabled={isPending}>
           Créer le compte
-        </button>
+        </Button>
       </form>
       {generatedPassword && (
-        <div className="text-xs bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-emerald-300">
+        <div className="text-[13px] bg-paper-sunk border border-done/35 rounded-xl p-3 text-done">
           Compte <strong>{generatedPassword.username}</strong> créé. Mot de passe temporaire :{" "}
-          <code className="font-mono bg-black/30 px-1.5 py-0.5 rounded">{generatedPassword.password}</code>
+          <code className="font-mono bg-paper px-1.5 py-0.5 rounded">{generatedPassword.password}</code>
         </div>
       )}
     </section>
