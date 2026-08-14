@@ -13,7 +13,8 @@ interface BottleListRowProps {
 }
 
 /** Une ligne de la liste : la fiche s'ouvre au clic n'importe où sauf sur les
- * boutons +/-, qui coupent la propagation pour ajuster sans ouvrir la fiche. */
+ * boutons +/-, qui sont des frères du <Row> cliquable (pas ses enfants) et
+ * n'ont donc rien à propager vers son onClick. */
 export default function BottleListRow({
   bottle,
   isAdmin,

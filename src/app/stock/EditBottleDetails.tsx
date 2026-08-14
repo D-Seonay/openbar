@@ -106,7 +106,10 @@ export default function EditBottleDetails({
   const total = form.volumes.reduce((sum, v) => sum + (v.quantity || 0), 0);
 
   return (
-    <div className="space-y-4">
+    // Pas de space-y-4 ici : chaque <Field> pose déjà son propre mb-4, et il
+    // serait alors doublé (mb-4 + mt-4) entre deux champs adjacents. Les
+    // quelques enfants non-Field portent donc leur mb-4 individuellement.
+    <div>
       <Field label="Nom" htmlFor="edit-bottle-name">
         <input
           id="edit-bottle-name"
@@ -153,7 +156,7 @@ export default function EditBottleDetails({
       </Field>
 
       {/* Formats drive the total, so the count is shown rather than typed. */}
-      <div className="space-y-2 border border-rule rounded-lg p-3">
+      <div className="mb-4 space-y-2 border border-rule rounded-lg p-3">
         <div className="flex items-center justify-between gap-2">
           <span className="text-[13px] font-semibold text-ink">Formats en stock</span>
           <button
@@ -240,7 +243,7 @@ export default function EditBottleDetails({
       {/* Only offered to someone who can already see the VIP shelf: otherwise
           the control would let them move a bottle somewhere they cannot look. */}
       {canSeeVip && (
-        <label className="tap-target flex items-center gap-2.5 text-[15px] text-ink cursor-pointer select-none">
+        <label className="mb-4 tap-target flex items-center gap-2.5 text-[15px] text-ink cursor-pointer select-none">
           <input
             type="checkbox"
             checked={form.vip}
@@ -251,7 +254,7 @@ export default function EditBottleDetails({
         </label>
       )}
 
-      {error && <p className="text-[13px] text-terracotta">{error}</p>}
+      {error && <p className="mb-4 text-[13px] text-terracotta">{error}</p>}
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-1">
         <Button variant="discret" onClick={onFermer} disabled={isPending}>

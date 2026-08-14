@@ -101,6 +101,8 @@ export default function StockStudio({
   };
 
   // Un scan qui ne trouve rien en stock transmet le code (et ce que la base produit connaît) au formulaire d'ajout.
+  // Pas de setSelectedBottleId(null) ici : chaque <Sheet> couvre tout l'écran (fixed inset-0),
+  // donc le scanner n'a pu s'ouvrir qu'une fois la fiche déjà fermée (et selectedBottleId déjà remis à null).
   const handleScanTrouve: React.ComponentProps<typeof ScannerSheet>["onTrouve"] = (barcode, product) => {
     setIsScanning(false);
     setPrefill({
@@ -190,6 +192,7 @@ export default function StockStudio({
       <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
 
       <FicheBouteilleSheet
+        key={selectedBottle?.id ?? "aucune"}
         bouteille={isEditing ? null : selectedBottle} isAdmin={isAdmin}
         onFermer={closeFiche} onEditer={() => setIsEditing(true)}
         onSupprimer={(b) => setDeleteTarget({ id: b.id, name: b.name })}

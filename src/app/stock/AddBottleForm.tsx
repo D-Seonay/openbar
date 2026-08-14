@@ -92,7 +92,10 @@ export default function AddBottleForm({
   };
 
   return (
-    <form ref={formRef} action={handleSubmit} className="space-y-4">
+    // Pas de space-y-4 ici : chaque <Field> pose déjà son propre mb-4, et il
+    // serait alors doublé (mb-4 + mt-4) entre deux champs adjacents. Les
+    // quelques enfants non-Field portent donc leur mb-4 individuellement.
+    <form ref={formRef} action={handleSubmit}>
       {/* Hidden input to pass volumes list as JSON */}
       <input type="hidden" name="volumes" value={JSON.stringify(volumes)} />
       {/* Carries the scanned code through to the API so a later scan of the
@@ -100,7 +103,7 @@ export default function AddBottleForm({
       {prefill?.barcode && <input type="hidden" name="barcode" value={prefill.barcode} />}
 
       {prefill?.barcode && (
-        <div className="rounded-lg border border-rule bg-paper-sunk px-3 py-2 flex items-center gap-2">
+        <div className="mb-4 rounded-lg border border-rule bg-paper-sunk px-3 py-2 flex items-center gap-2">
           <span className="text-[15px]">🏷️</span>
           <span className="text-[13px] text-ink-soft">
             Code-barres scanné : <span className="font-mono text-ink">{prefill.barcode}</span>
@@ -134,7 +137,7 @@ export default function AddBottleForm({
         </select>
       </Field>
 
-      <div>
+      <div className="mb-4">
         <input type="hidden" name="imageUrl" value={imageUrl} />
         {/* The preview and its "Retirer" button live inside ImagePicker so the
             profile avatar and the bottle detail modal keep them too. */}
@@ -147,7 +150,7 @@ export default function AddBottleForm({
       </div>
 
       {/* Volumes and quantities editor */}
-      <div className="space-y-3 border border-rule bg-paper-sunk p-4 rounded-xl">
+      <div className="mb-4 space-y-3 border border-rule bg-paper-sunk p-4 rounded-xl">
         <div className="flex justify-between items-center border-b border-rule pb-2">
           <span className="text-[13px] uppercase tracking-caps text-ink-soft block">
             Formats en stock
@@ -237,7 +240,7 @@ export default function AddBottleForm({
       </Field>
 
       {isVip && (
-        <label className="tap-target flex items-center gap-2.5 text-[15px] text-ink cursor-pointer select-none">
+        <label className="mb-4 tap-target flex items-center gap-2.5 text-[15px] text-ink cursor-pointer select-none">
           <input
             type="checkbox"
             name="vip"
@@ -247,7 +250,7 @@ export default function AddBottleForm({
         </label>
       )}
 
-      <Button type="submit" pleineLargeur disabled={isPending}>
+      <Button type="submit" pleineLargeur disabled={isPending} className="mb-4">
         {isPending ? "Ajout en cours..." : "Ajouter au stock"}
       </Button>
 
