@@ -24,7 +24,7 @@ export default function ShareButton({ path, title }: { path: string; title: stri
   return (
     <button
       onClick={share}
-      className="tap-target-sm flex items-center whitespace-nowrap text-xs px-2.5 py-1.5 rounded-md border border-brick-light/60 text-muted hover:border-gold hover:text-gold transition-colors cursor-pointer"
+      className="tap-target inline-flex items-center gap-1.5 px-2.5 rounded-lg border border-rule text-[13px] text-ink-soft font-medium hover:border-terracotta hover:text-terracotta transition-colors cursor-pointer"
     >
       📲 Partager
     </button>

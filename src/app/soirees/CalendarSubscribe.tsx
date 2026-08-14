@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { calendarFeedPathAction } from "@/app/actions";
+import { Button, Card } from "@/components/ui";
 
 /**
  * The personal feed a phone can subscribe to.
@@ -30,29 +31,25 @@ export default function CalendarSubscribe() {
   const webcalUrl = httpsUrl.replace(/^https?:/, "webcal:");
 
   return (
-    <section className="rounded-xl border border-white/[0.08] bg-ink-2/40 p-5 space-y-3">
+    <Card className="space-y-3">
       <div>
-        <h2 className="font-display text-lg text-cream">Mon calendrier de soirées</h2>
-        <p className="text-xs text-muted mt-1 leading-relaxed">
+        <h2 className="font-display text-[17px] text-ink">Mon calendrier de soirées</h2>
+        <p className="text-[13px] text-ink-soft mt-1 leading-relaxed">
           Un abonnement qui se met à jour tout seul : les nouvelles soirées de tes bars
           apparaissent dans Google Agenda ou dans l&apos;app Calendrier de l&apos;iPhone.
         </p>
       </div>
 
       {!path ? (
-        <button
-          onClick={() => reveal(false)}
-          disabled={isPending}
-          className="tap-target-sm flex items-center gap-2 px-3.5 py-2 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-xs text-orange font-bold uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-60"
-        >
+        <Button variant="discret" onClick={() => reveal(false)} disabled={isPending}>
           {isPending ? "Génération…" : "🗓️ Obtenir mon lien d'abonnement"}
-        </button>
+        </Button>
       ) : (
         <div className="space-y-2.5">
           <div className="flex flex-wrap gap-2">
             <a
               href={webcalUrl}
-              className="tap-target-sm flex items-center px-3.5 py-2 rounded-xl bg-orange text-ink text-xs font-extrabold uppercase tracking-wider hover:bg-orange-hover transition-colors"
+              className="tap-target inline-flex items-center px-3.5 rounded-lg bg-terracotta text-paper text-[13px] font-semibold hover:bg-terracotta/90 transition-colors"
             >
               S&apos;abonner (iPhone / Mac)
             </a>
@@ -60,7 +57,7 @@ export default function CalendarSubscribe() {
               href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(httpsUrl)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="tap-target-sm flex items-center px-3.5 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-xs text-cream font-bold uppercase tracking-wider transition-colors"
+              className="tap-target inline-flex items-center px-3.5 rounded-lg border border-rule text-ink text-[13px] font-semibold hover:bg-paper-sunk transition-colors"
             >
               Ajouter à Google Agenda
             </a>
@@ -71,19 +68,19 @@ export default function CalendarSubscribe() {
                   () => setError("Le navigateur a refusé l'accès au presse-papiers."),
                 );
               }}
-              className="tap-target-sm flex items-center px-3.5 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-xs text-cream font-bold uppercase tracking-wider transition-colors cursor-pointer"
+              className="tap-target inline-flex items-center px-3.5 rounded-lg border border-rule text-ink text-[13px] font-semibold hover:bg-paper-sunk transition-colors cursor-pointer"
             >
               {copied ? "✓ Copié" : "Copier le lien"}
             </button>
           </div>
 
-          <p className="text-[10px] text-muted font-mono break-all">{httpsUrl}</p>
-          <p className="text-[10px] text-muted/70 leading-relaxed">
+          <p className="text-[13px] text-ink-soft break-all">{httpsUrl}</p>
+          <p className="text-[13px] text-ink-soft leading-relaxed">
             Ce lien vaut mot de passe : qui l&apos;a peut voir tes soirées.{" "}
             <button
               onClick={() => reveal(true)}
               disabled={isPending}
-              className="text-orange hover:underline cursor-pointer disabled:opacity-60"
+              className="text-terracotta hover:underline cursor-pointer disabled:opacity-60"
             >
               Générer un nouveau lien
             </button>{" "}
@@ -92,7 +89,11 @@ export default function CalendarSubscribe() {
         </div>
       )}
 
-      {error && <p className="text-[11px] text-red-400">{error}</p>}
-    </section>
+      {error && (
+        <p className="text-[13px] text-terracotta" role="alert">
+          {error}
+        </p>
+      )}
+    </Card>
   );
 }

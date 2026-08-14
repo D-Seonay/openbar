@@ -6,6 +6,7 @@ import GuestPanel from "./GuestPanel";
 import WishlistSection from "./WishlistSection";
 import DiscordActions from "./DiscordActions";
 import MediaGallery from "./MediaGallery";
+import { Badge } from "@/components/ui";
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -61,13 +62,13 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-orange/15 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-rule pb-4">
         <div>
-          <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">
+          <Badge ton={event.isClosed ? "complet" : "neutre"}>
             {event.isClosed ? "Soirée clôturée" : "Soirée en cours"}
-          </span>
-          <h1 className="font-display text-3xl sm:text-4xl text-cream mt-1 break-words">{event.name}</h1>
-          <p className="text-muted text-xs mt-2 capitalize font-mono text-orange-dim">
+          </Badge>
+          <h1 className="font-display text-[27px] text-ink mt-1 break-words">{event.name}</h1>
+          <p className="text-ink-soft text-[13px] mt-2 capitalize">
             {new Date(event.date).toLocaleDateString("fr-FR", {
               weekday: "long",
               day: "numeric",
@@ -78,50 +79,54 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </div>
         <Link
           href={`/soirees/${slug}/bilan`}
-          className="tap-target shrink-0 flex items-center justify-center text-xs px-4 py-2.5 rounded-xl border border-orange/30 bg-orange/10 text-orange hover:bg-orange hover:text-ink transition-all duration-300 font-bold uppercase tracking-wider text-center shadow-md shadow-orange/10"
+          className="tap-target shrink-0 inline-flex items-center justify-center px-4 rounded-lg border border-terracotta/40 bg-terracotta/10 text-terracotta hover:bg-terracotta hover:text-paper transition-colors text-[13px] font-semibold text-center"
         >
           📝 Faire / Modifier le bilan
         </Link>
       </div>
 
+      {/* "À ramener" en premier : c'est la question qu'on se pose pendant la
+          soirée — qu'est-ce que je dois faire maintenant. Tout le reste (bilan,
+          panneau invité, galerie, Discord) vient après. */}
+      <WishlistSection
+        slug={slug}
+        items={wishlistItems}
+        canManage={canManageWishlist}
+        currentUserId={session.sub}
+      />
+
       {netAdjustments.length > 0 && (
-        <div className="rounded-2xl border border-orange/30 bg-ink-2/90 p-5 shadow-xl box-orange-glow space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-lg bg-orange/20 text-orange flex items-center justify-center text-base">
-                📊
-              </span>
-              <div>
-                <h3 className="font-display text-lg font-bold text-cream">
-                  Bilan de la Soirée enregistré
-                </h3>
-                <p className="text-xs text-muted">
-                  {netAdjustments.length} référence(s) ajustée(s) lors du bilan
-                </p>
-              </div>
+        <section className="rounded-xl bg-paper border border-rule p-4 space-y-3">
+          <div className="flex items-center gap-2.5">
+            <span className="w-8 h-8 shrink-0 rounded-lg bg-paper-sunk border border-rule text-terracotta flex items-center justify-center text-base">
+              📊
+            </span>
+            <div>
+              <h2 className="font-display text-[17px] text-ink">Bilan de la Soirée enregistré</h2>
+              <p className="text-[13px] text-ink-soft">
+                {netAdjustments.length} référence(s) ajustée(s) lors du bilan
+              </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
             {netAdjustments.map((adj) => {
               const diff = adj.quantityAfter - adj.quantityBefore;
               return (
                 <div
                   key={adj.bottleId}
-                  className="flex items-center justify-between p-3 rounded-xl bg-ink border border-white/[0.06] text-xs"
+                  className="flex items-center justify-between p-3 rounded-xl bg-paper-sunk border border-rule text-[13px]"
                 >
-                  <span className="font-semibold text-cream truncate min-w-0 mr-2">
+                  <span className="font-semibold text-ink truncate min-w-0 mr-2">
                     {adj.bottleName}
                   </span>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-mono text-muted">
+                    <span className="text-ink-soft">
                       {adj.quantityBefore} → {adj.quantityAfter}
                     </span>
                     <span
-                      className={`font-bold px-1.5 py-0.5 rounded text-[10px] ${
-                        diff < 0
-                          ? "bg-red-500/15 text-red-400"
-                          : "bg-emerald-500/15 text-emerald-400"
+                      className={`font-semibold px-1.5 py-0.5 rounded text-[13px] ${
+                        diff < 0 ? "text-terracotta" : "text-done"
                       }`}
                     >
                       {diff > 0 ? `+${diff}` : `${diff}`} btl
@@ -131,7 +136,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               );
             })}
           </div>
-        </div>
+        </section>
       )}
 
       <GuestPanel
@@ -144,16 +149,14 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         vipCocktails={vipCocktails}
       />
 
-      {canManageWishlist && <DiscordActions slug={slug} barId={event.barId} />}
-
-      <WishlistSection slug={slug} items={wishlistItems} canManage={canManageWishlist} currentUserId={session.sub} />
-
       <MediaGallery
         slug={slug}
         items={media}
         currentUserId={session.sub}
         canManage={canManageWishlist}
       />
+
+      {canManageWishlist && <DiscordActions slug={slug} barId={event.barId} />}
     </div>
   );
 }

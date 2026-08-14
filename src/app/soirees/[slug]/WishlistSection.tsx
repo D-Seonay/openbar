@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { addWishlistItemAction, deleteWishlistItemAction, assignWishlistItemAction, unassignWishlistItemAction } from "@/app/actions";
 import type { WishlistItem, WishlistItemAssignment } from "@/lib/types";
+import { Badge, Button, EmptyState, champClasses } from "@/components/ui";
 
 /**
  * Avatar for one assignee. `avatarUrl` is a relative `/uploads/...` path that
@@ -10,14 +11,13 @@ import type { WishlistItem, WishlistItemAssignment } from "@/lib/types";
  * picture fall back to their initials, same as the directory and the header.
  */
 function AssigneeAvatar({ user }: { user: WishlistItemAssignment["user"] }) {
-  const className =
-    "w-6 h-6 rounded-full border border-ink ring-1 ring-white/[0.08] shrink-0 object-cover";
+  const className = "w-6 h-6 rounded-full border border-paper shrink-0 object-cover";
 
   if (!user.avatarUrl) {
     return (
       <span
         title={user.username}
-        className={`${className} bg-ink-2 flex items-center justify-center font-display text-[9px] font-bold text-gold`}
+        className={`${className} bg-paper-sunk flex items-center justify-center font-display text-[13px] font-bold text-terracotta`}
       >
         {user.username.slice(0, 2).toUpperCase()}
       </span>
@@ -57,31 +57,25 @@ function WishlistItemRow({
   };
 
   return (
-    <li className="rounded-xl border border-white/[0.08] bg-ink/70 px-3.5 sm:px-4 py-3 space-y-2 text-xs text-cream hover:border-orange/30 transition-all">
+    <li className="rounded-xl border border-rule bg-paper px-3.5 sm:px-4 py-3 space-y-2 text-[13px] text-ink">
       <div className="flex items-center justify-between gap-3">
-        <span className="font-semibold text-cream break-words">{wishlistItem.label}</span>
+        <span className="font-semibold text-ink break-words">{wishlistItem.label}</span>
         <span className="flex items-center gap-2 shrink-0">
           {/* Only worth showing when the host asked for more than one person;
               a plain item would just read "0/1". */}
           {needed > 1 && (
-            <span
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border whitespace-nowrap ${
-                isFull
-                  ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
-                  : "bg-orange/15 border-orange/30 text-orange"
-              }`}
-            >
+            <Badge ton={isFull ? "complet" : "alerte"}>
               {isFull ? `✓ complet ${taken}/${needed}` : `${taken}/${needed} pris`}
-            </span>
+            </Badge>
           )}
           {canManage && (
-          <button
-            disabled={isPending}
-            onClick={() => startTransition(() => deleteWishlistItemAction(slug, wishlistItem.id))}
-            className="tap-target-sm shrink-0 flex items-center px-1.5 text-[10px] text-muted hover:text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer"
-          >
-            Retirer
-          </button>
+            <button
+              disabled={isPending}
+              onClick={() => startTransition(() => deleteWishlistItemAction(slug, wishlistItem.id))}
+              className="tap-target inline-flex items-center px-1.5 text-[13px] text-ink-soft hover:text-terracotta font-semibold transition-colors cursor-pointer"
+            >
+              Retirer
+            </button>
           )}
         </span>
       </div>
@@ -95,38 +89,40 @@ function WishlistItemRow({
                 <AssigneeAvatar key={a.id} user={a.user} />
               ))}
             </span>
-            <span className="text-[10px] text-muted break-words min-w-0">
+            <span className="text-[13px] text-ink-soft break-words min-w-0">
               Pris par {wishlistItem.assignments.map((a) => a.user.username).join(", ")}
             </span>
           </span>
         ) : (
-          <span className="text-[10px] text-muted italic">Personne pour l&apos;instant</span>
+          <span className="text-[13px] text-ink-soft italic">Personne pour l&apos;instant</span>
         )}
 
         {isAssignedToMe ? (
           <button
             disabled={isPending}
             onClick={() => startTransition(() => unassignWishlistItemAction(slug, wishlistItem.id))}
-            className="tap-target-sm shrink-0 flex items-center px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-red-500/10 border border-white/[0.08] hover:border-red-400/40 text-[10px] text-muted hover:text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer"
+            className="tap-target inline-flex items-center px-2.5 rounded-lg bg-paper-sunk border border-rule text-[13px] text-ink-soft hover:text-terracotta font-semibold transition-colors cursor-pointer"
           >
             Je ne peux plus
           </button>
         ) : isFull ? (
-          <span className="shrink-0 text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
-            Complet
-          </span>
+          <span className="shrink-0 text-[13px] text-done font-semibold">Complet</span>
         ) : (
           <button
             disabled={isPending}
             onClick={claim}
-            className="tap-target-sm shrink-0 flex items-center px-2.5 py-1 rounded-lg bg-orange/15 hover:bg-orange/25 border border-orange/40 text-[10px] text-orange font-bold uppercase tracking-wider transition-colors cursor-pointer"
+            className="tap-target inline-flex items-center px-2.5 rounded-lg bg-terracotta/10 border border-terracotta/40 text-[13px] text-terracotta font-semibold transition-colors cursor-pointer"
           >
             Je m&apos;en occupe
           </button>
         )}
       </div>
 
-      {error && <p className="text-[10px] text-red-400">{error}</p>}
+      {error && (
+        <p className="text-[13px] text-terracotta" role="alert">
+          {error}
+        </p>
+      )}
     </li>
   );
 }
@@ -143,15 +139,12 @@ export default function WishlistSection({
   currentUserId: string;
 }) {
   return (
-    <section className="rounded-2xl border border-white/[0.08] bg-ink-2/80 p-5 sm:p-6 space-y-4 shadow-xl backdrop-blur-xl">
-      <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-orange animate-pulse" />
-          <h2 className="font-display text-xl font-bold text-cream">À ramener</h2>
-        </div>
-        <span className="text-xs font-mono font-bold text-orange bg-orange/15 px-3 py-1 rounded-full border border-orange/30">
-          {items.length} Item{items.length !== 1 ? "s" : ""}
-        </span>
+    <section className="rounded-xl bg-paper border border-rule p-4 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-display text-[17px] text-ink">À ramener</h2>
+        <Badge ton="neutre">
+          {items.length} item{items.length !== 1 ? "s" : ""}
+        </Badge>
       </div>
 
       {canManage && (
@@ -165,13 +158,13 @@ export default function WishlistSection({
             name="label"
             required
             placeholder="Ex: sacs de glaçons"
-            className="flex-1 min-w-0 bg-ink border border-white/[0.12] rounded-xl px-3.5 py-2.5 text-xs placeholder:text-muted/60 focus:outline-none focus:border-orange text-cream font-medium"
+            className={`flex-1 min-w-0 ${champClasses}`}
           />
           {/* How many guests are wanted on this item. 1 keeps the previous
               behaviour, so the field can simply be ignored. */}
           <label className="flex items-center gap-1.5 shrink-0">
             <span className="sr-only">Nombre de personnes souhaitées</span>
-            <span aria-hidden className="text-xs text-muted">×</span>
+            <span aria-hidden className="text-[13px] text-ink-soft">×</span>
             <input
               name="neededCount"
               type="number"
@@ -180,25 +173,22 @@ export default function WishlistSection({
               step="1"
               defaultValue={1}
               inputMode="numeric"
-              className="w-14 bg-ink border border-white/[0.12] rounded-xl px-2 py-2.5 text-xs text-center focus:outline-none focus:border-orange text-cream font-medium"
+              className={`w-16 text-center ${champClasses}`}
             />
           </label>
-          <button
-            type="submit"
-            className="tap-target flex items-center justify-center bg-orange text-ink font-extrabold rounded-xl px-4 py-2.5 text-xs hover:bg-orange-hover box-orange-glow transition-all uppercase tracking-wider cursor-pointer"
-          >
-            Ajouter
-          </button>
+          <Button type="submit">Ajouter</Button>
         </form>
       )}
 
       {items.length === 0 ? (
-        <div className="text-center py-8 rounded-xl bg-ink/40 border border-white/[0.05]">
-          <p className="text-2xl mb-2">📋</p>
-          <p className="text-muted text-xs italic">
-            {canManage ? "Ajoute des choses à ramener pour tes invités." : "L'hôte n'a rien demandé pour l'instant."}
-          </p>
-        </div>
+        <EmptyState
+          titre="Rien à ramener"
+          message={
+            canManage
+              ? "Ajoute des choses à ramener pour tes invités."
+              : "L'hôte n'a rien demandé pour l'instant."
+          }
+        />
       ) : (
         <ul className="space-y-2.5">
           {items.map((wishlistItem) => (

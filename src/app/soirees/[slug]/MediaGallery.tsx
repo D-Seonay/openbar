@@ -7,6 +7,7 @@ import {
   deleteEventMediaAction,
 } from "@/app/actions";
 import type { EventMedia } from "@/lib/types";
+import { Badge, Button, EmptyState, champClasses } from "@/components/ui";
 
 /**
  * `fileName` is whatever the uploader's browser sent, stored verbatim, so it can
@@ -57,28 +58,25 @@ export default function MediaGallery({
   };
 
   return (
-    <section className="rounded-2xl border border-white/[0.08] bg-ink-2/80 p-5 sm:p-6 space-y-5 shadow-xl backdrop-blur-xl">
+    <section className="rounded-xl bg-paper border border-rule p-4 space-y-4">
       <span className="sr-only">Galerie Photos &amp; Vidéos</span>
       {/* Wraps rather than overflows: the title is long and the row now carries
           a second control, which together no longer fit a phone on one line. */}
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-white/[0.08] pb-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-xl">📸</span>
-          <h2 className="font-display text-xl font-bold text-cream">Galerie Photos & Vidéos</h2>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <h2 className="font-display text-[17px] text-ink">Galerie Photos & Vidéos</h2>
         <div className="flex items-center gap-2">
           {downloadableCount > 0 && (
             <a
               href={`/soirees/${slug}/media/archive`}
               download
-              className="tap-target-sm flex items-center px-3 py-1 rounded-full border border-white/[0.12] bg-white/[0.04] text-[10px] uppercase tracking-wider text-cream font-bold hover:border-orange/40 hover:text-orange transition-colors whitespace-nowrap"
+              className="tap-target inline-flex items-center px-3 rounded-full border border-rule text-[13px] text-ink font-semibold hover:border-terracotta hover:text-terracotta transition-colors whitespace-nowrap"
             >
               ⬇ Tout télécharger
             </a>
           )}
-          <span className="text-xs font-mono font-bold text-orange bg-orange/15 px-3 py-1 rounded-full border border-orange/30 whitespace-nowrap">
+          <Badge ton="neutre">
             {items.length} média{items.length !== 1 ? "s" : ""}
-          </span>
+          </Badge>
         </div>
       </div>
 
@@ -92,14 +90,15 @@ export default function MediaGallery({
           className="hidden"
           onChange={(e) => handleFiles(e.target.files)}
         />
-        <button
+        <Button
           type="button"
+          variant="discret"
           disabled={isUploading}
           onClick={() => fileInputRef.current?.click()}
-          className="tap-target-sm flex items-center justify-center px-3.5 py-2 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-xs text-orange font-bold uppercase tracking-wider transition-all disabled:opacity-60 cursor-pointer whitespace-nowrap"
+          className="whitespace-nowrap"
         >
           {isUploading ? "Ajout en cours…" : "➕ Ajouter une photo / vidéo"}
-        </button>
+        </Button>
 
         <form
           action={async (formData) => {
@@ -113,25 +112,22 @@ export default function MediaGallery({
             required
             type="url"
             placeholder="Lien Google Drive / album partagé…"
-            className="flex-1 bg-ink border border-white/[0.12] rounded-xl px-3.5 py-2 text-xs placeholder:text-muted/60 focus:outline-none focus:border-orange text-cream font-medium min-w-0"
+            className={`flex-1 min-w-0 ${champClasses}`}
           />
-          <button
-            type="submit"
-            className="tap-target flex items-center justify-center bg-orange text-ink font-extrabold rounded-xl px-4 py-2 text-xs hover:bg-orange-hover box-orange-glow transition-all uppercase tracking-wider cursor-pointer"
-          >
-            Partager
-          </button>
+          <Button type="submit">Partager</Button>
         </form>
       </div>
-      {linkError && <p className="text-[11px] text-red-400">{linkError}</p>}
+      {linkError && (
+        <p className="text-[13px] text-terracotta" role="alert">
+          {linkError}
+        </p>
+      )}
 
       {items.length === 0 ? (
-        <div className="text-center py-10 rounded-xl bg-ink/40 border border-white/[0.05]">
-          <p className="text-3xl mb-2">🎥</p>
-          <p className="text-muted text-xs italic">
-            Partagez les photos et vidéos de la soirée, ou un lien Google Drive vers un album commun.
-          </p>
-        </div>
+        <EmptyState
+          titre="Aucun média"
+          message="Partagez les photos et vidéos de la soirée, ou un lien Google Drive vers un album commun."
+        />
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((media) => {
@@ -141,22 +137,22 @@ export default function MediaGallery({
             return (
               <li
                 key={media.id}
-                className="group relative rounded-2xl overflow-hidden border border-white/[0.08] bg-ink shadow-lg"
+                className="group relative rounded-2xl overflow-hidden border border-rule bg-paper-sunk"
               >
                 {media.kind === "DRIVE_LINK" ? (
                   <a
                     href={media.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block min-h-[160px] p-4 flex flex-col items-center justify-center gap-3 text-center hover:border-orange/40 transition-all"
+                    className="block min-h-[160px] p-4 flex flex-col items-center justify-center gap-3 text-center hover:border-terracotta/40 transition-all"
                   >
-                    <span className="w-12 h-12 rounded-xl bg-orange/15 border border-orange/30 text-orange flex items-center justify-center text-2xl">
+                    <span className="w-12 h-12 rounded-xl bg-paper border border-rule text-terracotta flex items-center justify-center text-2xl">
                       🖇️
                     </span>
-                    <span className="text-xs text-cream font-semibold break-all line-clamp-3">
+                    <span className="text-[13px] text-ink font-semibold break-all line-clamp-3">
                       {media.url}
                     </span>
-                    <span className="text-[10px] uppercase tracking-wider text-orange font-bold">
+                    <span className="text-[13px] uppercase tracking-caps text-terracotta font-semibold">
                       Ouvrir l&apos;album →
                     </span>
                   </a>
@@ -176,7 +172,7 @@ export default function MediaGallery({
                       src={media.url}
                       controls
                       preload="metadata"
-                      className="w-full aspect-square object-cover bg-black"
+                      className="w-full aspect-square object-cover bg-paper-sunk"
                     >
                       <a href={media.url}>{media.fileName ?? "Vidéo de la soirée"}</a>
                     </video>
@@ -184,7 +180,8 @@ export default function MediaGallery({
                 )}
 
                 {/* Stacked in one corner so the tile keeps a single control
-                    cluster; the download sits left of the destructive action. */}
+                    cluster; the download sits left of the destructive action.
+                    Both are real tap targets (44px), not decorative icons. */}
                 <div className="absolute top-2 right-2 flex items-center gap-1.5">
                   {media.kind === "UPLOAD" && (
                     <a
@@ -195,7 +192,7 @@ export default function MediaGallery({
                       // leaves the browser to fall back to the served name.
                       download={downloadName ?? ""}
                       onClick={(e) => e.stopPropagation()}
-                      className="w-7 h-7 rounded-lg bg-ink/90 backdrop-blur border border-white/[0.15] text-cream text-xs flex items-center justify-center hover:border-orange/50 hover:text-orange transition-colors cursor-pointer"
+                      className="tap-target flex items-center justify-center rounded-lg bg-paper border border-rule text-ink text-[13px] hover:border-terracotta hover:text-terracotta transition-colors cursor-pointer"
                       aria-label={`Télécharger ${downloadName ?? "ce média"}`}
                       title="Télécharger"
                     >
@@ -205,7 +202,7 @@ export default function MediaGallery({
                   {canDelete && (
                     <button
                       onClick={() => deleteEventMediaAction(slug, media.id)}
-                      className="w-7 h-7 rounded-lg bg-ink/90 backdrop-blur border border-red-400/30 text-red-400 text-xs flex items-center justify-center hover:bg-red-500/20 transition-colors cursor-pointer"
+                      className="tap-target flex items-center justify-center rounded-lg bg-paper border border-terracotta/40 text-terracotta text-[13px] hover:bg-terracotta/10 transition-colors cursor-pointer"
                       aria-label="Retirer ce média"
                     >
                       ✕
