@@ -15,8 +15,8 @@ Ces contraintes s'appliquent à **toutes** les tâches. Les valeurs sont copiée
 - **Tokens de couleur, valeurs exactes :** `--paper #F3EFE7`, `--paper-sunk #E8E2D7`, `--ink #26221D`, `--ink-soft #6B6257`, `--rule #D9D1C4`, `--terracotta #A8452A`, `--done #4F6B43`, `--warn #8A5A12`.
 - **Un seul accent.** `--terracotta` est la seule couleur d'action. Aucune autre teinte vive n'est introduite.
 - **Thème clair unique.** Aucune variante sombre, aucun `prefers-color-scheme`, aucun `dark:` Tailwind.
-- **Échelle typographique :** titre d'écran 27px sérif / titre de section 17px sans 600 / corps 15px sans / méta 13px sans / label 11px sérif majuscules espacées.
-- **Plancher de 13px.** Aucun texte sous 13px dans un fichier refondu. `text-[10px]` et `text-[11px]` sont interdits sauf pour le label sérif en majuscules.
+- **Échelle typographique :** titre d'écran 27px sérif / titre de section 17px sans 600 / corps 15px sans / méta 13px sans / label 13px sérif majuscules espacées.
+- **Plancher de 13px, absolu et sans exception.** `text-[10px]`, `text-[11px]` et `text-[12px]` sont interdits partout, y compris pour les labels sérif en majuscules.
 - **44px minimum** pour toute zone tactile (bouton, lien de liste, onglet, contrôle de formulaire), à 390px de large.
 - **Aucune police externe.** Rien ne peut être chargé depuis `fonts.googleapis.com` ou `fonts.gstatic.com` à l'exécution ni au build.
 - **Hors périmètre absolu :** `api/`, `prisma/`, et la signature des Server Actions. Un écran peut appeler d'autres actions existantes ; il ne peut pas en changer le contrat.
@@ -1055,7 +1055,7 @@ Dans les trois fichiers, appliquer la correspondance suivante :
 | `border-white/[0.08]`, `border-white/10` | `border-rule` |
 | `glass-card`, `box-orange-glow` | *(supprimer la classe)* |
 | `backdrop-blur-*` | *(supprimer la classe)* |
-| `text-[10px]`, `text-[11px]` | `text-[13px]` |
+| `text-[10px]`, `text-[11px]`, `text-[12px]` | `text-[13px]` |
 | `text-xs` | `text-[13px]` |
 
 Remplacer les boutons d'action par `<Button>` de la Task 4.
@@ -1179,7 +1179,7 @@ export default async function MoiPage() {
       <h1 className="font-display text-[27px] text-ink mb-5">Moi</h1>
 
       <section className="mb-7">
-        <h2 className="text-[11px] font-display uppercase tracking-caps text-ink-soft mb-1">
+        <h2 className="text-[13px] font-display uppercase tracking-caps text-ink-soft mb-1">
           Mon compte
         </h2>
         <Row titre="Profil" href="/profil" chevron />
@@ -1188,7 +1188,7 @@ export default async function MoiPage() {
 
       {activeBar ? (
         <section className="mb-7">
-          <h2 className="text-[11px] font-display uppercase tracking-caps text-ink-soft mb-1">
+          <h2 className="text-[13px] font-display uppercase tracking-caps text-ink-soft mb-1">
             {activeBar.name}
           </h2>
           <Row titre="Membres" href="/membres" chevron />
@@ -1204,7 +1204,7 @@ export default async function MoiPage() {
       ) : null}
 
       <section className="mb-7">
-        <h2 className="text-[11px] font-display uppercase tracking-caps text-ink-soft mb-1">
+        <h2 className="text-[13px] font-display uppercase tracking-caps text-ink-soft mb-1">
           Ailleurs
         </h2>
         <Row titre="Découvrir des bars" href="/decouvrir" chevron />
@@ -1306,20 +1306,24 @@ Créer `e2e/fixtures.ts` :
 ```ts
 import { test as base, expect, type Page } from "@playwright/test";
 
-const EMAIL = process.env.AUDIT_EMAIL;
+// Le projet authentifie par identifiant, pas par e-mail.
+const IDENTIFIANT = process.env.AUDIT_USERNAME;
 const MOT_DE_PASSE = process.env.AUDIT_PASSWORD;
 
 export async function seConnecter(page: Page) {
-  if (!EMAIL || !MOT_DE_PASSE) {
+  if (!IDENTIFIANT || !MOT_DE_PASSE) {
     throw new Error(
-      "AUDIT_EMAIL et AUDIT_PASSWORD doivent pointer vers un compte de test. " +
+      "AUDIT_USERNAME et AUDIT_PASSWORD doivent pointer vers un compte de test. " +
         "Ne jamais utiliser un compte reel.",
     );
   }
   await page.goto("/login");
-  await page.getByLabel(/e-?mail/i).fill(EMAIL);
-  await page.getByLabel(/mot de passe/i).fill(MOT_DE_PASSE);
-  await page.getByRole("button", { name: /connexion|se connecter/i }).click();
+  // Ancré sur les attributs `name` plutôt que sur un label ou un placeholder :
+  // le formulaire actuel n'a pas de label, et la Task 18 va le reskiner. Les
+  // `name` ne peuvent pas changer sans casser l'action serveur qui les lit.
+  await page.locator('input[name="username"]').fill(IDENTIFIANT);
+  await page.locator('input[name="password"]').fill(MOT_DE_PASSE);
+  await page.locator('button[type="submit"]').click();
   await page.waitForURL((url) => !url.pathname.startsWith("/login"));
 }
 
@@ -1443,7 +1447,7 @@ Dans un terminal : `npm run build && npm start`
 Dans un autre :
 
 ```bash
-AUDIT_EMAIL=<compte de test> AUDIT_PASSWORD=<mot de passe> npm run audit
+AUDIT_USERNAME=<compte de test> AUDIT_PASSWORD=<mot de passe> npm run audit
 ```
 
 Expected: **de nombreux échecs.** C'est le résultat correct à ce stade — seule la coquille est refondue, les neuf pages ne le sont pas. Relever le nombre d'échecs : c'est la référence que la phase D doit ramener à zéro.
@@ -1486,7 +1490,7 @@ La table de correspondance est reproduite ici pour éviter d'avoir à revenir en
 | `border-white/[0.0x]` | `border-rule` |
 | `glass-card`, `box-orange-glow`, `vip-vault-card`, `*-glow` | *(supprimer)* |
 | `backdrop-blur-*`, `shadow-[0_0_*]` | *(supprimer)* |
-| `text-[10px]`, `text-[11px]`, `text-xs` | `text-[13px]` |
+| `text-[10px]`, `text-[11px]`, `text-[12px]`, `text-xs` | `text-[13px]` |
 | `text-sm` | `text-[15px]` |
 | `tap-target-sm` | `tap-target` |
 | `text-cat-*` | *(supprimer — un seul accent)* |
@@ -1529,7 +1533,7 @@ Appliquer la table de correspondance. Dans `MediaGallery`, les boutons de télé
 
 ```bash
 npm run build && npm start   # dans un terminal
-AUDIT_EMAIL=… AUDIT_PASSWORD=… npx playwright test -g "/soirees"
+AUDIT_USERNAME=… AUDIT_PASSWORD=… npx playwright test -g "/soirees"
 ```
 
 Expected: PASS sur les trois tests de `/soirees`
@@ -1939,16 +1943,16 @@ grep -rn "text-cream\|text-muted\|text-orange\|text-gold\|bg-ink-\|bg-brick" src
 Expected: `exit=1` — ces classes ne correspondent plus à aucun token depuis la Task 3.
 
 ```bash
-grep -rn "text-\[10px\]\|text-\[11px\]" src/ | grep -v "tracking-caps"
+grep -rn "text-\[10px\]\|text-\[11px\]\|text-\[12px\]" src/ ; echo "exit=$?"
 ```
 
-Expected: aucune sortie, ou uniquement des labels sérif en majuscules (le seul usage autorisé sous 13px).
+Expected: `exit=1`. Le plancher est absolu — il n'y a plus d'exception pour les labels sérif.
 
 - [ ] **Step 5: Audit complet**
 
 ```bash
 npm run build && npm start
-AUDIT_EMAIL=… AUDIT_PASSWORD=… npm run audit
+AUDIT_USERNAME=… AUDIT_PASSWORD=… npm run audit
 ```
 
 Expected: **tous les tests passent.** C'est le retour à zéro de la référence relevée en Task 12 Step 7.
@@ -2030,7 +2034,7 @@ Expected: tout passe. Pour le lint, comparer au **delta** et non au total : `npx
 
 ```bash
 npm start   # dans un terminal
-AUDIT_EMAIL=… AUDIT_PASSWORD=… npm run audit
+AUDIT_USERNAME=… AUDIT_PASSWORD=… npm run audit
 ```
 
 Expected: tous les tests passent

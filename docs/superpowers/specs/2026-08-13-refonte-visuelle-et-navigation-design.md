@@ -82,9 +82,15 @@ densité :
 | titre de section | 17px sans, 600 |
 | corps | **15px sans** — le défaut |
 | méta | 13px sans |
-| label | 11px sérif, majuscules espacées, usage rare |
+| label | 13px sérif, majuscules espacées, usage rare |
 
-Le 10px disparaît. Le plancher est 13px.
+**Le plancher de 13px est absolu, sans aucune exception.**
+
+Une version antérieure de cette spec plaçait le label à 11px. Cette exception a
+été retirée : elle contredisait le critère d'acceptation « aucun texte sous
+13px », qu'un audit automatisé vérifie. Entre une règle mesurable sans cas
+particulier et un cas particulier à revérifier à la main sur chaque écran, la
+règle gagne — d'autant que la densité est l'un des trois motifs de la refonte.
 
 ### Quelles polices, concrètement
 
