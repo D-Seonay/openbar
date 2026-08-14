@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { renameBarAction } from "@/app/bar-actions";
+import { Button } from "@/components/ui";
 
 export default function BarNameSection({ barId, name }: { barId: string; name: string }) {
   const [isPending, startTransition] = useTransition();
@@ -31,26 +32,22 @@ export default function BarNameSection({ barId, name }: { barId: string; name: s
   };
 
   return (
-    <section className="bg-ink-2/40 border border-orange/10 p-5 sm:p-6 rounded-xl space-y-3">
+    <section className="bg-paper-sunk/40 border border-rule p-5 sm:p-6 rounded-xl space-y-3">
       <div>
-        <h2 className="font-display text-xl text-cream">Nom du bar</h2>
-        <p className="text-muted text-[11px] mt-0.5">Visible par tous les membres et dans l&apos;annuaire.</p>
+        <h2 className="font-display text-[17px] text-ink">Nom du bar</h2>
+        <p className="text-ink-soft text-[13px] mt-0.5">Visible par tous les membres et dans l&apos;annuaire.</p>
       </div>
       <div className="flex items-center gap-2">
         <input
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="flex-1 bg-ink border border-orange/10 rounded-xl px-3 py-2 text-xs text-cream focus:outline-none focus:border-orange"
+          className="flex-1 min-h-[44px] bg-paper-sunk border border-rule rounded-xl px-3 py-2 text-[15px] text-ink focus:outline-none focus:border-terracotta"
         />
-        <button
-          disabled={isPending || !value.trim()}
-          onClick={handleSave}
-          className="text-xs px-3 py-2 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-orange font-semibold transition-colors cursor-pointer"
-        >
+        <Button variant="principal" disabled={isPending || !value.trim()} onClick={handleSave}>
           {saved ? "Enregistré !" : "Enregistrer"}
-        </button>
+        </Button>
       </div>
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && <p className="text-[13px] text-terracotta">{error}</p>}
     </section>
   );
 }

@@ -3,6 +3,7 @@
 
 import { useState, useTransition } from "react";
 import { generateInviteLinkAction } from "@/app/bar-actions";
+import { Button } from "@/components/ui";
 
 export default function InviteLinkSection({ barId, inviteToken }: { barId: string; inviteToken: string | null }) {
   const [isPending, startTransition] = useTransition();
@@ -33,10 +34,10 @@ export default function InviteLinkSection({ barId, inviteToken }: { barId: strin
   };
 
   return (
-    <section className="bg-ink-2/40 border border-orange/10 p-5 sm:p-6 rounded-xl space-y-3">
+    <section className="bg-paper-sunk/40 border border-rule p-5 sm:p-6 rounded-xl space-y-3">
       <div>
-        <h2 className="font-display text-xl text-cream">Lien d&apos;invitation</h2>
-        <p className="text-muted text-[11px] mt-0.5">
+        <h2 className="font-display text-[17px] text-ink">Lien d&apos;invitation</h2>
+        <p className="text-ink-soft text-[13px] mt-0.5">
           Toute personne avec ce lien peut rejoindre le bar, avec ou sans compte existant.
         </p>
       </div>
@@ -45,26 +46,19 @@ export default function InviteLinkSection({ barId, inviteToken }: { barId: strin
           <input
             readOnly
             value={link ?? ""}
-            className="flex-1 bg-ink border border-orange/10 rounded-xl px-3 py-2 text-xs text-cream"
+            className="flex-1 min-h-[44px] bg-paper-sunk border border-rule rounded-xl px-3 py-2 text-[13px] text-ink"
           />
-          <button
-            onClick={handleCopy}
-            className="text-xs px-3 py-2 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-orange font-semibold transition-colors cursor-pointer"
-          >
+          <Button variant="principal" onClick={handleCopy}>
             {copied ? "Copié !" : "Copier"}
-          </button>
+          </Button>
         </div>
       ) : (
-        <p className="text-xs text-muted/70 italic">Aucun lien généré pour le moment.</p>
+        <p className="text-[13px] text-ink-soft/70 italic">Aucun lien généré pour le moment.</p>
       )}
-      {error && <p className="text-xs text-red-400">{error}</p>}
-      <button
-        disabled={isPending}
-        onClick={handleGenerate}
-        className="text-xs px-3 py-2 rounded-xl bg-ink border border-white/[0.1] text-cream hover:border-orange/50 transition-colors cursor-pointer"
-      >
+      {error && <p className="text-[13px] text-terracotta">{error}</p>}
+      <Button variant="discret" disabled={isPending} onClick={handleGenerate}>
         {token ? "Régénérer le lien" : "Générer un lien"}
-      </button>
+      </Button>
     </section>
   );
 }

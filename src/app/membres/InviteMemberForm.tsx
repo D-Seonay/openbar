@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { inviteMemberAction, searchUsersAction } from "@/app/bar-actions";
 import type { UserSearchResult } from "@/lib/types";
+import { Button } from "@/components/ui";
 
 export default function InviteMemberForm({ barId }: { barId: string }) {
   const [isPending, startTransition] = useTransition();
@@ -29,10 +30,10 @@ export default function InviteMemberForm({ barId }: { barId: string }) {
   };
 
   return (
-    <section className="bg-ink-2/40 border border-orange/10 p-5 sm:p-6 rounded-xl space-y-4">
+    <section className="bg-paper-sunk/40 border border-rule p-5 sm:p-6 rounded-xl space-y-4">
       <div>
-        <h2 className="font-display text-xl text-cream">Inviter un membre</h2>
-        <p className="text-muted text-[11px] mt-0.5">Cherche parmi les comptes existants.</p>
+        <h2 className="font-display text-[17px] text-ink">Inviter un membre</h2>
+        <p className="text-ink-soft text-[13px] mt-0.5">Cherche parmi les comptes existants.</p>
       </div>
       <form
         action={(formData) => {
@@ -60,16 +61,16 @@ export default function InviteMemberForm({ barId }: { barId: string }) {
             }}
             placeholder="Chercher un identifiant"
             autoComplete="off"
-            className="w-full bg-ink border border-orange/10 rounded-xl px-3 py-2 text-xs placeholder:text-muted/40 focus:outline-none focus:border-orange transition-all text-cream"
+            className="w-full min-h-[44px] bg-paper-sunk border border-rule rounded-xl px-3 py-2 text-[15px] placeholder:text-ink-soft focus:outline-none focus:border-terracotta transition-all text-ink"
           />
           {results.length > 0 && (
-            <div className="absolute z-10 mt-1 w-full bg-ink-2 border border-orange/20 rounded-xl overflow-hidden shadow-xl">
+            <div className="absolute z-10 mt-1 w-full bg-paper border border-rule rounded-xl overflow-hidden">
               {results.map((user) => (
                 <button
                   type="button"
                   key={user.id}
                   onClick={() => handleSelect(user)}
-                  className="w-full text-left px-3 py-2 text-xs text-cream hover:bg-orange/10 transition-colors cursor-pointer"
+                  className="tap-target w-full text-left px-3 py-2 text-[15px] text-ink hover:bg-paper-sunk transition-colors cursor-pointer"
                 >
                   {user.username}
                 </button>
@@ -77,20 +78,20 @@ export default function InviteMemberForm({ barId }: { barId: string }) {
             </div>
           )}
         </div>
-        <label className="flex items-center gap-2 text-xs text-muted">
-          <input type="checkbox" name="vip" className="accent-gold" />
+        <label className="flex items-center gap-2 text-[13px] text-ink-soft">
+          <input
+            type="checkbox"
+            name="vip"
+            className="tap-target shrink-0 rounded border-rule accent-terracotta cursor-pointer"
+          />
           Accès VIP sur ce bar
         </label>
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full bg-orange text-white font-medium rounded-xl py-2.5 hover:bg-orange-hover transition-all text-xs uppercase tracking-wider font-semibold"
-        >
+        <Button type="submit" pleineLargeur disabled={isPending}>
           Inviter
-        </button>
+        </Button>
       </form>
       {error && (
-        <div className="text-xs bg-red-950/30 border border-red-500/30 rounded-xl p-3 text-red-300">{error}</div>
+        <div className="text-[13px] bg-paper-sunk border border-terracotta/30 rounded-xl p-3 text-terracotta">{error}</div>
       )}
     </section>
   );
