@@ -231,13 +231,22 @@ Chaque point est mesuré, pas constaté à l'œil.
 | débordement | `scrollWidth === clientWidth` par page, à **vrai** viewport mobile |
 | non-régression | scanner une bouteille, se déclarer sur un item, valider un bilan, télécharger l'archive |
 
-Note de méthode : rétrécir un élément en JS ne teste pas le responsive — les
-points de rupture Tailwind réagissent au viewport, pas à l'élément. Les mesures
-se font à viewport réellement réduit.
+Deux notes de méthode, apprises en cours de route :
+
+**Rétrécir un élément en JS ne teste pas le responsive.** Les points de rupture
+Tailwind réagissent au viewport, pas à l'élément. Les mesures se font à viewport
+réellement réduit — d'où un vrai moteur mobile plutôt qu'une fenêtre redimensionnée.
+
+**L'audit ne teste que ce qui s'affiche.** Un jeu de données qui ne déclenche ni
+pagination, ni état vide, ni alerte de stock produit un vert trompeur. Avant de
+conclure qu'un écran passe, s'assurer que les données de test font apparaître
+ses composants conditionnels. C'est ainsi que la pagination a traversé une tâche
+entière sans être vue, alors qu'elle portait un débordement horizontal et six
+textes à 12px.
 
 ## 10. Critères d'acceptation
 
-- Aucun texte sous 13px dans les pages refondues.
+- Aucun texte sous 13px, nulle part, sans exception.
 - Aucune zone tactile sous 44px à 390px.
 - Chaque paire texte/fond atteint AA.
 - Aucun débordement horizontal sur les pages refondues à 390px.
