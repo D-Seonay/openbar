@@ -15,22 +15,23 @@ export default function AlertsManagerTrigger({
 
   return (
     <>
-      <div
+      <button
+        type="button"
         onClick={() => setModalOpen(true)}
-        className="bg-ink/80 border border-white/[0.08] hover:border-orange/40 rounded-2xl p-3.5 text-center min-w-[110px] cursor-pointer transition-all group box-orange-glow-hover"
+        className="tap-target bg-paper-sunk border border-rule hover:border-terracotta/40 rounded-2xl px-3.5 py-2 text-center min-w-[110px] cursor-pointer transition-all group"
         title="Cliquer pour gérer ou supprimer les alertes"
       >
-        <span className="text-[10px] uppercase tracking-caps text-muted group-hover:text-cream block font-semibold transition-colors flex items-center justify-center gap-1">
+        <span className="text-[13px] uppercase tracking-caps text-ink-soft group-hover:text-ink block font-semibold transition-colors flex items-center justify-center gap-1">
           <span>À Commander</span>
-          {lowStockCount > 0 && <span className="w-1.5 h-1.5 rounded-full bg-orange animate-pulse" />}
+          {lowStockCount > 0 && <span className="w-1.5 h-1.5 rounded-full bg-terracotta animate-pulse" />}
         </span>
-        <span className="font-display text-2xl font-bold text-cream mt-1 block">
-          {lowStockCount} <span className="text-xs font-normal text-muted">réf.</span>
+        <span className="font-display text-[17px] font-bold text-ink mt-1 block">
+          {lowStockCount} <span className="text-[13px] font-normal text-ink-soft">réf.</span>
         </span>
-        <span className="text-[9px] text-orange opacity-0 group-hover:opacity-100 transition-opacity block -mt-0.5">
+        <span className="text-[13px] text-terracotta opacity-0 group-hover:opacity-100 transition-opacity block -mt-0.5">
           🔔 Gérer / Supprimer
         </span>
-      </div>
+      </button>
 
       <ManageAlertsModal
         bottles={bottles}

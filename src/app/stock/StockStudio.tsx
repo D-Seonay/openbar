@@ -1,24 +1,18 @@
 "use client";
 
 import { useState, useTransition, useMemo, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import type { Bottle, BottleType } from "@/lib/types";
-import {
-  updateBottleQuantity,
-  deleteBottleAction,
-  updateBottleImageAction,
-  uploadBottleImage,
-} from "@/app/actions";
-import { calculateBottleTotalLiters, formatLiters } from "@/lib/volumeUtils";
+import { updateBottleQuantity, deleteBottleAction } from "@/app/actions";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import NoticeModal, { type Notice } from "@/components/NoticeModal";
-import ImagePicker from "@/components/ImagePicker";
-import BarcodeScanner from "@/components/BarcodeScanner";
-import AddBottleForm, { type BottlePrefill } from "./AddBottleForm";
-import EditBottleDetails from "./EditBottleDetails";
-import BottleImage from "@/components/BottleImage";
 import Pagination from "@/components/Pagination";
+import { Sheet, EmptyState } from "@/components/ui";
+import AddBottleForm, { type BottlePrefill } from "./AddBottleForm";
+import FicheBouteilleSheet from "./FicheBouteilleSheet";
+import EditionSheet from "./EditionSheet";
+import ScannerSheet from "./ScannerSheet";
+import StockFiltres from "./StockFiltres";
+import BottleListRow from "./BottleListRow";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -40,49 +34,24 @@ export default function StockStudio({
   const [activeUniverse, setActiveUniverse] = useState<"bar" | "vip" | "shopping">("bar");
   const [selectedCategory, setSelectedCategory] = useState<BottleType | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
-  const [drawerMode, setDrawerMode] = useState<"inspect" | "add" | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-  const [isScanning, setIsScanning] = useState(false);
-  const [imageError, setImageError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<Notice | null>(null);
-  // Non-null only while the photo field is being edited; cleared once saved so
-  // the picker falls back to whatever the server now holds.
-  const [imageDraft, setImageDraft] = useState<string | null>(null);
-  // Set by a scan, consumed by AddBottleForm. Cleared whenever the drawer
-  // closes so a manual "+ Ajouter" never reopens on stale scan data.
-  const [prefill, setPrefill] = useState<BottlePrefill | undefined>(undefined);
-  const [, startTransition] = useTransition();
-  const [isDeletePending, startDeleteTransition] = useTransition();
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Reset pagination when filters change
+  // Les trois frontières de découpe : quelle bouteille est inspectée, si son édition est ouverte par-dessus la fiche, et si le scanner est ouvert.
+  const [selectedBottleId, setSelectedBottleId] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  // Posé par un scan, consommé par AddBottleForm ; vidé à chaque fermeture pour qu'un "+ Ajouter" manuel ne rouvre jamais sur des données d'un ancien scan.
+  const [prefill, setPrefill] = useState<BottlePrefill | undefined>(undefined);
+
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [, startTransition] = useTransition();
+  const [isDeletePending, startDeleteTransition] = useTransition();
+
   useEffect(() => {
     setCurrentPage(1);
   }, [activeUniverse, selectedCategory, searchQuery]);
-
-  // The drawer below is `position: fixed`, but the page content is wrapped by
-  // <PageTransition> (a framer-motion div that keeps a non-"none" inline
-  // `transform` even at rest). Any transformed ancestor becomes the containing
-  // block for fixed-position descendants, so without a portal the drawer would
-  // be positioned/sized relative to that content column instead of the real
-  // viewport, causing it to render clipped and off-position. Portal it to
-  // <body> to escape that ancestor. Only render the portal once mounted, since
-  // `document` isn't available during SSR.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Keep the page behind the slide-over from scrolling under the user's finger.
-  useEffect(() => {
-    if (drawerMode === null) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [drawerMode]);
 
   const shoppingList = useMemo(() => {
     const listToScan = isVip ? [...normalBottles, ...vipBottles] : normalBottles;
@@ -101,18 +70,8 @@ export default function StockStudio({
   }, [currentList]);
 
   const filteredBottles = useMemo(() => {
-    if (activeUniverse === "shopping") {
-      return shoppingList.filter((b) => {
-        const matchesCat = selectedCategory === "all" || b.type === selectedCategory;
-        const matchesSearch =
-          searchQuery.trim() === "" ||
-          b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          b.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
-        return matchesCat && matchesSearch;
-      });
-    }
-
-    return currentList.filter((b) => {
+    const base = activeUniverse === "shopping" ? shoppingList : currentList;
+    return base.filter((b) => {
       const matchesCat = selectedCategory === "all" || b.type === selectedCategory;
       const matchesSearch =
         searchQuery.trim() === "" ||
@@ -134,35 +93,16 @@ export default function StockStudio({
     return all.find((b) => b.id === selectedBottleId) ?? null;
   }, [selectedBottleId, normalBottles, vipBottles, isVip]);
 
-  const handleInspect = (bottle: Bottle) => {
-    setSelectedBottleId(bottle.id);
-    setImageDraft(null);
-    setImageError(null);
-    setDrawerMode("inspect");
+  const closeFiche = () => { setSelectedBottleId(null); setIsEditing(false); };
+  const closeAdd = () => { setIsAdding(false); setPrefill(undefined); };
+  const changeUniverse = (universe: "bar" | "vip" | "shopping") => {
+    setActiveUniverse(universe);
+    setSelectedCategory("all");
   };
 
-  const handleOpenAdd = () => {
-    setSelectedBottleId(null);
-    setPrefill(undefined);
-    setDrawerMode("add");
-  };
-
-  const handleCloseDrawer = () => {
-    setDrawerMode(null);
-    setSelectedBottleId(null);
-    setPrefill(undefined);
-    setImageDraft(null);
-    setImageError(null);
-  };
-
-  // A scan that found nothing in stock hands the code (and whatever the product
-  // database knew) to the add form.
-  const handleScanCreate: React.ComponentProps<typeof BarcodeScanner>["onCreate"] = (
-    barcode,
-    product,
-  ) => {
+  // Un scan qui ne trouve rien en stock transmet le code (et ce que la base produit connaît) au formulaire d'ajout.
+  const handleScanTrouve: React.ComponentProps<typeof ScannerSheet>["onTrouve"] = (barcode, product) => {
     setIsScanning(false);
-    setSelectedBottleId(null);
     setPrefill({
       barcode,
       name: product?.name,
@@ -170,20 +110,7 @@ export default function StockStudio({
       imageUrl: product?.imageUrl ?? undefined,
       size: product?.size ?? undefined,
     });
-    setDrawerMode("add");
-  };
-
-  const saveBottleImage = (id: string, nextImageUrl: string) => {
-    setImageError(null);
-    startTransition(async () => {
-      const res = await updateBottleImageAction(id, nextImageUrl);
-      if (res?.error) {
-        setImageError(res.error);
-        return;
-      }
-      // Hand the field back to the (now refreshed) server value.
-      setImageDraft(null);
-    });
+    setIsAdding(true);
   };
 
   const quickAdjust = (id: string, currentQuantity: number, delta: number) => {
@@ -232,441 +159,51 @@ export default function StockStudio({
   };
 
   return (
-    <div className="space-y-6 relative">
-      {/* Top Lounge Filter Switcher */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-2.5 rounded-2xl bg-ink-2/90 border border-white/[0.08] backdrop-blur-xl">
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => {
-              setActiveUniverse("bar");
-              setSelectedCategory("all");
-            }}
-            className={`tap-target flex items-center px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
-              activeUniverse === "bar"
-                ? "bg-gradient-to-r from-orange to-orange-hover text-ink font-extrabold shadow-md box-orange-glow"
-                : "text-muted hover:text-cream hover:bg-white/[0.04]"
-            }`}
-          >
-            Bar Principal <span className="opacity-80">({normalBottles.length})</span>
-          </button>
-
-          {isVip && (
-            <button
-              onClick={() => {
-                setActiveUniverse("vip");
-                setSelectedCategory("all");
-              }}
-              className={`tap-target flex items-center px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
-                activeUniverse === "vip"
-                  ? "bg-gradient-to-r from-gold to-amber-300 text-ink font-extrabold shadow-md gold-glow"
-                  : "text-gold-dim hover:text-gold hover:bg-gold/10 border border-gold/20"
-              }`}
-            >
-              🔒 Réserve Privée VIP <span className="opacity-80">({vipBottles.length})</span>
-            </button>
-          )}
-
-          <button
-            onClick={() => {
-              setActiveUniverse("shopping");
-              setSelectedCategory("all");
-            }}
-            className={`tap-target flex items-center px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
-              activeUniverse === "shopping"
-                ? "bg-red-500 text-white font-extrabold shadow-md"
-                : "text-muted hover:text-cream hover:bg-white/[0.04]"
-            }`}
-          >
-            🛒 Liste & Courses{" "}
-            {shoppingList.length > 0 && <span className="font-bold">({shoppingList.length})</span>}
-          </button>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {isAdmin && (
-            <>
-              <button
-                onClick={() => setIsScanning(true)}
-                className="tap-target px-4 py-2 rounded-xl bg-orange hover:bg-orange-hover text-ink text-xs font-extrabold uppercase transition-colors cursor-pointer shadow-sm box-orange-glow"
-              >
-                📷 Scanner
-              </button>
-              <button
-                onClick={handleOpenAdd}
-                className="tap-target px-4 py-2 rounded-xl bg-cream hover:bg-white text-ink text-xs font-extrabold uppercase transition-colors cursor-pointer shadow-sm"
-              >
-                + Ajouter au Stock
-              </button>
-            </>
-          )}
-          {activeUniverse === "shopping" && shoppingList.length > 0 && (
-            <button
-              onClick={copyShoppingList}
-              className="tap-target px-3.5 py-2 rounded-xl bg-orange text-ink font-bold text-xs transition-colors cursor-pointer"
-            >
-              📋 Copier la liste
-            </button>
-          )}
-          {filteredBottles.length > 0 && (
-            <button
-              onClick={exportCsv}
-              className="tap-target px-3.5 py-2 rounded-xl bg-cream hover:bg-white text-ink font-bold text-xs transition-colors cursor-pointer"
-            >
-              📥 Exporter en CSV
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Search Input & Category Pills */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="relative w-full sm:flex-1 sm:max-w-sm">
-          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted text-sm">
-            🔍
-          </span>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher une bouteille, tag (rhum, citron)..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-ink-2 border border-white/[0.1] text-sm text-cream placeholder:text-muted/60 focus:outline-none focus:border-orange/60"
-          />
-        </div>
-
-        {/* Swipeable rail on mobile — the pills must never wrap the layout wide. */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar">
-          <button
-            onClick={() => setSelectedCategory("all")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors shrink-0 cursor-pointer ${
-              selectedCategory === "all"
-                ? "bg-cream text-ink font-bold"
-                : "bg-ink-2 text-muted border border-white/[0.08] hover:text-cream"
-            }`}
-          >
-            Toutes ({currentList.length})
-          </button>
-          {availableCategories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-colors shrink-0 cursor-pointer ${
-                selectedCategory === cat
-                  ? "bg-orange text-ink font-bold shadow-sm"
-                  : "bg-ink-2 text-muted border border-white/[0.08] hover:text-cream"
-              }`}
-            >
-              {cat}
-            </button>
+    <div className="space-y-5">
+      <StockFiltres
+        isAdmin={isAdmin} isVip={isVip}
+        activeUniverse={activeUniverse} onUniverseChange={changeUniverse}
+        normalCount={normalBottles.length} vipCount={vipBottles.length} shoppingCount={shoppingList.length}
+        searchQuery={searchQuery} onSearchChange={setSearchQuery}
+        selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory}
+        availableCategories={availableCategories} currentListCount={currentList.length}
+        showCopier={activeUniverse === "shopping" && shoppingList.length > 0}
+        showExporter={filteredBottles.length > 0}
+        onScanner={() => setIsScanning(true)}
+        onAjouter={() => { setPrefill(undefined); setIsAdding(true); }}
+        onCopier={copyShoppingList} onExporter={exportCsv}
+      />
+      {filteredBottles.length === 0 ? (
+        <EmptyState titre="Aucune bouteille" message="Aucune bouteille trouvée dans cette sélection." />
+      ) : (
+        <div className="space-y-3">
+          {paginatedBottles.map((bottle) => (
+            <BottleListRow
+              key={bottle.id}
+              bottle={bottle} isAdmin={isAdmin} isVip={isVip}
+              onInspecter={() => setSelectedBottleId(bottle.id)}
+              onAjuster={(delta) => quickAdjust(bottle.id, bottle.quantity, delta)}
+            />
           ))}
         </div>
-      </div>
-
-      {/* Master High-Density Inventory List */}
-      <div className="rounded-2xl border border-white/[0.08] bg-ink-2/60 overflow-hidden shadow-xl">
-        {filteredBottles.length === 0 ? (
-          <div className="py-16 text-center text-sm text-muted">
-            Aucune bouteille trouvée dans cette sélection.
-          </div>
-        ) : (
-          <div className="divide-y divide-white/[0.06]">
-            {paginatedBottles.map((bottle) => {
-              const isLow =
-                bottle.lowStockThreshold != null && bottle.quantity <= bottle.lowStockThreshold;
-              const totalLiters = calculateBottleTotalLiters(bottle);
-
-              return (
-                <div
-                  key={bottle.id}
-                  onClick={() => handleInspect(bottle)}
-                  className={`group flex flex-col sm:flex-row sm:items-center justify-between p-4.5 transition-all duration-200 cursor-pointer ${
-                    selectedBottleId === bottle.id
-                      ? "bg-orange/15 border-l-4 border-l-orange"
-                      : "hover:bg-ink-2"
-                  }`}
-                >
-                  <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
-                    <div className="w-12 h-14 sm:w-14 sm:h-16 shrink-0 bg-ink rounded-xl border border-white/[0.09] flex items-center justify-center overflow-hidden p-1.5 relative shadow-inner">
-                      <BottleImage bottle={bottle} />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                        <span className="font-display font-bold text-base text-cream group-hover:text-orange transition-colors break-words">
-                          {bottle.name}
-                        </span>
-                        {bottle.vip && isVip && (
-                          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-gold text-ink shadow-sm">
-                            VIP
-                          </span>
-                        )}
-                        {isLow && (
-                          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
-                            Alerte stock
-                          </span>
-                        )}
-                      </div>
-                      {/* The type moved here now that the thumbnail occupies
-                          the leading column. */}
-                      <div className="flex items-center gap-2 sm:gap-3 mt-1 text-xs text-muted min-w-0">
-                        <span className="shrink-0 text-[10px] uppercase tracking-caps text-gold-dim font-semibold">
-                          {bottle.type}
-                        </span>
-                        <span className="shrink-0">·</span>
-                        <span className="shrink-0">{formatLiters(totalLiters)} en cave</span>
-                        <span className="hidden xs:inline shrink-0">·</span>
-                        <span className="hidden xs:inline truncate min-w-0">
-                          {bottle.tags.map((t) => `#${t}`).join(" ")}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-0 border-white/[0.06] shrink-0">
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="text-muted">En stock :</span>
-                      <span className="text-cream font-bold text-sm bg-ink px-2.5 py-1 rounded-lg border border-white/[0.08]">
-                        {bottle.quantity} btl
-                      </span>
-                    </div>
-
-                    {isAdmin && (
-                      <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => quickAdjust(bottle.id, bottle.quantity, -1)}
-                          disabled={bottle.quantity <= 0}
-                          aria-label={`Retirer une bouteille de ${bottle.name}`}
-                          className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-ink hover:bg-white/[0.1] text-cream text-sm font-bold flex items-center justify-center disabled:opacity-30 border border-white/[0.08] transition-colors cursor-pointer"
-                        >
-                          -
-                        </button>
-                        <button
-                          onClick={() => quickAdjust(bottle.id, bottle.quantity, 1)}
-                          aria-label={`Ajouter une bouteille de ${bottle.name}`}
-                          className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-ink hover:bg-orange hover:text-ink text-cream text-sm font-bold flex items-center justify-center border border-white/[0.08] transition-colors cursor-pointer"
-                        >
-                          +
-                        </button>
-                      </div>
-                    )}
-
-                    <span className="text-muted group-hover:text-orange transition-colors text-sm">
-                      →
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
-
-      {/* Slide-Over Warm Orange / Cream Inspector Pane, portaled to <body> so its
-          `position: fixed` resolves against the real viewport instead of the
-          <PageTransition> ancestor (framer-motion keeps a non-"none" inline
-          transform on that wrapper, which would otherwise become the
-          containing block for fixed descendants). */}
-      {mounted &&
-        createPortal(
-          <AnimatePresence>
-            {drawerMode !== null && (
-              <>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
-                  onClick={handleCloseDrawer}
-                />
-
-                <motion.aside
-                  initial={{ x: "100%" }}
-                  animate={{ x: 0 }}
-                  exit={{ x: "100%" }}
-                  transition={{ duration: 0.22, ease: "easeOut" }}
-                  className="fixed top-0 right-0 h-dvh w-full max-w-lg bg-ink-2 border-l border-white/[0.1] z-50 p-5 sm:p-8 overflow-y-auto overscroll-contain flex flex-col justify-between shadow-2xl pb-safe"
-                >
-                  <div className="space-y-6">
-                    <div className="flex items-start justify-between gap-3 border-b border-white/[0.08] pb-4">
-                      <div className="min-w-0">
-                        <span className="text-[10px] uppercase tracking-caps text-gold font-bold block">
-                          {drawerMode === "add" ? "Enregistrer un arrivage" : "Fiche de cave"}
-                        </span>
-                        <h2 className="font-display text-xl sm:text-2xl font-bold text-cream mt-1 break-words">
-                          {drawerMode === "add" ? "Nouvelle Bouteille" : selectedBottle?.name}
-                        </h2>
-                      </div>
-                      <button
-                        onClick={handleCloseDrawer}
-                        aria-label="Fermer"
-                        className="w-10 h-10 shrink-0 rounded-xl bg-ink border border-white/[0.1] text-muted hover:text-cream text-lg flex items-center justify-center cursor-pointer"
-                      >
-                        ×
-                      </button>
-                    </div>
-
-                    {drawerMode === "add" && (
-                      <div className="space-y-4">
-                        {/* Keyed on the barcode so a second scan remounts the
-                            form: the prefilled fields are uncontrolled, and
-                            defaultValue alone would not refresh them. */}
-                        <AddBottleForm
-                          key={prefill?.barcode ?? "manual"}
-                          isVip={isVip}
-                          barId={barId}
-                          onSuccess={handleCloseDrawer}
-                          prefill={prefill}
-                        />
-                      </div>
-                    )}
-
-                    {drawerMode === "inspect" && selectedBottle && (
-                      <div className="space-y-6 text-sm">
-                        {selectedBottle.imageUrl && (
-                          <div className="flex justify-center p-4 rounded-xl bg-ink border border-white/[0.08]">
-                            <div className="w-28 h-36 sm:w-32 sm:h-40 flex items-center justify-center overflow-hidden">
-                              <BottleImage bottle={selectedBottle} />
-                            </div>
-                          </div>
-                        )}
-
-                        {/* A bottle added in a hurry — or scanned for a product
-                            the database had no photo of — arrives without one.
-                            Keyed on the bottle so switching selection resets the
-                            picker instead of carrying the previous state over. */}
-                        {isAdmin && (
-                          <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
-                            <ImagePicker
-                              key={selectedBottle.id}
-                              // Draft while typing, saved value otherwise, so the
-                              // field is not overwritten by the server round-trip
-                              // mid-edit.
-                              value={imageDraft ?? selectedBottle.imageUrl ?? ""}
-                              onChange={setImageDraft}
-                              onCommit={(next) => saveBottleImage(selectedBottle.id, next)}
-                              onUpload={uploadBottleImage}
-                              label={
-                                selectedBottle.imageUrl
-                                  ? "Changer la photo (fichier local ou URL)"
-                                  : "Ajouter une photo (fichier local ou URL)"
-                              }
-                            />
-                            {imageError && (
-                              <p className="text-[11px] text-red-400 mt-2">{imageError}</p>
-                            )}
-                          </div>
-                        )}
-                        {/* Keyed on the bottle so switching selection loads the
-                            new bottle's values instead of the previous one's. */}
-                        {isAdmin && (
-                          <EditBottleDetails
-                            key={selectedBottle.id}
-                            bottle={selectedBottle}
-                            canSeeVip={isVip}
-                          />
-                        )}
-
-                        <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4">
-                          <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
-                            <span className="text-[10px] uppercase tracking-caps text-muted block">Catégorie</span>
-                            <span className="text-cream font-bold capitalize mt-1 block text-base">
-                              {selectedBottle.type}
-                            </span>
-                          </div>
-                          <div className="p-4 rounded-xl bg-ink border border-white/[0.08]">
-                            <span className="text-[10px] uppercase tracking-caps text-muted block">Quantité</span>
-                            <span className="text-orange font-bold mt-1 block text-base">
-                              {selectedBottle.quantity} bouteille{selectedBottle.quantity > 1 ? "s" : ""}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="p-5 rounded-xl bg-ink border border-white/[0.08] space-y-3">
-                          <span className="text-xs uppercase tracking-caps text-gold font-bold block">
-                            Formats & Volumes enregistrés
-                          </span>
-                          {selectedBottle.volumes && selectedBottle.volumes.length > 0 ? (
-                            <div className="space-y-2">
-                              {selectedBottle.volumes.map((v, idx) => (
-                                <div key={idx} className="flex justify-between text-cream">
-                                  <span>Format {v.size}</span>
-                                  <span className="text-orange font-bold">× {v.quantity} en stock</span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-muted text-xs">Format standard 70cl</p>
-                          )}
-                        </div>
-
-                        <div className="p-5 rounded-xl bg-ink border border-white/[0.08] space-y-3">
-                          <span className="text-xs uppercase tracking-caps text-gold font-bold block">
-                            Tags & Arômes associés
-                          </span>
-                          <div className="flex flex-wrap gap-2">
-                            {selectedBottle.tags.map((t) => (
-                              <span
-                                key={t}
-                                className="px-2.5 py-1 rounded-lg bg-ink-2 border border-white/[0.08] text-cream text-xs font-medium"
-                              >
-                                #{t}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        {selectedBottle.notes && (
-                          <div className="p-5 rounded-xl bg-ink border border-white/[0.08] space-y-2">
-                            <span className="text-xs uppercase tracking-caps text-gold font-bold block">
-                              Notes / Emplacement en cave
-                            </span>
-                            <p className="text-cream text-xs leading-relaxed">
-                              {selectedBottle.notes}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="pt-6 mt-6 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3 text-xs">
-                    {drawerMode === "inspect" && isAdmin && selectedBottle ? (
-                      <button
-                        onClick={() => setDeleteTarget({ id: selectedBottle.id, name: selectedBottle.name })}
-                        className="tap-target px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer"
-                      >
-                        Supprimer
-                      </button>
-                    ) : (
-                      <span className="text-muted">OpenBar · Studio Cave</span>
-                    )}
-                    <button
-                      onClick={handleCloseDrawer}
-                      className="tap-target px-5 py-2.5 rounded-xl bg-orange text-ink font-bold uppercase tracking-wider hover:bg-orange-hover transition-colors cursor-pointer"
-                    >
-                      Fermer
-                    </button>
-                  </div>
-                </motion.aside>
-              </>
-            )}
-          </AnimatePresence>,
-          document.body
-        )}
-
-      <NoticeModal notice={notice} onClose={() => setNotice(null)} />
-
-      {isScanning && (
-        <BarcodeScanner
-          barId={barId}
-          onClose={() => setIsScanning(false)}
-          onCreate={handleScanCreate}
-        />
       )}
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+
+      <FicheBouteilleSheet
+        bouteille={isEditing ? null : selectedBottle} isAdmin={isAdmin}
+        onFermer={closeFiche} onEditer={() => setIsEditing(true)}
+        onSupprimer={(b) => setDeleteTarget({ id: b.id, name: b.name })}
+      />
+      <EditionSheet
+        bouteille={selectedBottle} ouvert={isEditing} canSeeVip={isVip}
+        onFermer={() => setIsEditing(false)}
+      />
+      {/* Clé sur le code-barres : un second scan doit remonter le formulaire, les champs préremplis étant non contrôlés (defaultValue seul ne les rafraîchirait pas). */}
+      <Sheet ouvert={isAdding} titre="Nouvelle Bouteille" onFermer={closeAdd}>
+        <AddBottleForm key={prefill?.barcode ?? "manual"} isVip={isVip} barId={barId} onSuccess={closeAdd} prefill={prefill} />
+      </Sheet>
+      <ScannerSheet ouvert={isScanning} barId={barId} onFermer={() => setIsScanning(false)} onTrouve={handleScanTrouve} />
+      <NoticeModal notice={notice} onClose={() => setNotice(null)} />
 
       <ConfirmDeleteModal
         isOpen={deleteTarget !== null}
@@ -681,15 +218,10 @@ export default function StockStudio({
             const res = await deleteBottleAction(id);
             if (res?.error) {
               setDeleteTarget(null);
-              setNotice({
-                accent: "danger",
-                icon: "⚠️",
-                title: "Suppression impossible",
-                description: res.error,
-              });
+              setNotice({ accent: "danger", icon: "⚠️", title: "Suppression impossible", description: res.error });
             } else {
               setDeleteTarget(null);
-              handleCloseDrawer();
+              closeFiche();
             }
           });
         }}
