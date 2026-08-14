@@ -64,5 +64,10 @@ api/dist
 *-tmp.js
 *-tmp.ts
 
+# Playwright
+/test-results/
+/playwright-report/
+/e2e/.auth/
+
 # Brainstorming visual companion scratch files.
 .superpowers/
