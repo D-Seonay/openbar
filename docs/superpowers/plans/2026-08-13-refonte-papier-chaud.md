@@ -1046,7 +1046,8 @@ Dans les trois fichiers, appliquer la correspondance suivante :
 
 | Ancien | Nouveau |
 |---|---|
-| `bg-ink`, `bg-ink-2`, `bg-ink-3` | `bg-paper` |
+| `bg-ink`, `bg-ink-2`, `bg-ink-3` — **surface** | `bg-paper` |
+| `bg-ink/*`, `bg-black/*` — **voile de modale** | `bg-ink/40` — *voir l'avertissement ci-dessous* |
 | `text-cream` | `text-ink` |
 | `text-muted` | `text-ink-soft` |
 | `text-orange`, `text-gold` | `text-terracotta` |
@@ -1058,6 +1059,8 @@ Dans les trois fichiers, appliquer la correspondance suivante :
 | `text-xs` | `text-[13px]` |
 
 Remplacer les boutons d'action par `<Button>` de la Task 4.
+
+**Le voile n'est pas une surface.** Sur ce thème, le fond de page est déjà `paper` : un voile `bg-paper/90` derrière un panneau `bg-paper` rend la modale indistinguable de la page. Le voile doit assombrir — `bg-ink/40`, comme le fait déjà `Sheet`. C'est le seul endroit où `bg-ink` reste légitime en fond, parce qu'il y est translucide et joue le rôle d'ombre, pas de surface.
 
 - [ ] **Step 3: Vérifier qu'aucun appelant n'est cassé**
 
