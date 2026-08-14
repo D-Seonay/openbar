@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { createPortal } from "react-dom";
 import { createRecipe, updateRecipe } from "@/app/actions";
 import type { CocktailRecipe } from "@/lib/cocktail-types";
+import { Button, Field, champClasses } from "@/components/ui";
 
 const DIFFICULTIES = ["Facile", "Moyen", "Expert"] as const;
 
@@ -15,6 +15,8 @@ interface CreateRecipeModalProps {
   barId: string;
 }
 
+// Rendu à l'intérieur du <Sheet> de CocktailStudio, qui porte déjà le titre
+// et le bouton de fermeture : ce composant n'expose que le formulaire.
 export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClose, barId }: CreateRecipeModalProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>(initialRecipe?.tags ?? []);
   const [ingredientsList, setIngredientsList] = useState<string[]>(initialRecipe?.ingredientsList ?? [""]);
@@ -55,212 +57,195 @@ export default function CreateRecipeModal({ mode, allTags, initialRecipe, onClos
     onClose();
   };
 
-  // Portaled to <body> to escape the `relative z-10` stacking context of
-  // <main>, which would otherwise keep this modal underneath the sticky header.
-  return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center p-3 sm:p-4 bg-ink/90 backdrop-blur-xl overflow-y-auto overscroll-contain">
-      <div className="relative w-full max-w-2xl bg-ink-2/95 border border-orange/20 rounded-2xl p-5 sm:p-7 shadow-2xl my-4 sm:my-8 mb-[max(1rem,env(safe-area-inset-bottom))]">
-        <div className="flex items-center justify-between gap-3 border-b border-white/[0.08] pb-4 mb-5">
-          <h3 className="font-display text-lg sm:text-xl font-bold text-cream">
-            {mode === "edit" ? "Modifier la recette" : "Nouvelle recette custom"}
-          </h3>
+  return (
+    <form
+      action={action}
+      onSubmit={handleSubmit}
+      className="grid sm:grid-cols-2 gap-x-4"
+    >
+      <input type="hidden" name="ingredientsList" value={JSON.stringify(ingredientsList.filter(Boolean))} />
+      <input type="hidden" name="instructions" value={JSON.stringify(instructions.filter(Boolean))} />
+
+      <div className="sm:col-span-2">
+        <Field label="Nom du cocktail" htmlFor="recipe-name">
+          <input
+            id="recipe-name"
+            name="name"
+            defaultValue={initialRecipe?.name}
+            placeholder="Ex: Le Punch d'Orange"
+            required
+            className={champClasses}
+          />
+        </Field>
+      </div>
+
+      <Field label="Verre conseillé" htmlFor="recipe-glass">
+        <input
+          id="recipe-glass"
+          name="glass"
+          defaultValue={initialRecipe?.glass}
+          placeholder="Ex: Verre à mojito"
+          required
+          className={champClasses}
+        />
+      </Field>
+
+      <Field label="Temps de préparation" htmlFor="recipe-prepTime">
+        <input
+          id="recipe-prepTime"
+          name="prepTime"
+          defaultValue={initialRecipe?.prepTime}
+          placeholder="Ex: 5 min"
+          required
+          className={champClasses}
+        />
+      </Field>
+
+      <Field label="Difficulté" htmlFor="recipe-difficulty">
+        <select
+          id="recipe-difficulty"
+          name="difficulty"
+          defaultValue={initialRecipe?.difficulty ?? "Moyen"}
+          className={`appearance-none ${champClasses}`}
+        >
+          {DIFFICULTIES.map((d) => (
+            <option key={d} value={d} className="bg-paper">
+              {d}
+            </option>
+          ))}
+        </select>
+      </Field>
+
+      <div className="flex items-end mb-4">
+        <label className="tap-target flex items-center gap-2.5 text-[15px] text-ink cursor-pointer select-none">
+          <input
+            type="checkbox"
+            name="vip"
+            defaultChecked={initialRecipe?.vip}
+            className="tap-target shrink-0 rounded border-rule accent-terracotta cursor-pointer"
+          />
+          <span className="font-medium">Réserver à la section VIP</span>
+        </label>
+      </div>
+
+      <div className="sm:col-span-2">
+        <Field label="Description" htmlFor="recipe-description">
+          <textarea
+            id="recipe-description"
+            name="description"
+            defaultValue={initialRecipe?.description}
+            placeholder="Une courte description de la recette"
+            required
+            rows={2}
+            className={champClasses}
+          />
+        </Field>
+      </div>
+
+      <div className="sm:col-span-2 mb-4 space-y-2 border border-rule bg-paper-sunk p-4 rounded-xl">
+        <label className="text-[13px] uppercase tracking-caps text-ink-soft block">
+          Ingrédients de faisabilité (tags de cave)
+        </label>
+        {allTags.length === 0 ? (
+          <p className="text-[13px] text-ink-soft">Aucun tag de bouteille disponible dans la cave.</p>
+        ) : (
+          <div className="grid sm:grid-cols-2 gap-2">
+            {allTags.map((tag) => (
+              <label key={tag} className="tap-target flex items-center gap-2 text-[13px] text-ink cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  name="tags"
+                  value={tag}
+                  checked={selectedTags.includes(tag)}
+                  onChange={() => toggleTag(tag)}
+                  className="tap-target shrink-0 rounded border-rule accent-terracotta cursor-pointer"
+                />
+                <span className="capitalize">{tag}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="sm:col-span-2 mb-4 space-y-3 border border-rule bg-paper-sunk p-4 rounded-xl">
+        <div className="flex justify-between items-center border-b border-rule pb-2">
+          <label className="text-[13px] uppercase tracking-caps text-ink-soft block">
+            Ingrédients détaillés (avec quantités)
+          </label>
           <button
-            onClick={onClose}
-            aria-label="Fermer"
-            className="w-10 h-10 shrink-0 rounded-xl bg-ink border border-white/[0.1] text-muted hover:text-cream text-lg flex items-center justify-center cursor-pointer"
+            type="button"
+            onClick={() => addLine(ingredientsList, setIngredientsList)}
+            className="tap-target px-2 text-[13px] uppercase tracking-caps text-terracotta font-semibold transition-colors"
           >
-            ×
+            ＋ Ajouter une ligne
           </button>
         </div>
-
-        {/* On phones the backdrop already scrolls; a second inner scroll area
-            would trap the form and fight the on-screen keyboard. */}
-        <form
-          action={action}
-          onSubmit={handleSubmit}
-          className="grid sm:grid-cols-2 gap-4 sm:max-h-[70vh] sm:overflow-y-auto sm:pr-1"
-        >
-          <input type="hidden" name="ingredientsList" value={JSON.stringify(ingredientsList.filter(Boolean))} />
-          <input type="hidden" name="instructions" value={JSON.stringify(instructions.filter(Boolean))} />
-
-          <div className="sm:col-span-2">
-            <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">Nom du cocktail</label>
+        {ingredientsList.map((line, idx) => (
+          <div key={idx} className="flex gap-2 items-center min-w-0">
             <input
-              name="name"
-              defaultValue={initialRecipe?.name}
-              placeholder="Ex: Le Punch d'Orange"
-              required
-              className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+              type="text"
+              value={line}
+              placeholder="Ex: 6cl rhum blanc"
+              onChange={(e) => updateLine(ingredientsList, setIngredientsList, idx, e.target.value)}
+              className={`flex-1 ${champClasses}`}
             />
-          </div>
-
-          <div>
-            <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">Verre conseillé</label>
-            <input
-              name="glass"
-              defaultValue={initialRecipe?.glass}
-              placeholder="Ex: Verre à mojito"
-              required
-              className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-            />
-          </div>
-
-          <div>
-            <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">Temps de préparation</label>
-            <input
-              name="prepTime"
-              defaultValue={initialRecipe?.prepTime}
-              placeholder="Ex: 5 min"
-              required
-              className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-            />
-          </div>
-
-          <div>
-            <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">Difficulté</label>
-            <select
-              name="difficulty"
-              defaultValue={initialRecipe?.difficulty ?? "Moyen"}
-              className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-            >
-              {DIFFICULTIES.map((d) => (
-                <option key={d} value={d} className="bg-ink">
-                  {d}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-end pb-2">
-            <label className="flex items-center gap-2.5 text-sm text-gold cursor-pointer select-none">
-              <input
-                type="checkbox"
-                name="vip"
-                defaultChecked={initialRecipe?.vip}
-                className="w-5 h-5 rounded border-orange/30 text-orange focus:ring-orange bg-ink accent-gold cursor-pointer"
-              />
-              <span className="font-medium">Réserver à la section VIP</span>
-            </label>
-          </div>
-
-          <div className="sm:col-span-2">
-            <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">Description</label>
-            <textarea
-              name="description"
-              defaultValue={initialRecipe?.description}
-              placeholder="Une courte description de la recette"
-              required
-              rows={2}
-              className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-            />
-          </div>
-
-          <div className="sm:col-span-2 space-y-2 border border-orange/15 bg-ink/40 p-4 rounded-xl">
-            <label className="text-xs uppercase tracking-caps text-gold-dim block">
-              Ingrédients de faisabilité (tags de cave)
-            </label>
-            {allTags.length === 0 ? (
-              <p className="text-xs text-muted/65">Aucun tag de bouteille disponible dans la cave.</p>
-            ) : (
-              <div className="grid sm:grid-cols-2 gap-2">
-                {allTags.map((tag) => (
-                  <label key={tag} className="flex items-center gap-2 text-xs text-cream cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      name="tags"
-                      value={tag}
-                      checked={selectedTags.includes(tag)}
-                      onChange={() => toggleTag(tag)}
-                      className="w-4 h-4 rounded border-orange/30 text-orange focus:ring-orange bg-ink accent-orange cursor-pointer"
-                    />
-                    <span className="capitalize">{tag}</span>
-                  </label>
-                ))}
-              </div>
+            {ingredientsList.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removeLine(ingredientsList, setIngredientsList, idx)}
+                className="tap-target shrink-0 text-[13px] text-ink-soft hover:text-terracotta font-semibold px-2 transition-colors"
+              >
+                Retirer
+              </button>
             )}
           </div>
-
-          <div className="sm:col-span-2 space-y-3 border border-orange/15 bg-ink/40 p-4 rounded-xl">
-            <div className="flex justify-between items-center border-b border-orange/5 pb-2">
-              <label className="text-xs uppercase tracking-caps text-gold-dim block">
-                Ingrédients détaillés (avec quantités)
-              </label>
-              <button
-                type="button"
-                onClick={() => addLine(ingredientsList, setIngredientsList)}
-                className="text-[10px] uppercase tracking-caps text-orange hover:text-orange-hover font-semibold transition-colors"
-              >
-                ＋ Ajouter une ligne
-              </button>
-            </div>
-            {ingredientsList.map((line, idx) => (
-              <div key={idx} className="flex gap-2 items-center min-w-0">
-                <input
-                  type="text"
-                  value={line}
-                  placeholder="Ex: 6cl rhum blanc"
-                  onChange={(e) => updateLine(ingredientsList, setIngredientsList, idx, e.target.value)}
-                  className="flex-1 bg-ink border border-orange/15 rounded-lg px-3 py-1.5 text-xs text-cream focus:outline-none focus:border-orange"
-                />
-                {ingredientsList.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeLine(ingredientsList, setIngredientsList, idx)}
-                    className="tap-target-sm shrink-0 text-xs text-muted hover:text-red-400 font-semibold px-2 py-1 transition-colors"
-                  >
-                    Retirer
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="sm:col-span-2 space-y-3 border border-orange/15 bg-ink/40 p-4 rounded-xl">
-            <div className="flex justify-between items-center border-b border-orange/5 pb-2">
-              <label className="text-xs uppercase tracking-caps text-gold-dim block">Étapes de préparation</label>
-              <button
-                type="button"
-                onClick={() => addLine(instructions, setInstructions)}
-                className="text-[10px] uppercase tracking-caps text-orange hover:text-orange-hover font-semibold transition-colors"
-              >
-                ＋ Ajouter une étape
-              </button>
-            </div>
-            {instructions.map((line, idx) => (
-              <div key={idx} className="flex gap-2 items-center min-w-0">
-                <input
-                  type="text"
-                  value={line}
-                  placeholder="Ex: Piler la menthe avec le sucre"
-                  onChange={(e) => updateLine(instructions, setInstructions, idx, e.target.value)}
-                  className="flex-1 bg-ink border border-orange/15 rounded-lg px-3 py-1.5 text-xs text-cream focus:outline-none focus:border-orange"
-                />
-                {instructions.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeLine(instructions, setInstructions, idx)}
-                    className="tap-target-sm shrink-0 text-xs text-muted hover:text-red-400 font-semibold px-2 py-1 transition-colors"
-                  >
-                    Retirer
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {validationError && (
-            <p className="sm:col-span-2 text-xs text-red-400 font-semibold">{validationError}</p>
-          )}
-
-          <button
-            type="submit"
-            className="sm:col-span-2 bg-orange text-ink font-semibold rounded-lg py-2.5 hover:bg-cream transition-colors mt-2 uppercase tracking-caps text-xs duration-350 cursor-pointer"
-          >
-            {mode === "edit" ? "Enregistrer les modifications" : "Créer la recette"}
-          </button>
-        </form>
+        ))}
       </div>
-    </div>,
-    document.body
+
+      <div className="sm:col-span-2 mb-4 space-y-3 border border-rule bg-paper-sunk p-4 rounded-xl">
+        <div className="flex justify-between items-center border-b border-rule pb-2">
+          <label className="text-[13px] uppercase tracking-caps text-ink-soft block">Étapes de préparation</label>
+          <button
+            type="button"
+            onClick={() => addLine(instructions, setInstructions)}
+            className="tap-target px-2 text-[13px] uppercase tracking-caps text-terracotta font-semibold transition-colors"
+          >
+            ＋ Ajouter une étape
+          </button>
+        </div>
+        {instructions.map((line, idx) => (
+          <div key={idx} className="flex gap-2 items-center min-w-0">
+            <input
+              type="text"
+              value={line}
+              placeholder="Ex: Piler la menthe avec le sucre"
+              onChange={(e) => updateLine(instructions, setInstructions, idx, e.target.value)}
+              className={`flex-1 ${champClasses}`}
+            />
+            {instructions.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removeLine(instructions, setInstructions, idx)}
+                className="tap-target shrink-0 text-[13px] text-ink-soft hover:text-terracotta font-semibold px-2 transition-colors"
+              >
+                Retirer
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {validationError && (
+        <div className="sm:col-span-2 mb-4 text-[13px] bg-paper-sunk border border-terracotta/30 rounded-xl p-3 text-terracotta text-center font-semibold" role="alert">
+          {validationError}
+        </div>
+      )}
+
+      <div className="sm:col-span-2">
+        <Button type="submit" pleineLargeur>
+          {mode === "edit" ? "Enregistrer les modifications" : "Créer la recette"}
+        </Button>
+      </div>
+    </form>
   );
 }

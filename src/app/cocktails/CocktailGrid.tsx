@@ -68,21 +68,21 @@ export default function CocktailGrid({ initialResults, isVip = false }: Cocktail
 
   return (
     <div className="space-y-8">
-      {/* Search & Luxury Bar Filter Bar */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-center p-3 rounded-2xl bg-ink-2/90 border border-white/[0.08] backdrop-blur-xl">
+      {/* Search & Filter Bar */}
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-center p-3 rounded-2xl bg-paper border border-rule">
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <button
             onClick={() => setActiveFilter("ready")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+            className={`tap-target flex items-center gap-2 px-4 rounded-xl text-[13px] font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
               activeFilter === "ready"
-                ? "bg-gradient-to-r from-emerald-400 to-emerald-500 text-ink font-extrabold shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-                : "text-muted hover:text-cream hover:bg-white/[0.04]"
+                ? "bg-terracotta text-paper"
+                : "bg-paper-sunk border border-rule text-ink-soft hover:text-ink"
             }`}
           >
             <span>🟢 Prêts au Bar</span>
             <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                activeFilter === "ready" ? "bg-ink/20 text-ink" : "bg-white/[0.07] text-cream"
+              className={`px-2 py-0.5 rounded-full text-[13px] font-mono font-bold ${
+                activeFilter === "ready" ? "bg-paper/20 text-paper" : "bg-paper-sunk text-ink"
               }`}
             >
               {counts.ready}
@@ -92,16 +92,16 @@ export default function CocktailGrid({ initialResults, isVip = false }: Cocktail
           {isVip && (
             <button
               onClick={() => setActiveFilter("vip")}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+              className={`tap-target flex items-center gap-2 px-4 rounded-xl text-[13px] font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
                 activeFilter === "vip"
-                  ? "bg-gradient-to-r from-gold to-amber-300 text-ink font-extrabold shadow-md gold-glow"
-                  : "text-gold-dim hover:text-gold hover:bg-gold/10 border border-gold/20"
+                  ? "bg-terracotta text-paper"
+                  : "bg-paper-sunk border border-rule text-ink-soft hover:text-ink"
               }`}
             >
               <span>🔒 Avec Cave VIP</span>
               <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                  activeFilter === "vip" ? "bg-ink/20 text-ink" : "bg-gold/20 text-gold"
+                className={`px-2 py-0.5 rounded-full text-[13px] font-mono font-bold ${
+                  activeFilter === "vip" ? "bg-paper/20 text-paper" : "bg-paper-sunk text-ink"
                 }`}
               >
                 {counts.vip}
@@ -111,16 +111,16 @@ export default function CocktailGrid({ initialResults, isVip = false }: Cocktail
 
           <button
             onClick={() => setActiveFilter("locked")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+            className={`tap-target flex items-center gap-2 px-4 rounded-xl text-[13px] font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
               activeFilter === "locked"
-                ? "bg-orange text-ink font-extrabold shadow-md box-orange-glow"
-                : "text-muted hover:text-cream hover:bg-white/[0.04]"
+                ? "bg-terracotta text-paper"
+                : "bg-paper-sunk border border-rule text-ink-soft hover:text-ink"
             }`}
           >
             <span>🔴 À Compléter</span>
             <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                activeFilter === "locked" ? "bg-ink/20 text-ink" : "bg-white/[0.07] text-cream"
+              className={`px-2 py-0.5 rounded-full text-[13px] font-mono font-bold ${
+                activeFilter === "locked" ? "bg-paper/20 text-paper" : "bg-paper-sunk text-ink"
               }`}
             >
               {counts.locked}
@@ -129,7 +129,7 @@ export default function CocktailGrid({ initialResults, isVip = false }: Cocktail
         </div>
 
         <div className="relative w-full md:w-72">
-          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted text-sm">
+          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-soft">
             🔍
           </span>
           <input
@@ -137,18 +137,18 @@ export default function CocktailGrid({ initialResults, isVip = false }: Cocktail
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Chercher un cocktail, ingrédient..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-ink border border-white/[0.1] text-sm text-cream placeholder:text-muted/60 focus:outline-none focus:border-orange/60"
+            className="w-full pl-10 pr-4 min-h-[44px] rounded-xl bg-paper-sunk border border-rule text-[15px] text-ink placeholder:text-ink-soft focus:outline-2 focus:outline-terracotta"
           />
         </div>
       </div>
 
-      {/* Luxury Bar Menu Accordion List */}
+      {/* Menu Accordion List */}
       <div className="space-y-3">
         {sortedResults.length === 0 ? (
-          <div className="text-center py-16 rounded-2xl bg-ink-2/40 border border-white/[0.06]">
-            <p className="text-4xl mb-3">🍸</p>
-            <p className="text-cream font-semibold text-base">Aucun cocktail ne correspond à votre filtre</p>
-            <p className="text-xs text-muted mt-1">Explorez les autres onglets ou ajustez votre recherche.</p>
+          <div className="text-center py-16 rounded-2xl bg-paper border border-rule">
+            <p className="text-[27px] mb-3">🍸</p>
+            <p className="text-ink font-semibold text-[15px]">Aucun cocktail ne correspond à votre filtre</p>
+            <p className="text-[13px] text-ink-soft mt-1">Explorez les autres onglets ou ajustez votre recherche.</p>
           </div>
         ) : (
           sortedResults.map((item) => {
@@ -158,54 +158,44 @@ export default function CocktailGrid({ initialResults, isVip = false }: Cocktail
             return (
               <div
                 key={item.recipe.id}
-                className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
-                  isExpanded
-                    ? item.usesVip && isVip
-                      ? "bg-brick-dark/40 border-gold/40 shadow-xl"
-                      : item.makeable
-                      ? "bg-ink-2 border-orange/40 shadow-xl"
-                      : "bg-ink-2 border-white/[0.15] shadow-lg"
-                    : item.usesVip && isVip
-                    ? "bg-brick-dark/25 border-gold/25 hover:border-gold/50"
-                    : item.makeable
-                    ? "bg-ink-2/70 border-white/[0.08] hover:border-orange/40"
-                    : "bg-ink-2/40 border-white/[0.05] opacity-85 hover:opacity-100"
+                className={`rounded-2xl border transition-colors overflow-hidden bg-paper ${
+                  isExpanded ? "border-terracotta/40" : "border-rule hover:border-terracotta/40"
                 }`}
               >
-                {/* Luxury Menu Header Row */}
+                {/* Menu Header Row */}
                 <button
                   onClick={() => toggleExpand(item.recipe.id)}
-                  className="w-full px-6 py-4 flex items-center justify-between text-left cursor-pointer group"
+                  className="tap-target w-full px-6 py-4 flex items-center justify-between text-left cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 transition-transform group-hover:scale-105 ${
+                      className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${
                         item.usesVip && isVip
-                          ? "bg-gold/20 border border-gold/40 text-gold"
+                          ? "bg-paper-sunk border border-terracotta/40 text-terracotta"
                           : item.makeable
-                          ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400"
-                          : "bg-white/[0.04] border border-white/[0.08] text-muted"
+                          ? "bg-paper-sunk border border-done/35 text-done"
+                          : "bg-paper-sunk border border-rule text-ink-soft"
                       }`}
                     >
                       {glassIcon}
                     </div>
                     <div>
                       <div className="flex items-center gap-2.5 flex-wrap">
-                        <h3 className="font-display text-lg sm:text-xl font-bold text-cream group-hover:text-orange transition-colors">
+                        <h3 className="font-display text-[17px] font-bold text-ink group-hover:text-terracotta transition-colors">
                           {item.recipe.name}
                         </h3>
                         {item.usesVip && isVip && (
-                          <span className="text-[10px] uppercase font-bold bg-gold text-ink px-2 py-0.5 rounded shadow-sm">
+                          <span className="text-[13px] uppercase font-bold bg-terracotta text-paper px-2 py-0.5 rounded">
                             VIP Secret
                           </span>
                         )}
                         {!item.makeable && (
-                          <span className="text-[10px] font-mono text-orange bg-orange/15 px-2 py-0.5 rounded border border-orange/30">
+                          <span className="text-[13px] font-mono text-warn bg-paper-sunk px-2 py-0.5 rounded border border-warn/35">
                             Manque {item.missingTags.length} ingrédient{item.missingTags.length > 1 ? "s" : ""}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-muted mt-0.5 truncate max-w-md sm:max-w-xl">
+                      <p className="text-[13px] text-ink-soft mt-0.5 truncate max-w-md sm:max-w-xl">
                         {item.recipe.glass ? `${item.recipe.glass} · ` : ""}
                         {item.recipe.tags.join(" · ")}
                       </p>
@@ -214,12 +204,8 @@ export default function CocktailGrid({ initialResults, isVip = false }: Cocktail
 
                   <div className="flex items-center gap-3">
                     <span
-                      className={`text-xs uppercase tracking-wider font-bold hidden sm:inline-block ${
-                        item.usesVip && isVip
-                          ? "text-gold"
-                          : item.makeable
-                          ? "text-emerald-400"
-                          : "text-muted"
+                      className={`text-[13px] uppercase tracking-wider font-bold hidden sm:inline-block ${
+                        item.usesVip && isVip ? "text-terracotta" : item.makeable ? "text-done" : "text-ink-soft"
                       }`}
                     >
                       {item.makeable ? "Prêt à servir" : "À compléter"}
@@ -227,8 +213,8 @@ export default function CocktailGrid({ initialResults, isVip = false }: Cocktail
                     <span
                       className={`w-7 h-7 rounded-full flex items-center justify-center border transition-transform duration-300 ${
                         isExpanded
-                          ? "rotate-180 bg-orange/20 border-orange/50 text-orange"
-                          : "bg-white/[0.05] border-white/[0.1] text-muted group-hover:text-cream"
+                          ? "rotate-180 bg-paper-sunk border-terracotta/50 text-terracotta"
+                          : "bg-paper-sunk border-rule text-ink-soft group-hover:text-ink"
                       }`}
                     >
                       ▼
@@ -244,11 +230,11 @@ export default function CocktailGrid({ initialResults, isVip = false }: Cocktail
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.25, ease: "easeInOut" }}
-                      className="border-t border-white/[0.08] bg-ink/50 px-6 py-6 space-y-5"
+                      className="border-t border-rule bg-paper-sunk px-6 py-6 space-y-5"
                     >
                       {/* Ingredients Breakdown */}
                       <div>
-                        <h4 className="text-xs uppercase tracking-caps text-muted font-bold mb-3">
+                        <h4 className="text-[13px] uppercase tracking-caps text-ink-soft font-bold mb-3">
                           Ingrédients du Cocktail
                         </h4>
                         <div className="flex flex-wrap gap-2">
@@ -257,10 +243,8 @@ export default function CocktailGrid({ initialResults, isVip = false }: Cocktail
                             return (
                               <span
                                 key={tag}
-                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border ${
-                                  isMissing
-                                    ? "bg-red-950/50 text-red-300 border-red-500/30"
-                                    : "bg-emerald-950/40 text-emerald-300 border-emerald-500/30"
+                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[13px] font-semibold border bg-paper ${
+                                  isMissing ? "text-warn border-warn/35" : "text-done border-done/35"
                                 }`}
                               >
                                 <span>{isMissing ? "⚠️" : "✓"}</span>
@@ -272,11 +256,11 @@ export default function CocktailGrid({ initialResults, isVip = false }: Cocktail
                       </div>
 
                       {/* Preparation Step-by-Step */}
-                      <div className="rounded-xl bg-ink-2/80 border border-white/[0.07] p-4">
-                        <h4 className="text-xs uppercase tracking-caps text-gold mb-2 font-bold flex items-center gap-2">
+                      <div className="rounded-xl bg-paper border border-rule p-4">
+                        <h4 className="text-[13px] uppercase tracking-caps text-terracotta mb-2 font-bold flex items-center gap-2">
                           <span>📜 Guide de Mixologie</span>
                         </h4>
-                        <p className="text-sm text-cream leading-relaxed whitespace-pre-line">
+                        <p className="text-[15px] text-ink leading-relaxed whitespace-pre-line">
                           {item.recipe.instructions || "Ajoutez les ingrédients dans le verre avec des glaçons, mélangez doucement et servez."}
                         </p>
                       </div>

@@ -20,7 +20,7 @@ export default function ShoppingList({ items }: { items: string[] }) {
   return (
     <button
       onClick={copy}
-      className="text-xs px-3 py-1.5 rounded-md border border-brick-light/60 text-muted hover:border-gold hover:text-gold transition-colors"
+      className="tap-target px-3 rounded-md border border-rule text-[13px] text-ink-soft hover:border-terracotta hover:text-terracotta transition-colors"
     >
       {copied ? "Copié !" : "Copier la liste de courses"}
     </button>
