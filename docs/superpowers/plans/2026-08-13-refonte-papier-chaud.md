@@ -1265,7 +1265,10 @@ Sans ce harnais, les critères « 44px » et « aucun débordement » de la spec
 
 ```bash
 npm install -D @playwright/test
-npx playwright install chromium
+# WebKit, pas Chromium : la config utilise `devices["iPhone 14"]`, qui force le
+# moteur WebKit. C'est le bon choix — Safari mobile est WebKit, et c'est là que
+# les débordements et les zones tactiles se comportent différemment.
+npx playwright install webkit
 ```
 
 - [ ] **Step 2: Ignorer les artefacts**
