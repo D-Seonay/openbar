@@ -73,7 +73,7 @@ export default async function AdminBarDetailPage({
 
         <div className="lg:col-span-8 rounded-2xl bg-ink-2/60 border border-white/[0.08] overflow-hidden divide-y divide-white/[0.06] shadow-xl">
           {members.map((member) => (
-            <MemberRow key={member.id} barId={id} member={member} />
+            <MemberRow key={member.id} barId={id} member={member} canManage={true} />
           ))}
         </div>
       </div>

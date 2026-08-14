@@ -16,18 +16,20 @@ function formatBirthday(iso: string): string {
  * simple member never receives it as true, so the buttons never render for
  * them regardless of what this component does internally.
  *
- * Defaults to `true` for the one caller outside this task's scope
- * (`src/app/admin/bars/[id]/page.tsx`), which is already gated on global
- * admin and always showed these actions before this prop existed.
+ * No default value on purpose: this gates member management actions, so a
+ * caller that forgets to pass it should fail to compile rather than
+ * silently render the buttons for everyone. Every caller (including
+ * src/app/admin/bars/[id]/page.tsx, outside this task's scope) passes it
+ * explicitly.
  */
 export default function MemberRow({
   barId,
   member,
-  canManage = true,
+  canManage,
 }: {
   barId: string;
   member: BarMember;
-  canManage?: boolean;
+  canManage: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const [deleteError, setDeleteError] = useState<string | null>(null);
