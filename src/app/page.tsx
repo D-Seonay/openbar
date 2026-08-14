@@ -4,6 +4,7 @@ import { listMyBars, listBarsDirectory } from "@/lib/api-client";
 import { getSession } from "@/lib/session";
 import { resolveActiveBar } from "@/lib/active-bar";
 import PageTransition from "@/components/PageTransition";
+import { lienBoutonClasses } from "@/components/ui";
 import BarDirectory from "./BarDirectory";
 import GuestLanding from "./GuestLanding";
 
@@ -33,12 +34,7 @@ export default async function HomePage() {
         <p className="text-ink-soft max-w-lg mx-auto mb-8 text-[15px]">
           Vous n&apos;avez pas encore de bar. Vous pouvez en créer un ou rejoindre un bar existant pour accéder aux fonctionnalités.
         </p>
-        <Link
-          href="/creer"
-          className="min-h-[44px] px-4 rounded-lg border text-[15px] font-semibold
-            inline-flex items-center justify-center gap-2 transition-colors
-            bg-terracotta text-paper hover:bg-terracotta/90 border-transparent"
-        >
+        <Link href="/creer" className={lienBoutonClasses("principal")}>
           Créer mon premier bar
         </Link>
       </div>

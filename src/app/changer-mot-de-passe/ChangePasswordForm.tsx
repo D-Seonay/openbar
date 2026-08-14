@@ -29,7 +29,7 @@ export default function ChangePasswordForm() {
           className={champClasses}
         />
       </Field>
-      <Field label="Nouveau mot de passe" htmlFor="change-new-password">
+      <Field label="Nouveau mot de passe" htmlFor="change-new-password" aide="6 caractères min.">
         <input
           id="change-new-password"
           name="newPassword"

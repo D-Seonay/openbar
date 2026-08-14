@@ -4,7 +4,7 @@ import { getSession } from "@/lib/session";
 import { previewInviteLink, ApiError } from "@/lib/api-client";
 import { joinViaInviteLinkAction } from "@/app/bar-actions";
 import PageTransition from "@/components/PageTransition";
-import { Card } from "@/components/ui";
+import { Card, lienBoutonClasses } from "@/components/ui";
 
 export default async function RejoindreParLienPage({
   params,
@@ -45,20 +45,10 @@ export default async function RejoindreParLienPage({
         <h1 className="font-display text-[22px] text-ink">Rejoindre {barName}</h1>
         <p className="text-[15px] text-ink-soft">Connecte-toi ou crée un compte pour rejoindre ce bar.</p>
         <div className="flex flex-col gap-2">
-          <Link
-            href={`/login?redirectTo=/rejoindre/${token}`}
-            className="min-h-[44px] px-4 rounded-lg border text-[15px] font-semibold
-              inline-flex items-center justify-center gap-2 transition-colors
-              bg-terracotta text-paper hover:bg-terracotta/90 border-transparent"
-          >
+          <Link href={`/login?redirectTo=/rejoindre/${token}`} className={lienBoutonClasses("principal")}>
             Se connecter
           </Link>
-          <Link
-            href={`/signup?inviteToken=${token}`}
-            className="min-h-[44px] px-4 rounded-lg border text-[15px] font-semibold
-              inline-flex items-center justify-center gap-2 transition-colors
-              bg-transparent text-ink border-rule hover:bg-paper-sunk"
-          >
+          <Link href={`/signup?inviteToken=${token}`} className={lienBoutonClasses("discret")}>
             Créer un compte
           </Link>
         </div>

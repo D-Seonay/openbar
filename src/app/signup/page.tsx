@@ -31,7 +31,7 @@ export default async function SignupPage({
               className={champClasses}
             />
           </Field>
-          <Field label="Mot de passe" htmlFor="signup-password">
+          <Field label="Mot de passe" htmlFor="signup-password" aide="6 caractères min.">
             <input
               id="signup-password"
               name="password"

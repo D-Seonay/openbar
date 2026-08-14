@@ -1,6 +1,6 @@
 // src/app/GuestLanding.tsx
 import Link from "next/link";
-import { Card } from "@/components/ui";
+import { Card, lienBoutonClasses } from "@/components/ui";
 
 export default function GuestLanding() {
   return (
@@ -17,20 +17,10 @@ export default function GuestLanding() {
           et vous permet de découvrir ceux des autres.
         </p>
         <div className="flex items-center justify-center gap-3 pt-2">
-          <Link
-            href="/login"
-            className="min-h-[44px] px-4 rounded-lg border text-[15px] font-semibold
-              inline-flex items-center justify-center gap-2 transition-colors
-              bg-terracotta text-paper hover:bg-terracotta/90 border-transparent"
-          >
+          <Link href="/login" className={lienBoutonClasses("principal")}>
             Se connecter
           </Link>
-          <Link
-            href="/signup"
-            className="min-h-[44px] px-4 rounded-lg border text-[15px] font-semibold
-              inline-flex items-center justify-center gap-2 transition-colors
-              bg-transparent text-ink border-rule hover:bg-paper-sunk"
-          >
+          <Link href="/signup" className={lienBoutonClasses("discret")}>
             Créer un compte
           </Link>
         </div>
