@@ -5,3 +5,4 @@ export { default as Field, champClasses } from "./Field";
 export { default as Badge } from "./Badge";
 export { default as Row } from "./Row";
 export { default as Sheet } from "./Sheet";
+export { default as TabBar } from "./TabBar";

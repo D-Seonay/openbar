@@ -1,0 +1,45 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+const ONGLETS = [
+  { href: "/soirees", libelle: "Soirée", icone: "◗" },
+  { href: "/stock", libelle: "Cave", icone: "▤" },
+  { href: "/cocktails", libelle: "Cocktails", icone: "◍" },
+  { href: "/moi", libelle: "Moi", icone: "◔" },
+] as const;
+
+export default function TabBar() {
+  const chemin = usePathname();
+
+  return (
+    <nav
+      aria-label="Navigation principale"
+      className="fixed bottom-0 inset-x-0 z-50 bg-paper border-t border-rule pb-safe-0"
+    >
+      <ul className="flex">
+        {ONGLETS.map(({ href, libelle, icone }) => {
+          // `startsWith` pour que /soirees/xyz garde l'onglet Soirée allumé.
+          const actif = chemin === href || chemin.startsWith(`${href}/`);
+          return (
+            <li key={href} className="flex-1">
+              <Link
+                href={href}
+                aria-current={actif ? "page" : undefined}
+                className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 py-1.5
+                  text-[13px] font-medium
+                  ${actif ? "text-terracotta shadow-[inset_0_2px_0_var(--color-terracotta)]" : "text-ink-soft"}`}
+              >
+                <span aria-hidden className="text-[17px] leading-none">
+                  {icone}
+                </span>
+                {libelle}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
