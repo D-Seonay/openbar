@@ -6,6 +6,7 @@ interface RowProps {
   sousTitre?: ReactNode;
   /** Contenu aligné à droite : un Badge, un compteur, un prix. */
   droite?: ReactNode;
+  /** Si `href` et `onClick` sont fournis ensemble, `href` gagne. */
   href?: string;
   onClick?: () => void;
   chevron?: boolean;
@@ -29,22 +30,26 @@ export default function Row({ titre, sousTitre, droite, href, onClick, chevron }
     </>
   );
 
-  // 44px de haut, un filet en bas : c'est la liste de la maquette. Le filet
-  // remplace la carte, c'est ce qui allège la densité perçue.
   const classes =
     "w-full min-h-[44px] py-3 flex items-center gap-3 text-left " +
     "border-b border-rule last:border-b-0";
 
+  // Même anneau de focus que Button : une liste entière naviguée au clavier
+  // serait invisible sans lui.
+  const interactif =
+    `${classes} active:bg-paper-sunk ` +
+    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta";
+
   if (href) {
     return (
-      <Link href={href} className={`${classes} active:bg-paper-sunk`}>
+      <Link href={href} className={interactif}>
         {contenu}
       </Link>
     );
   }
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className={`${classes} active:bg-paper-sunk`}>
+      <button type="button" onClick={onClick} className={interactif}>
         {contenu}
       </button>
     );
