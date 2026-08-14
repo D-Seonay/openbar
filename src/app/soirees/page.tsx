@@ -106,7 +106,7 @@ export default async function SoireesPage({
 
       <div className="grid md:grid-cols-3 gap-6 items-start">
         {/* Create Event Card */}
-        <Card className="md:col-span-1 space-y-4">
+        <Card className="md:col-span-1 min-w-0 space-y-4">
           <div>
             <h2 className="font-display text-[17px] text-ink">Créer un Événement</h2>
             <p className="text-ink-soft text-[13px] mt-0.5">Configurez une nouvelle date.</p>
@@ -130,12 +130,17 @@ export default async function SoireesPage({
           </form>
         </Card>
 
-        <div className="md:col-span-1">
+        <div className="md:col-span-1 min-w-0">
           <CalendarSubscribe />
         </div>
 
         {/* Events list */}
-        <section className="md:col-span-2 space-y-8">
+        {/* min-w-0 keeps this grid item from growing to the max-content width
+            of a long, unbroken event name inside a nested `truncate` — a
+            grid item's min-width defaults to `auto` (its content's min-content
+            size), which otherwise silently stretches the whole single-column
+            mobile grid — and every sibling in it — past the viewport. */}
+        <section className="md:col-span-2 min-w-0 space-y-8">
           {/* Active Events */}
           <div className="space-y-3">
             <h2 id="en-cours" className="font-display text-[17px] text-ink">

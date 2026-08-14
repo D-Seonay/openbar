@@ -48,14 +48,14 @@ export default function PaginationLinks({
   };
 
   const buttonClass =
-    "tap-target px-3 py-1.5 rounded-xl bg-ink-2 border border-white/[0.08] text-cream hover:bg-white/[0.04] hover:text-orange transition-colors text-xs font-bold tracking-wider uppercase flex items-center";
+    "tap-target px-3 inline-flex items-center justify-center rounded-xl bg-paper-sunk border border-rule text-ink hover:bg-paper-sunk hover:text-terracotta transition-colors text-[13px] font-bold uppercase tracking-wider";
   const disabledClass =
-    "tap-target px-3 py-1.5 rounded-xl bg-ink-2 border border-white/[0.08] text-cream opacity-50 cursor-not-allowed text-xs font-bold tracking-wider uppercase flex items-center";
+    "tap-target px-3 inline-flex items-center justify-center rounded-xl bg-paper-sunk border border-rule text-ink opacity-50 cursor-not-allowed text-[13px] font-bold uppercase tracking-wider";
 
   return (
     <nav
       aria-label="Pagination"
-      className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-white/[0.06]"
+      className="flex flex-wrap items-center justify-center gap-2 mt-6 pt-4 border-t border-rule"
     >
       {currentPage === 1 ? (
         <span className={disabledClass} aria-disabled="true">
@@ -67,9 +67,9 @@ export default function PaginationLinks({
         </Link>
       )}
 
-      <span className="text-xs text-muted font-bold px-3 uppercase tracking-wider">
-        Page <span className="text-cream">{currentPage}</span> sur{" "}
-        <span className="text-cream">{totalPages}</span>
+      <span className="text-[13px] text-ink-soft font-bold px-3 uppercase tracking-wider">
+        Page <span className="text-ink">{currentPage}</span> sur{" "}
+        <span className="text-ink">{totalPages}</span>
       </span>
 
       {currentPage === totalPages ? (
