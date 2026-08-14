@@ -83,7 +83,7 @@ export default function ModalShell({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
         onClick={onDismiss}
-        className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-paper/90"
+        className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-ink/40"
       >
         <motion.div
           role="dialog"
