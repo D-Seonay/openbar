@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { test as base } from "@playwright/test";
 import { test, testAdmin, expect } from "./fixtures";
 
 /**
@@ -97,6 +98,32 @@ for (const chemin of PAGES) {
     });
 
     test("n'affiche aucun texte sous 13px", async ({ page }) => {
+      await page.goto(chemin);
+      await verifierTaillesTexte(page);
+    });
+  });
+}
+
+// /login et /signup s'affichent sans session : elles ne passent pas par la
+// fixture connectée (celle-ci se connecte via `/login` elle-même, s'y
+// auditer par-dessus serait circulaire). Chaque état est vérifié — vierge et
+// en erreur — car un audit qui ne regarde que l'état vierge d'un formulaire
+// rate systématiquement le débordement introduit par le message d'erreur.
+const PAGES_PUBLIQUES = ["/login", "/signup", "/login?error=1", "/signup?error=1"];
+
+for (const chemin of PAGES_PUBLIQUES) {
+  base.describe(chemin, () => {
+    base("ne déborde pas horizontalement", async ({ page }) => {
+      await page.goto(chemin);
+      await verifierDebordement(page);
+    });
+
+    base("n'a aucune cible tactile sous 44px", async ({ page }) => {
+      await page.goto(chemin);
+      await verifierCiblesTactiles(page);
+    });
+
+    base("n'affiche aucun texte sous 13px", async ({ page }) => {
       await page.goto(chemin);
       await verifierTaillesTexte(page);
     });
