@@ -51,7 +51,7 @@ export default function AccountMenu({ session, avatarUrl }: AccountMenuProps) {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className={`group relative flex items-center justify-center w-9 h-9 rounded-full border shadow-sm transition-all duration-200 cursor-pointer overflow-hidden ${
+        className={`group relative flex items-center justify-center w-11 h-11 rounded-full border shadow-sm transition-all duration-200 cursor-pointer overflow-hidden ${
           isAdmin
             ? "border-orange/40 hover:border-orange"
             : "border-white/[0.08] hover:border-orange/40"

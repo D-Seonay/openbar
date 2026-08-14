@@ -80,7 +80,10 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-paper text-ink font-sans antialiased overflow-x-hidden">
         <header className="border-b border-rule bg-paper sticky top-0 z-40">
           <div className="max-w-3xl mx-auto px-4 h-[52px] flex items-center justify-between gap-3">
-            <Link href="/" className="font-display text-[17px] text-ink truncate">
+            <Link
+              href="/"
+              className="min-h-[44px] flex items-center font-display text-[17px] text-ink truncate"
+            >
               {activeBar?.name ?? "OpenBar"}
             </Link>
             <div className="flex items-center gap-2 shrink-0">
