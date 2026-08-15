@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { createBottle, uploadBottleImage } from "@/app/actions";
 import type { BottleType, BottleVolume } from "@/lib/types";
 import ImagePicker from "@/components/ImagePicker";
+import { Button, Field, champClasses } from "@/components/ui";
 
 const TYPES = [
   ["whisky", "Whisky"],
@@ -91,7 +92,10 @@ export default function AddBottleForm({
   };
 
   return (
-    <form ref={formRef} action={handleSubmit} className="grid sm:grid-cols-2 gap-4">
+    // Pas de space-y-4 ici : chaque <Field> pose déjà son propre mb-4, et il
+    // serait alors doublé (mb-4 + mt-4) entre deux champs adjacents. Les
+    // quelques enfants non-Field portent donc leur mb-4 individuellement.
+    <form ref={formRef} action={handleSubmit}>
       {/* Hidden input to pass volumes list as JSON */}
       <input type="hidden" name="volumes" value={JSON.stringify(volumes)} />
       {/* Carries the scanned code through to the API so a later scan of the
@@ -99,63 +103,71 @@ export default function AddBottleForm({
       {prefill?.barcode && <input type="hidden" name="barcode" value={prefill.barcode} />}
 
       {prefill?.barcode && (
-        <div className="sm:col-span-2 rounded-lg border border-gold/25 bg-gold/[0.06] px-3 py-2 flex items-center gap-2">
-          <span className="text-sm">🏷️</span>
-          <span className="text-[11px] text-gold-dim">
-            Code-barres scanné :{" "}
-            <span className="font-mono text-cream">{prefill.barcode}</span>
+        <div className="mb-4 rounded-lg border border-rule bg-paper-sunk px-3 py-2 flex items-center gap-2">
+          <span className="text-[15px]">🏷️</span>
+          <span className="text-[13px] text-ink-soft">
+            Code-barres scanné : <span className="font-mono text-ink">{prefill.barcode}</span>
           </span>
         </div>
       )}
 
-      <div className="sm:col-span-2">
-        <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">Nom de la bouteille</label>
+      <Field label="Nom de la bouteille" htmlFor="add-bottle-name">
         <input
+          id="add-bottle-name"
           name="name"
           defaultValue={prefill?.name ?? ""}
           placeholder="Ex: Gin Hendrick's"
           required
-          className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+          className={champClasses}
         />
-      </div>
+      </Field>
 
-      <div>
-        <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">Type d&apos;ingrédient</label>
+      <Field label="Type d'ingrédient" htmlFor="add-bottle-type">
         <select
+          id="add-bottle-type"
           name="type"
           defaultValue={prefill?.type ?? "whisky"}
-          className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+          className={`appearance-none ${champClasses}`}
         >
           {TYPES.map(([value, label]) => (
-            <option key={value} value={value} className="bg-ink">
+            <option key={value} value={value}>
               {label}
             </option>
           ))}
         </select>
-      </div>
+      </Field>
 
-      <div className="sm:col-span-2">
+      <div className="mb-4">
         <input type="hidden" name="imageUrl" value={imageUrl} />
         {/* The preview and its "Retirer" button live inside ImagePicker so the
             profile avatar and the bottle detail modal keep them too. */}
-        <ImagePicker value={imageUrl} onChange={setImageUrl} onUpload={uploadBottleImage} label="Photo du produit (Fichier local ou URL)" />
+        <ImagePicker
+          value={imageUrl}
+          onChange={setImageUrl}
+          onUpload={uploadBottleImage}
+          label="Photo du produit (Fichier local ou URL)"
+        />
       </div>
 
       {/* Volumes and quantities editor */}
-      <div className="sm:col-span-2 space-y-3 border border-orange/15 bg-ink/40 p-4 rounded-xl">
-        <div className="flex justify-between items-center border-b border-orange/5 pb-2">
-          <label className="text-xs uppercase tracking-caps text-gold-dim block">Formats en stock</label>
+      <div className="mb-4 space-y-3 border border-rule bg-paper-sunk p-4 rounded-xl">
+        <div className="flex justify-between items-center border-b border-rule pb-2">
+          <span className="text-[13px] uppercase tracking-caps text-ink-soft block">
+            Formats en stock
+          </span>
           <button
             type="button"
             onClick={addVolumeRow}
-            className="text-[10px] uppercase tracking-caps text-orange hover:text-orange-hover font-semibold transition-colors"
+            className="tap-target px-2 text-[13px] uppercase tracking-caps text-terracotta font-semibold transition-colors"
           >
             ＋ Ajouter un format
           </button>
         </div>
 
         {volumes.length === 0 ? (
-          <p className="text-xs text-muted/65 py-2">Aucun format configuré. La quantité générale sera de 0.</p>
+          <p className="text-[13px] text-ink-soft py-2">
+            Aucun format configuré. La quantité générale sera de 0.
+          </p>
         ) : (
           <div className="space-y-2">
             {volumes.map((vol, idx) => (
@@ -166,10 +178,10 @@ export default function AddBottleForm({
                   value={vol.size}
                   required
                   onChange={(e) => updateVolume(idx, "size", e.target.value)}
-                  className="flex-1 min-w-0 basis-full sm:basis-0 bg-ink border border-orange/15 rounded-lg px-3 py-2 text-xs text-cream focus:outline-none focus:border-orange"
+                  className={`flex-1 min-w-0 basis-full sm:basis-0 ${champClasses}`}
                 />
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-xs text-muted font-mono">Qté:</span>
+                  <span className="text-[13px] text-ink-soft font-mono">Qté:</span>
                   <input
                     type="number"
                     min="1"
@@ -178,14 +190,14 @@ export default function AddBottleForm({
                     value={vol.quantity}
                     required
                     onChange={(e) => updateVolume(idx, "quantity", e.target.value)}
-                    className="w-20 sm:w-16 bg-ink border border-orange/15 rounded-lg px-3 py-2 text-xs text-center text-cream focus:outline-none focus:border-orange"
+                    className={`w-20 sm:w-16 text-center ${champClasses}`}
                   />
                 </div>
                 {volumes.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeVolumeRow(idx)}
-                    className="tap-target-sm flex items-center shrink-0 text-xs text-muted hover:text-red-400 font-semibold px-2 py-1 transition-colors cursor-pointer"
+                    className="tap-target flex items-center shrink-0 text-[13px] text-ink-soft hover:text-terracotta font-semibold px-2 transition-colors cursor-pointer"
                   >
                     Retirer
                   </button>
@@ -196,66 +208,60 @@ export default function AddBottleForm({
         )}
       </div>
 
-      <div className="sm:col-span-2">
-        <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">Tags cocktail (séparés par virgules)</label>
+      <Field label="Tags cocktail (séparés par virgules)" htmlFor="add-bottle-tags">
         <input
+          id="add-bottle-tags"
           name="tags"
           placeholder="Ex: gin, citron vert, tonic"
-          className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+          className={champClasses}
         />
-      </div>
+      </Field>
 
-      <div className="sm:col-span-2">
-        <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">Notes / Emplacement (Optionnel)</label>
+      <Field label="Notes / Emplacement (Optionnel)" htmlFor="add-bottle-notes">
         <input
+          id="add-bottle-notes"
           name="notes"
           placeholder="Ex: étagère du milieu, bar principal"
-          className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+          className={champClasses}
         />
-      </div>
+      </Field>
 
-      <div>
-        <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">Seuil d&apos;alerte (Optionnel)</label>
+      <Field label="Seuil d'alerte (Optionnel)" htmlFor="add-bottle-threshold">
         <input
+          id="add-bottle-threshold"
           name="lowStockThreshold"
           type="number"
           min="0"
           step="1"
           inputMode="numeric"
           placeholder="Alerte si bouteilles <= X"
-          className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+          className={champClasses}
         />
-      </div>
+      </Field>
 
       {isVip && (
-        <div className="flex items-end pb-2">
-          <label className="flex items-center gap-2.5 text-sm text-gold cursor-pointer select-none">
-            <input 
-              type="checkbox" 
-              name="vip" 
-              className="w-5 h-5 rounded border-orange/30 text-orange focus:ring-orange bg-ink accent-gold cursor-pointer" 
-            />
-            <span className="font-medium">Réserver à la section VIP</span>
-          </label>
-        </div>
+        <label className="mb-4 tap-target flex items-center gap-2.5 text-[15px] text-ink cursor-pointer select-none">
+          <input
+            type="checkbox"
+            name="vip"
+            className="tap-target shrink-0 rounded border-rule accent-terracotta cursor-pointer"
+          />
+          <span className="font-medium">Réserver à la section VIP</span>
+        </label>
       )}
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="sm:col-span-2 bg-orange text-ink font-semibold rounded-lg py-2.5 hover:bg-cream transition-colors mt-2 uppercase tracking-caps text-xs duration-350 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-      >
+      <Button type="submit" pleineLargeur disabled={isPending} className="mb-4">
         {isPending ? "Ajout en cours..." : "Ajouter au stock"}
-      </button>
+      </Button>
 
       {error && (
-        <div className="sm:col-span-2 text-xs bg-red-950/30 border border-red-500/30 rounded-xl p-3 text-red-300 text-center font-semibold">
+        <div className="text-[13px] bg-paper-sunk border border-terracotta/30 rounded-xl p-3 text-terracotta text-center font-semibold">
           {error}
         </div>
       )}
 
       {saved && (
-        <div className="sm:col-span-2 text-xs bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-emerald-300 text-center font-semibold uppercase tracking-caps">
+        <div className="text-[13px] bg-paper-sunk border border-done/35 rounded-xl p-3 text-done text-center font-semibold uppercase tracking-caps">
           ✓ Bouteille ajoutée !
         </div>
       )}

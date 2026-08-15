@@ -7,6 +7,7 @@ import type { SessionUser } from "@/lib/session";
 import type { RecipeAvailability } from "@/lib/cocktail-types";
 import { useTransition } from "react";
 import { getCategoryStyle } from "@/lib/categoryStyles";
+import { Badge, Button, Card, champClasses } from "@/components/ui";
 
 interface StockLine {
   name: string;
@@ -42,13 +43,13 @@ export default function GuestPanel({
 
   if (!session) {
     return (
-      <section className="rounded-2xl border border-orange/20 bg-ink-2/80 p-6 sm:p-8 max-w-md mx-auto box-orange-glow text-center space-y-6 my-6 sm:my-10 backdrop-blur-xl">
-        <div className="w-16 h-16 rounded-2xl bg-orange/15 border border-orange/30 flex items-center justify-center text-4xl mx-auto shadow-md">
+      <Card className="max-w-md mx-auto text-center space-y-6 my-6 sm:my-10">
+        <div className="w-16 h-16 rounded-2xl bg-paper-sunk border border-rule flex items-center justify-center text-4xl mx-auto">
           🎟️
         </div>
         <div>
-          <h2 className="font-display text-2xl sm:text-3xl font-bold text-cream">Rejoindre le Party Board</h2>
-          <p className="text-xs text-muted mt-2 leading-relaxed">
+          <h2 className="font-display text-[27px] text-ink">Rejoindre le Party Board</h2>
+          <p className="text-[13px] text-ink-soft mt-2 leading-relaxed">
             Identifiez-vous par votre prénom pour découvrir ce qui est déjà au Bar, voir qui apporte quoi et promener vos verres dans le salon.
           </p>
         </div>
@@ -61,7 +62,7 @@ export default function GuestPanel({
             autoComplete="username"
             autoCapitalize="words"
             autoCorrect="off"
-            className="bg-ink border border-white/[0.12] rounded-xl px-4 py-3 text-sm placeholder:text-muted/50 focus:outline-none focus:border-orange focus:bg-ink-2/50 transition-all text-cream text-center font-medium shadow-inner"
+            className={`text-center ${champClasses}`}
           />
           <input
             name="password"
@@ -69,59 +70,49 @@ export default function GuestPanel({
             required
             placeholder="Code secret de la soirée (ou vide si public)"
             autoComplete="current-password"
-            className="bg-ink border border-white/[0.12] rounded-xl px-4 py-3 text-sm placeholder:text-muted/50 focus:outline-none focus:border-orange focus:bg-ink-2/50 transition-all text-cream text-center font-medium shadow-inner"
+            className={`text-center ${champClasses}`}
           />
-          <button
-            type="submit"
-            className="tap-target flex items-center justify-center bg-gradient-to-r from-orange to-orange-hover text-ink font-extrabold rounded-xl px-5 py-3.5 text-xs uppercase tracking-widest hover:brightness-110 box-orange-glow transition-all cursor-pointer"
-          >
+          <Button type="submit" pleineLargeur>
             Entrer au Salon →
-          </button>
+          </Button>
         </form>
-      </section>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* Welcome Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-orange/20 bg-gradient-to-r from-ink-2 via-ink-2 to-ink p-5 box-orange-glow">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-rule bg-paper-sunk p-4">
         <div className="flex items-center gap-3">
-          <span className="w-10 h-10 rounded-xl bg-orange/20 border border-orange/30 flex items-center justify-center text-xl">
+          <span className="w-10 h-10 rounded-xl bg-paper border border-rule flex items-center justify-center text-xl">
             👋
           </span>
           <div>
-            <p className="text-sm text-cream font-bold">
-              Bienvenue sur le Party Board, <span className="text-orange">{session.username}</span> !
+            <p className="text-[15px] text-ink font-semibold">
+              Bienvenue sur le Party Board, <span className="text-terracotta">{session.username}</span> !
             </p>
-            <p className="text-xs text-muted">Coordonnez vos apports en direct avec les autres invités.</p>
+            <p className="text-[13px] text-ink-soft">Coordonnez vos apports en direct avec les autres invités.</p>
           </div>
         </div>
-        {session.vip && (
-          <span className="text-gold font-bold bg-gold/15 px-3 py-1 rounded-full border border-gold/30 text-[10px] uppercase tracking-wider animate-pulse self-start sm:self-auto">
-            👑 Privilège VIP Secret
-          </span>
-        )}
+        {session.vip && <Badge ton="alerte">👑 Privilège VIP Secret</Badge>}
       </div>
 
-      <div className="grid lg:grid-cols-12 gap-8">
+      <div className="grid lg:grid-cols-12 gap-6">
         {/* Left Column: Party Board Live Contributions (Col 7) */}
         <div className="lg:col-span-7 space-y-6">
-          <section className="rounded-2xl border border-white/[0.08] bg-ink-2/80 p-5 sm:p-6 space-y-5 shadow-xl backdrop-blur-xl">
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-orange animate-pulse" />
-                <h2 className="font-display text-xl font-bold text-cream">Qui ramène quoi</h2>
-              </div>
-              <span className="text-xs font-mono font-bold text-orange bg-orange/15 px-3 py-1 rounded-full border border-orange/30">
+          <Card className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-[17px] text-ink">Qui ramène quoi</h2>
+              <Badge ton="neutre">
                 {contributions.length} Contribution{contributions.length !== 1 ? "s" : ""}
-              </span>
+              </Badge>
             </div>
 
             {/* Quick 1-tap pledges */}
             <div className="space-y-2">
-              <p className="text-[10px] uppercase tracking-caps text-muted font-bold">
-                ⚡ Promesses rapides en 1 clic :
+              <p className="text-[13px] uppercase tracking-caps text-ink-soft font-semibold">
+                Promesses rapides en 1 clic :
               </p>
               <div className="flex flex-wrap gap-2">
                 {QUICK_ITEMS.map((qi) => (
@@ -136,7 +127,7 @@ export default function GuestPanel({
                   >
                     <button
                       type="submit"
-                      className="tap-target-sm flex items-center px-3.5 py-2 rounded-xl bg-ink/70 hover:bg-orange/20 border border-white/[0.1] hover:border-orange/40 text-xs text-cream font-semibold transition-all cursor-pointer active:scale-95"
+                      className="tap-target inline-flex items-center px-3.5 rounded-xl bg-paper-sunk border border-rule text-[13px] text-ink font-semibold transition-colors hover:border-terracotta cursor-pointer"
                     >
                       + {qi.label}
                     </button>
@@ -150,55 +141,44 @@ export default function GuestPanel({
               action={async (formData: FormData) => {
                 await addContribution(slug, formData);
               }}
-              className="grid sm:grid-cols-[1fr_auto_auto] gap-2 pt-2"
+              className="grid sm:grid-cols-[1fr_auto_auto] gap-2"
             >
               <input
                 name="item"
                 required
                 placeholder="Ou autre : Rhum, Jus de Citron, Soft..."
-                className="bg-ink border border-white/[0.12] rounded-xl px-3.5 py-2.5 text-xs placeholder:text-muted/60 focus:outline-none focus:border-orange text-cream font-medium"
+                className={champClasses}
               />
               <input
                 name="quantity"
                 placeholder="Qté (ex: 2 btl)"
-                className="bg-ink border border-white/[0.12] rounded-xl px-3.5 py-2.5 text-xs placeholder:text-muted/60 focus:outline-none focus:border-orange text-cream font-medium w-full sm:w-28"
+                className={`w-full sm:w-28 ${champClasses}`}
               />
-              <button
-                type="submit"
-                className="tap-target flex items-center justify-center bg-orange text-ink font-extrabold rounded-xl px-4 py-2.5 text-xs hover:bg-orange-hover box-orange-glow transition-all uppercase tracking-wider cursor-pointer"
-              >
-                Promettre
-              </button>
+              <Button type="submit">Promettre</Button>
             </form>
 
             {/* Contribution Live List */}
             {contributions.length === 0 ? (
-              <div className="text-center py-8 rounded-xl bg-ink/40 border border-white/[0.05]">
-                <p className="text-2xl mb-2">🎁</p>
-                <p className="text-muted text-xs italic">Soyez le premier à ajouter un apport pour la soirée !</p>
+              <div className="text-center py-8 rounded-xl bg-paper-sunk">
+                <p className="text-[13px] text-ink-soft italic">Soyez le premier à ajouter un apport pour la soirée !</p>
               </div>
             ) : (
               <ul className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
                 {contributions.map((c) => (
                   <li
                     key={c.id}
-                    className="rounded-xl border border-white/[0.08] bg-ink/70 px-3.5 sm:px-4 py-3 flex items-start justify-between gap-3 text-xs text-cream hover:border-orange/30 transition-all"
+                    className="rounded-xl border border-rule bg-paper px-3.5 sm:px-4 py-3 flex items-start justify-between gap-3 text-[13px] text-ink"
                   >
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                      <span className="font-bold text-orange">{c.user.username}</span>
-                      <span className="text-muted">apporte</span>
-                      <span className="font-semibold text-cream break-words">{c.item}</span>
-                      {c.quantity && (
-                        <span className="text-[10px] font-mono bg-orange/15 px-2 py-0.5 rounded text-orange font-bold border border-orange/30">
-                          {c.quantity}
-                        </span>
-                      )}
+                      <span className="font-semibold text-terracotta">{c.user.username}</span>
+                      <span className="text-ink-soft">apporte</span>
+                      <span className="font-semibold text-ink break-words">{c.item}</span>
+                      {c.quantity && <Badge ton="neutre">{c.quantity}</Badge>}
                     </div>
                     {c.user.id === session.sub && (
                       <button
                         onClick={() => startTransition(() => deleteContributionAction(slug, c.id))}
-                        className="tap-target-sm shrink-0 flex items-center px-1.5 text-[10px] text-muted hover:text-red-400 font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                        className="tap-target shrink-0 inline-flex items-center px-1.5 text-[13px] text-ink-soft hover:text-terracotta font-semibold transition-colors cursor-pointer"
                       >
                         Retirer
                       </button>
@@ -207,16 +187,13 @@ export default function GuestPanel({
                 ))}
               </ul>
             )}
-          </section>
+          </Card>
 
           {/* Already at the Bar Section */}
-          <section className="rounded-2xl border border-white/[0.08] bg-ink-2/60 p-5 sm:p-6 space-y-4">
-            <h2 className="font-display text-lg font-bold text-cream border-b border-white/[0.08] pb-2 flex items-center gap-2">
-              <span>🍸</span>
-              <span>Déjà au Bar de l&apos;Hôte</span>
-            </h2>
+          <Card className="space-y-4">
+            <h2 className="font-display text-[17px] text-ink">Déjà au Bar de l&apos;Hôte</h2>
             {stock.length === 0 ? (
-              <p className="text-muted text-xs italic">Aucune bouteille déclarée en stock.</p>
+              <p className="text-[13px] text-ink-soft italic">Aucune bouteille déclarée en stock.</p>
             ) : (
               <div className="grid sm:grid-cols-2 gap-2.5 max-h-[220px] overflow-y-auto pr-1">
                 {stock.map((b, i) => {
@@ -224,57 +201,45 @@ export default function GuestPanel({
                   return (
                     <div
                       key={i}
-                      className="rounded-xl border border-white/[0.07] bg-ink/60 px-3.5 py-2.5 flex justify-between items-center text-xs"
+                      className="rounded-xl border border-rule bg-paper-sunk px-3.5 py-2.5 flex justify-between items-center text-[13px]"
                     >
-                      <span className="font-semibold text-cream truncate mr-2 flex items-center gap-1.5">
+                      <span className="font-semibold text-ink truncate mr-2 flex items-center gap-1.5">
                         <span>{style.icon}</span>
                         <span>{b.name}</span>
                       </span>
-                      <span className="text-[10px] font-mono bg-white/[0.07] px-2 py-0.5 rounded text-cream font-bold">
-                        {b.quantity}
-                      </span>
+                      <Badge ton="neutre">{b.quantity}</Badge>
                     </div>
                   );
                 })}
               </div>
             )}
-          </section>
+          </Card>
         </div>
 
         {/* Right Column: Cocktails & VIP Secret Vault (Col 5) */}
         <div className="lg:col-span-5 space-y-6">
-          <section className="rounded-2xl border border-white/[0.08] bg-ink-2/80 p-5 sm:p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
-              <h2 className="font-display text-lg font-bold text-cream flex items-center gap-2">
-                <span>🍹</span>
-                <span>Cocktails Servis ce Soir</span>
-              </h2>
-              <span className="text-xs font-mono text-emerald-400 bg-emerald-950/50 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-bold">
-                {readyCocktails.length} Prêts
-              </span>
+          <Card className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-[17px] text-ink">Cocktails Servis ce Soir</h2>
+              <Badge ton="complet">{readyCocktails.length} Prêts</Badge>
             </div>
 
             {readyCocktails.length === 0 ? (
-              <p className="text-muted text-xs italic py-4">
+              <p className="text-[13px] text-ink-soft italic py-2">
                 Aucun cocktail complet pour l&apos;instant. Apportez les ingrédients manquants pour enrichir la carte !
               </p>
             ) : (
               <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
                 {readyCocktails.map(({ recipe }) => (
-                  <div
-                    key={recipe.id}
-                    className="rounded-xl border border-white/[0.08] bg-ink/70 p-4 hover:border-orange/30 transition-all space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-display text-base text-cream font-bold">{recipe.name}</h3>
-                      <span className="text-[10px] uppercase font-mono text-orange bg-orange/15 px-2 py-0.5 rounded">
-                        {recipe.glass}
-                      </span>
+                  <div key={recipe.id} className="rounded-xl border border-rule bg-paper-sunk p-4 space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="font-display text-[15px] text-ink font-semibold">{recipe.name}</h3>
+                      <Badge ton="neutre">{recipe.glass}</Badge>
                     </div>
-                    <p className="text-xs text-muted italic line-clamp-2">{recipe.description}</p>
-                    <div className="flex flex-wrap gap-1 pt-1">
+                    <p className="text-[13px] text-ink-soft italic line-clamp-2">{recipe.description}</p>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
                       {recipe.tags.map((tag) => (
-                        <span key={tag} className="text-[10px] px-2 py-0.5 rounded bg-white/[0.05] text-cream/80">
+                        <span key={tag} className="text-[13px] px-2 py-0.5 rounded bg-paper text-ink-soft">
                           {tag}
                         </span>
                       ))}
@@ -283,32 +248,29 @@ export default function GuestPanel({
                 ))}
               </div>
             )}
-          </section>
+          </Card>
 
           {/* Secret VIP Vault if session is VIP */}
           {session.vip && (
-            <section className="rounded-2xl vip-vault-card p-5 sm:p-6 border border-gold/40 space-y-4 shadow-2xl">
-              <div className="flex items-center gap-2.5 border-b border-gold/20 pb-3">
-                <span className="text-2xl">🔒</span>
-                <div>
-                  <h3 className="font-display text-lg text-gold font-bold">Le Salon Secret VIP</h3>
-                  <p className="text-[10px] text-gold-dim">Réservé aux membres initiés de la soirée</p>
-                </div>
+            <Card className="space-y-4">
+              <div>
+                <h3 className="font-display text-[17px] text-ink">Le Salon Secret VIP</h3>
+                <p className="text-[13px] text-ink-soft">Réservé aux membres initiés de la soirée</p>
               </div>
 
               {vipStock.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-[10px] text-gold uppercase tracking-wider font-bold">Alcools Rares de la Réserve</p>
-                  <div className="grid sm:grid-cols-2 gap-2 text-xs">
+                  <p className="text-[13px] text-terracotta uppercase tracking-caps font-semibold">
+                    Alcools Rares de la Réserve
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-2 text-[13px]">
                     {vipStock.map((b, i) => (
                       <div
                         key={i}
-                        className="rounded-xl border border-gold/20 bg-ink/60 px-3 py-2 flex justify-between items-center text-cream"
+                        className="rounded-xl border border-rule bg-paper-sunk px-3 py-2 flex justify-between items-center text-ink"
                       >
                         <span className="font-semibold truncate mr-2">{b.name}</span>
-                        <span className="text-[10px] font-mono bg-gold/20 px-2 py-0.5 rounded text-gold font-bold">
-                          {b.quantity}
-                        </span>
+                        <Badge ton="neutre">{b.quantity}</Badge>
                       </div>
                     ))}
                   </div>
@@ -316,22 +278,24 @@ export default function GuestPanel({
               )}
 
               {vipCocktails.length > 0 && (
-                <div className="space-y-2 pt-2">
-                  <p className="text-[10px] text-gold uppercase tracking-wider font-bold">Cocktails Rares Débloqués</p>
+                <div className="space-y-2">
+                  <p className="text-[13px] text-terracotta uppercase tracking-caps font-semibold">
+                    Cocktails Rares Débloqués
+                  </p>
                   <div className="space-y-2">
                     {vipCocktails.map(({ recipe }) => (
                       <div
                         key={recipe.id}
-                        className="rounded-xl border border-gold/25 bg-ink/40 p-3 text-xs flex justify-between items-center"
+                        className="rounded-xl border border-rule bg-paper-sunk p-3 text-[13px] flex justify-between items-center"
                       >
-                        <span className="font-display text-sm text-cream font-bold">{recipe.name}</span>
-                        <span className="text-gold text-[10px] uppercase font-mono">{recipe.glass}</span>
+                        <span className="font-display text-[15px] text-ink font-semibold">{recipe.name}</span>
+                        <span className="text-terracotta text-[13px]">{recipe.glass}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-            </section>
+            </Card>
           )}
         </div>
       </div>

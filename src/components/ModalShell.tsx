@@ -19,20 +19,20 @@ export interface ModalShellProps {
 
 const ACCENTS: Record<ModalShellProps["accent"], { panel: string; badge: string }> = {
   danger: {
-    panel: "border-red-500/30",
-    badge: "bg-red-500/15 border-red-500/30 text-red-400",
+    panel: "border-terracotta/30",
+    badge: "bg-terracotta/15 border-terracotta/30 text-terracotta",
   },
   warning: {
-    panel: "border-orange/30",
-    badge: "bg-orange/15 border-orange/30 text-orange",
+    panel: "border-warn/30",
+    badge: "bg-warn/15 border-warn/30 text-warn",
   },
   success: {
-    panel: "border-emerald-500/30",
-    badge: "bg-emerald-500/15 border-emerald-500/30 text-emerald-400",
+    panel: "border-done/30",
+    badge: "bg-done/15 border-done/30 text-done",
   },
   info: {
-    panel: "border-white/[0.12]",
-    badge: "bg-white/[0.06] border-white/[0.12] text-cream",
+    panel: "border-rule",
+    badge: "bg-paper-sunk border-rule text-ink",
   },
 };
 
@@ -83,7 +83,7 @@ export default function ModalShell({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
         onClick={onDismiss}
-        className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-ink/90 backdrop-blur-xl"
+        className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-ink/40"
       >
         <motion.div
           role="dialog"
@@ -94,7 +94,7 @@ export default function ModalShell({
           exit={{ scale: 0.94, opacity: 0, y: 16 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           onClick={(e) => e.stopPropagation()}
-          className={`relative w-full max-w-md bg-ink-2/95 border ${tone.panel} rounded-2xl p-5 sm:p-7 shadow-2xl space-y-5`}
+          className={`relative w-full max-w-md bg-paper border ${tone.panel} rounded-2xl p-5 sm:p-7 shadow-2xl space-y-5`}
         >
           <div className="flex items-start gap-3">
             <div
@@ -103,18 +103,18 @@ export default function ModalShell({
               {icon}
             </div>
             <div className="min-w-0">
-              <h3 className="font-display text-lg sm:text-xl font-bold text-cream">{title}</h3>
+              <h3 className="font-display text-lg sm:text-xl font-bold text-ink">{title}</h3>
               {description && (
                 // `whitespace-pre-line` so callers can keep the line breaks the
                 // old `confirm()` strings relied on.
-                <p className="text-xs text-muted mt-0.5 break-words whitespace-pre-line">
+                <p className="text-[13px] text-ink-soft mt-0.5 break-words whitespace-pre-line">
                   {description}
                 </p>
               )}
             </div>
           </div>
 
-          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-2.5 sm:gap-3 pt-3 border-t border-white/[0.08]">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-2.5 sm:gap-3 pt-3 border-t border-rule">
             {children}
           </div>
         </motion.div>

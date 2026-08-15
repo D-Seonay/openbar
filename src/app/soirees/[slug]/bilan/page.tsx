@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { getEvent, listBottles, listStockAdjustments, listMyBars } from "@/lib/api-client";
 import { getSession } from "@/lib/session";
-import { resolveActiveBar } from "@/lib/active-bar";
 import BilanClientForm from "./BilanClientForm";
 
 export default async function BilanPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -12,12 +11,23 @@ export default async function BilanPage({ params }: { params: Promise<{ slug: st
   const event = await getEvent(slug);
   if (!event) notFound();
 
+  // Le bilan porte sur le bar hôte de la soirée, pas sur le bar actuellement
+  // sélectionné dans le switcher : sinon un propriétaire perd le contrôle de
+  // sa propre soirée dès qu'il bascule sur un autre bar (faux négatif), et
+  // peut à l'inverse écraser le stock d'un autre bar sous le titre d'une
+  // soirée dont il n'est pas l'hôte (faux positif). Même résolution que la
+  // page sœur src/app/soirees/[slug]/page.tsx.
   const bars = await listMyBars();
-  const activeBar = await resolveActiveBar(bars);
-  if (!activeBar) redirect("/");
+  const hostBar = bars.find((bar) => bar.id === event.barId) ?? null;
+
+  // Le bilan est réservé au propriétaire du bar hôte et à l'ADMIN global : le
+  // proxy ne connaît pas l'appartenance au bar, donc cette garde vit ici
+  // plutôt que dans src/proxy.ts.
+  const canViewBilan = session.role === "ADMIN" || hostBar?.myRole === "OWNER";
+  if (!canViewBilan) redirect(`/soirees/${slug}`);
 
   const [bottles, adjustments] = await Promise.all([
-    listBottles(activeBar.id),
+    listBottles(event.barId),
     listStockAdjustments(slug),
   ]);
 
@@ -45,13 +55,13 @@ export default async function BilanPage({ params }: { params: Promise<{ slug: st
   return (
     <div className="space-y-8">
       <div>
-        <span className="text-[10px] uppercase tracking-[0.2em] text-orange font-semibold">
+        <span className="text-[13px] uppercase tracking-caps text-terracotta font-semibold">
           Bilan de fin de soirée
         </span>
-        <h1 className="font-display text-3xl sm:text-4xl text-cream mt-1">
+        <h1 className="font-display text-[27px] text-ink mt-1">
           {event.name}
         </h1>
-        <p className="text-muted text-xs mt-2 max-w-xl leading-relaxed">
+        <p className="text-ink-soft text-[13px] mt-2 max-w-xl leading-relaxed">
           Ajustez les stocks après votre soirée. Indiquez le nombre de bouteilles consommées ou le nouveau stock restant : le système synchronisera automatiquement les quantités et les volumes de votre cave.
         </p>
       </div>

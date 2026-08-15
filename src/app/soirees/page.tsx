@@ -11,6 +11,7 @@ import PageTransition from "@/components/PageTransition";
 import CalendarSubscribe from "./CalendarSubscribe";
 import PaginationLinks from "@/components/PaginationLinks";
 import { paginate } from "@/lib/pagination";
+import { Badge, Button, Card, EmptyState, Field, Row, champClasses } from "@/components/ui";
 
 export default async function SoireesPage({
   searchParams,
@@ -40,29 +41,39 @@ export default async function SoireesPage({
   const activeEvents = paginate(sorted.filter((e) => !e.isClosed), page);
   const historyEvents = paginate(sorted.filter((e) => e.isClosed), histoire);
 
+  const formatDate = (date: string) =>
+    new Date(date).toLocaleDateString("fr-FR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
   return (
     <PageTransition className="space-y-8">
       <div>
-        <span className="text-xs uppercase tracking-caps text-orange font-semibold">Organisation & Événements</span>
-        <h1 className="font-display text-4xl sm:text-5xl font-bold text-cream mt-1 tracking-tight">Soirées Privées</h1>
-        <p className="text-muted text-xs mt-2 max-w-lg leading-relaxed">
+        <span className="text-[13px] uppercase tracking-caps text-terracotta font-semibold">
+          Organisation & Événements
+        </span>
+        <h1 className="font-display text-[27px] text-ink mt-1">Soirées Privées</h1>
+        <p className="text-ink-soft text-[13px] mt-2 max-w-lg leading-relaxed">
           Planifiez vos soirées et générez des liens d&apos;invitation pour permettre à vos convives d&apos;indiquer ce qu&apos;ils apportent.
         </p>
       </div>
 
       {overdue.length > 0 && (
-        <div className="rounded-2xl border border-orange/40 bg-orange/[0.07] p-4 sm:p-5 space-y-3">
+        <Card filet={false} className="border border-terracotta/30 space-y-3">
           <div className="flex items-start gap-3">
-            <span className="w-9 h-9 shrink-0 rounded-xl bg-orange/20 border border-orange/30 text-orange flex items-center justify-center text-lg">
+            <span className="w-9 h-9 shrink-0 rounded-xl bg-paper-sunk border border-rule text-terracotta flex items-center justify-center text-lg">
               ⏰
             </span>
             <div className="min-w-0">
-              <h2 className="font-display text-base sm:text-lg font-bold text-cream">
+              <h2 className="font-display text-[17px] text-ink">
                 {overdue.length === 1
                   ? "Une soirée attend son bilan"
                   : `${overdue.length} soirées attendent leur bilan`}
               </h2>
-              <p className="text-xs text-muted mt-0.5 leading-relaxed">
+              <p className="text-[13px] text-ink-soft mt-0.5 leading-relaxed">
                 La date est passée mais la clôture n&apos;a pas été faite : le stock
                 reste faux tant que le bilan n&apos;est pas validé.
               </p>
@@ -74,122 +85,103 @@ export default async function SoireesPage({
               <li key={event.slug}>
                 <Link
                   href={`/soirees/${event.slug}/bilan`}
-                  className="tap-target-sm flex items-center gap-2 px-3 py-1.5 rounded-xl bg-ink border border-orange/30 text-xs text-cream hover:border-orange hover:text-orange transition-colors"
+                  className="tap-target inline-flex items-center gap-2 px-3 rounded-xl bg-paper-sunk border border-rule text-[13px] text-ink hover:border-terracotta hover:text-terracotta transition-colors"
                 >
                   <span className="font-semibold">{event.name}</span>
-                  <span className="text-[10px] font-mono text-muted">
+                  <span className="text-[13px] text-ink-soft">
                     {new Date(event.date).toLocaleDateString("fr-FR", {
                       day: "numeric",
                       month: "short",
                     })}
                   </span>
-                  <span className="text-[10px] uppercase font-bold text-orange">
+                  <span className="text-[13px] uppercase font-bold text-terracotta">
                     Faire le bilan →
                   </span>
                 </Link>
               </li>
             ))}
           </ul>
-        </div>
+        </Card>
       )}
 
       <div className="grid md:grid-cols-3 gap-6 items-start">
         {/* Create Event Card */}
-        <section className="bg-ink-2/40 border border-orange/10 p-5 sm:p-6 rounded-xl box-orange-glow md:col-span-1 space-y-4">
+        <Card className="md:col-span-1 min-w-0 space-y-4">
           <div>
-            <h2 className="font-display text-xl text-cream">Créer un Événement</h2>
-            <p className="text-muted text-[11px] mt-0.5">Configurez une nouvelle date.</p>
+            <h2 className="font-display text-[17px] text-ink">Créer un Événement</h2>
+            <p className="text-ink-soft text-[13px] mt-0.5">Configurez une nouvelle date.</p>
           </div>
-          <form action={createEvent.bind(null, activeBar.id)} className="space-y-3.5">
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted mb-1 block">Nom de la soirée</label>
+          <form action={createEvent.bind(null, activeBar.id)}>
+            <Field label="Nom de la soirée" htmlFor="event-name">
               <input
+                id="event-name"
                 name="name"
                 placeholder="Ex: Soirée Mojitos"
                 required
-                className="w-full bg-ink border border-orange/10 rounded-xl px-3 py-2 text-xs placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+                className={champClasses}
               />
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted mb-1 block">Date</label>
-              <input
-                name="date"
-                type="date"
-                required
-                className="w-full bg-ink border border-orange/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-orange text-white font-medium rounded-xl py-2.5 hover:bg-orange-hover box-orange-glow transition-all text-xs uppercase tracking-wider font-semibold"
-            >
+            </Field>
+            <Field label="Date" htmlFor="event-date">
+              <input id="event-date" name="date" type="date" required className={champClasses} />
+            </Field>
+            <Button type="submit" pleineLargeur className="mt-1">
               Créer la soirée
-            </button>
+            </Button>
           </form>
-        </section>
+        </Card>
 
-        <div className="md:col-span-1">
+        <div className="md:col-span-1 min-w-0">
           <CalendarSubscribe />
         </div>
 
         {/* Events list */}
-        <section className="md:col-span-2 space-y-8">
+        {/* min-w-0 keeps this grid item from growing to the max-content width
+            of a long, unbroken event name inside a nested `truncate` — a
+            grid item's min-width defaults to `auto` (its content's min-content
+            size), which otherwise silently stretches the whole single-column
+            mobile grid — and every sibling in it — past the viewport. */}
+        <section className="md:col-span-2 min-w-0 space-y-8">
           {/* Active Events */}
-          <div className="space-y-4">
-            <div id="en-cours" className="flex items-center gap-3 border-b border-orange/10 pb-2">
-              <span className="w-1.5 h-3 bg-orange rounded-full" />
-              <h2 className="font-display text-xl text-cream">Événements en cours & à venir</h2>
-            </div>
+          <div className="space-y-3">
+            <h2 id="en-cours" className="font-display text-[17px] text-ink">
+              Événements en cours & à venir
+            </h2>
 
             {activeEvents.totalItems === 0 ? (
-              <div className="text-center py-8 rounded-xl border border-dashed border-orange/10 bg-ink-2/20">
-                <span className="text-2xl block mb-2">📅</span>
-                <p className="text-muted text-sm">Aucune soirée de planifiée pour le moment.</p>
-              </div>
+              <EmptyState
+                titre="Aucune soirée"
+                message="Aucune soirée de planifiée pour le moment."
+              />
             ) : (
-              <div className="grid gap-3">
+              <div className="space-y-3">
                 {activeEvents.items.map((event) => (
-                  <div
-                    key={event.slug}
-                    className="rounded-xl border border-orange/10 bg-ink-2/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-orange/20 transition-all box-orange-glow-hover"
-                  >
-                    <div>
-                      <span className="flex flex-wrap items-center gap-2">
-                        <Link href={`/soirees/${event.slug}`} className="font-display text-lg text-cream hover:text-orange transition-colors">
-                          {event.name}
-                        </Link>
-                        {isOverdue(event) && (
-                          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-orange/20 text-orange border border-orange/30 whitespace-nowrap">
-                            ⏰ Bilan à faire
-                          </span>
-                        )}
-                      </span>
-                      <p className="text-xs text-muted mt-1 flex flex-wrap gap-2 items-center">
-                        <span className="text-orange-dim capitalize font-mono text-[10px]">
-                          {new Date(event.date).toLocaleDateString("fr-FR", {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          })}
-                        </span>
-                      </p>
+                  <Card key={event.slug} className="p-0 overflow-hidden">
+                    <div className="px-4">
+                      <Row
+                        titre={event.name}
+                        sousTitre={formatDate(event.date)}
+                        droite={
+                          isOverdue(event) ? <Badge ton="alerte">⏰ Bilan à faire</Badge> : undefined
+                        }
+                        href={`/soirees/${event.slug}`}
+                        chevron
+                      />
                     </div>
-                    <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-3 border-t sm:border-0 border-orange/5 pt-3 sm:pt-0 shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 border-t border-rule">
                       <CopyLink path={`/soirees/${event.slug}`} />
                       <ShareButton path={`/soirees/${event.slug}`} title={event.name} />
                       {/* Plain link, so the browser handles the download and the
                           phone offers to open it in its calendar app. */}
                       <a
                         href={`/soirees/${event.slug}/calendar`}
-                        className="tap-target-sm flex items-center whitespace-nowrap text-xs text-muted/65 hover:text-orange font-medium transition-colors px-2 py-1.5 rounded"
+                        className="tap-target inline-flex items-center gap-1.5 px-2.5 rounded-lg border border-rule text-[13px] text-ink-soft font-medium hover:border-terracotta hover:text-terracotta transition-colors"
                         title="Ajouter à mon calendrier"
                       >
                         🗓️ Calendrier
                       </a>
                       <DeleteEventButton slug={event.slug} name={event.name} />
                     </div>
-                  </div>
+                  </Card>
                 ))}
               </div>
             )}
@@ -205,46 +197,27 @@ export default async function SoireesPage({
 
           {/* History Events */}
           {historyEvents.totalItems > 0 && (
-            <div className="space-y-4">
-              <div id="historique" className="flex items-center gap-3 border-b border-white/[0.08] pb-2">
-                <span className="w-1.5 h-3 bg-white/[0.2] rounded-full" />
-                <h2 className="font-display text-xl text-muted">Historique des soirées clôturées</h2>
-              </div>
+            <div className="space-y-3">
+              <h2 id="historique" className="font-display text-[17px] text-ink-soft">
+                Historique des soirées clôturées
+              </h2>
 
-              <div className="grid gap-3">
+              <div className="space-y-3">
                 {historyEvents.items.map((event) => (
-                  <div
-                    key={event.slug}
-                    className="rounded-xl border border-white/[0.05] bg-ink/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 opacity-70 hover:opacity-100 transition-opacity"
-                  >
-                    <div>
-                      <Link href={`/soirees/${event.slug}`} className="font-display text-lg text-cream hover:text-orange transition-colors">
-                        {event.name}
-                      </Link>
-                      <p className="text-xs text-muted mt-1 flex flex-wrap gap-2 items-center">
-                        <span className="capitalize font-mono text-[10px]">
-                          {new Date(event.date).toLocaleDateString("fr-FR", {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          })}
-                        </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] text-white/50 border border-white/[0.1] font-bold">
-                          ✓ Bilan fait
-                        </span>
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-3 border-t sm:border-0 border-white/[0.05] pt-3 sm:pt-0 shrink-0">
-                      <Link
+                  <Card key={event.slug} className="p-0 overflow-hidden">
+                    <div className="px-4">
+                      <Row
+                        titre={event.name}
+                        sousTitre={formatDate(event.date)}
+                        droite={<Badge ton="complet">✓ Bilan fait</Badge>}
                         href={`/soirees/${event.slug}`}
-                        className="tap-target-sm flex items-center text-[10px] uppercase font-bold text-muted hover:text-cream px-3 py-1.5 rounded-lg bg-white/[0.05] transition-colors"
-                      >
-                        Consulter
-                      </Link>
+                        chevron
+                      />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 border-t border-rule">
                       <DeleteEventButton slug={event.slug} name={event.name} />
                     </div>
-                  </div>
+                  </Card>
                 ))}
               </div>
 
@@ -263,4 +236,3 @@ export default async function SoireesPage({
     </PageTransition>
   );
 }
-

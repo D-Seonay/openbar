@@ -25,12 +25,12 @@ export default async function AdminBarCocktailsPage({
 
   return (
     <PageTransition className="space-y-8">
-      <div className="pb-6 border-b border-orange/15">
-        <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-caps text-gold mb-2">
-          <span className="w-2 h-2 rounded-full bg-orange animate-pulse" />
+      <div className="pb-6 border-b border-rule">
+        <div className="inline-flex items-center gap-2 text-[13px] font-bold uppercase tracking-caps text-terracotta mb-2">
+          <span className="w-2 h-2 rounded-full bg-terracotta animate-pulse" />
           <span>Espace Administrateur</span>
         </div>
-        <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-cream tracking-tight">
+        <h1 className="font-display text-[27px] text-ink mt-1">
           Cocktails de {bar.name}
         </h1>
       </div>

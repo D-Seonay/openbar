@@ -14,15 +14,14 @@ export default async function ProfilPage({
 
   return (
     <PageTransition className="space-y-8 max-w-lg">
-      <div className="pb-6 border-b border-orange/15">
-        <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-caps text-gold mb-2">
-          <span className="w-2 h-2 rounded-full bg-orange animate-pulse" />
-          <span>Mon Compte</span>
-        </div>
-        <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-cream tracking-tight">
+      <div className="pb-6 border-b border-rule">
+        <span className="text-[13px] uppercase tracking-caps text-terracotta font-semibold">
+          Mon Compte
+        </span>
+        <h1 className="font-display text-[27px] text-ink mt-1">
           Mon Profil
         </h1>
-        <p className="text-muted text-xs mt-2">
+        <p className="text-ink-soft text-[13px] mt-2">
           Ces informations sont visibles par les membres de tes bars, dans l&apos;annuaire.
         </p>
       </div>

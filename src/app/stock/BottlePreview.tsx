@@ -251,14 +251,14 @@ export default function BottlePreview({ type, quantity, vip = false }: BottlePre
         />
       </svg>
 
-      {/* Numerical Badge for Quantity on visual */}
-      <div className={`absolute -bottom-1 right-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-mono font-bold ${
-        quantity === 0
-          ? "bg-red-600 text-white"
-          : vip
-          ? "bg-gold text-ink"
-          : "bg-orange text-white"
-      }`}>
+      {/* Numerical Badge for Quantity on visual. Purely decorative (not a tap
+          target), so it isn't held to the 44px floor — but its digit is still
+          real text, hence the 13px floor. */}
+      <div
+        className={`absolute -bottom-1 right-0 w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-mono font-bold ${
+          quantity === 0 ? "bg-warn text-paper" : "bg-terracotta text-paper"
+        }`}
+      >
         {quantity}
       </div>
     </div>

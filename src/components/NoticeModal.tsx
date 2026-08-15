@@ -1,6 +1,7 @@
 "use client";
 
 import ModalShell from "./ModalShell";
+import { Button } from "@/components/ui";
 
 export interface Notice {
   accent: "danger" | "warning" | "success" | "info";
@@ -32,13 +33,9 @@ export default function NoticeModal({
       title={notice?.title ?? ""}
       description={notice?.description}
     >
-      <button
-        onClick={onClose}
-        autoFocus
-        className="tap-target flex items-center justify-center px-5 py-2 text-xs font-bold rounded-xl bg-orange text-ink hover:bg-orange-hover transition-colors cursor-pointer"
-      >
+      <Button onClick={onClose} autoFocus>
         OK
-      </button>
+      </Button>
     </ModalShell>
   );
 }

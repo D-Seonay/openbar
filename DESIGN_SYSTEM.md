@@ -1,84 +1,89 @@
-# Design System — OpenBar (Cocktail Club & Codes Couleurs)
+# Design System — OpenBar (Papier chaud)
 
-Référence unique et définitive pour le style du projet **OpenBar**. Basé sur l'esthétique **"Cocktail Club & Codes Couleurs"** : fond sombre feutré (`ink`), effets de verre poli sombre (*glassmorphism*), lueurs subtiles (*glows*) et codes couleurs distincts par catégorie d'alcool.
+Référence unique et définitive pour le style du projet **OpenBar**. Esthétique **« papier chaud »** : fond clair chaleureux, encre sombre, un seul accent terracotta, sans dégradés ni glassmorphism ni glow.
 
-## 1. Principes Fondamentaux
+## 1. Palette
 
-- **Ambiance Cocktail Club Lounge** : Fonds sombres feutrés (`ink`, `ink-2`), contrastés par des typographies lumineuses et des bordures en verre poli à faible opacité (`border-white/[0.08]`).
-- **Codes Couleurs Signatures par Alcool** : Chaque catégorie d'alcool possède sa couleur et son icône distinctives :
-  - **Whisky & Bourbon** : Ambre doré (`#D97706`, `amber-400`)
-  - **Gin Botanique** : Émeraude (`#10B981`, `emerald-400`)
-  - **Rhum** : Cuivre ambré (`#F59E0B`, `orange-400`)
-  - **Vodka Givrée** : Argent / Givré (`#94A3B8`, `slate-300`)
-  - **Tequila & Mezcal** : Agave Or (`#EAB308`, `yellow-400`)
-  - **Vin & Champagne** : Rubis / Bordeaux (`#E11D48`, `rose-400`)
-  - **Mixers & Softs** : Menthe agrumée (`#34D399`, `teal-400`)
-- **Cave et Réserve VIP séparées en deux univers** :
-  - **Bar Principal (Invités)** : Grille et tableau de cave filtrables par catégorie colorée.
-  - **Réserve Privée VIP** : Écrin "coffre-fort" dédié (`vip-vault-card`), bordure dorée luminescente (`border-gold/40`) et badge exclusif.
-- **Carte des Cocktails — Menu de Bar de Luxe en Accordéon** :
-  - Présentation inspirée d'une carte de bar imprimée haut de gamme.
-  - Déploiement en accordéon au clic pour révéler la verrerie, les ingrédients sous forme de badges colorés, et les instructions de mixologie.
-- **Soirées — Party Board Participatif** :
-  - Page invité mobile-first avec identification fluide par prénom.
-  - Flux dynamique *Qui ramène quoi* et consultation claire de ce qui est déjà disponible au Bar.
+Déclarée dans `@theme` (`src/app/globals.css`) et verrouillée par `src/lib/contrast.test.ts` : changer une valeur sans relancer les tests casse la lisibilité.
 
-## 2. Palette de Couleurs & Utilitaires
-
-Déclarée dans `@theme` (`src/app/globals.css`) et enrichie par `src/lib/categoryStyles.ts`.
-
-| Token | Rôle |
-|---|---|
-| `ink` (`#110d0c`) | Fond principal de l'application |
-| `ink-2` (`#1b1614`) | Surface de carte standard, filtres, modales |
-| `brick-dark` (`#2a1711`) | Surface d'écrin VIP / survol accentué |
-| `orange` (`#FF6B35`) | CTA principal et accents de mise en avant |
-| `gold` (`#E8A563`) | Titres, badges VIP et hiérarchie importante |
-| `cream` (`#FAF6F2`) | Texte principal |
-| `muted` (`#A8988C`) | Texte secondaire, libellés techniques |
-
-## 3. Typographie
-
-- **Display (`font-display`)** : `Outfit` — utilisé pour les grands titres, noms de cocktails et en-têtes de section.
-- **Sans / UI (`font-sans`)** : `Plus Jakarta Sans` — utilisé pour les boutons, formulaires, navigation et descriptions de recettes.
-- **Eyebrow / Label** : `text-xs uppercase tracking-caps text-muted font-semibold`
-
-## 4. Composants Clés & Micro-Interactions
-
-- **Cartes Glassmorphism** : `.glass-card` combiné à `.glass-card-hover` pour une élévation douce au survol.
-- **Filtres à Pilules Colorées** : Badges interactifs affichant le nombre de bouteilles ou recettes par catégorie.
-- **Accordéon de Recette** : Animation de hauteur et de rotation d'icône au clic.
-
-## 5. Mobile-First — Règles Obligatoires
-
-L'application est consultée au téléphone pendant les soirées : **toute nouvelle UI doit être vérifiée à 360 px avant d'être considérée terminée.**
-
-### Points de rupture
-
-| Breakpoint | Largeur | Usage |
+| Token | Valeur | Rôle |
 |---|---|---|
-| *(défaut)* | < 400px | Petits téléphones (iPhone SE / mini) — tout s'empile |
-| `xs:` | ≥ 400px | Téléphones standards — les paires côte à côte redeviennent possibles |
-| `sm:` | ≥ 640px | Tablette et plus — densité « desktop », typographie compacte |
-| `md:` | ≥ 768px | Navigation en pilules inline (en dessous : tiroir hamburger) |
+| `paper` | `#F3EFE7` | Fond principal de l'application |
+| `paper-sunk` | `#E8E2D7` | Surface en creux : champs, filtres, badges de compteur |
+| `ink` | `#26221D` | Texte principal, titres |
+| `ink-soft` | `#6B6257` | Texte secondaire, libellés, méta |
+| `rule` | `#D9D1C4` | Bordures, séparateurs |
+| `terracotta` | `#A8452A` | Seul accent : CTA, liens actifs, alerte douce |
+| `done` | `#4F6B43` | État positif (stock complet, succès) |
+| `warn` | `#8A5A12` | État d'alerte (seuil bas, avertissement) |
 
-### Utilitaires (`src/app/globals.css`)
+**Aucun autre token de couleur.** Pas de `dark:` — l'application n'a qu'un thème.
 
-- **`.tap-target` / `.tap-target-sm`** : hauteur minimale de 44px / 36px sur pointeur grossier (`@media (pointer: coarse)`). À appliquer à tout bouton-pilule qui ferait moins de 36px de haut. Combiner avec `flex items-center` pour que le libellé reste centré.
-- **`.no-scrollbar`** : rails de filtres horizontaux défilables au doigt. Motif complet : `flex overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0` (le débord négatif fait filer les pilules jusqu'au bord de l'écran).
-- **`.pb-safe` / `.pb-safe-0` / `.bottom-safe`** : marges `env(safe-area-inset-bottom)` pour l'encoche et la barre d'accueil iPhone. Obligatoire sur les tiroirs, les barres collantes et le pied de page.
+**Aucun modificateur d'opacité sur une couleur de texte** (`text-ink-soft/70`, `text-terracotta/80`…) : `src/lib/contrast.test.ts` balaie `src/` par expression régulière et fait échouer le test si l'un apparaît. Un token de texte s'utilise plein, jamais atténué — s'il faut un ton plus doux, `ink-soft` existe déjà et vaut 5.22:1 sur `paper`. Les opacités sur `border-*` ou `bg-*` restent libres.
 
-### Règles de mise en page
+## 2. Typographie
 
-- **Champs de formulaire** : en dessous de `sm`, tous les `input/select/textarea` passent à 16px automatiquement — en dessous, iOS zoome le viewport au focus. Ne pas contourner cette règle.
-- **Troncature** : `truncate` n'a d'effet que si **tous** les parents flex portent `min-w-0`. Sans cela, un nom de bouteille long élargit la page.
+- **Display (`font-display`)** : `Lora`, auto-hébergée (`src/app/fonts/`) — titres d'écran, noms de section. `font-weight: 400`, pas de `letter-spacing`.
+- **Sans / UI (`font-sans`)** : `Plus Jakarta Sans`, auto-hébergée — tout le reste : boutons, formulaires, corps de texte.
+
+### Échelle
+
+| Token | Taille | Usage |
+|---|---|---|
+| `text-[27px]` (`--text-screen`) | 27px | `<h1>` d'écran, un seul par page |
+| `text-[17px]` (`--text-section`) | 17px | Titres de section, `<h2>` de carte |
+| `text-[15px]` (`--text-body`) | 15px | Corps de texte, libellés de bouton |
+| `text-[13px]` (`--text-meta`) | 13px | Méta, légendes, eyebrow, labels de champ |
+
+**Plancher 13px absolu, sans exception** — y compris pour un eyebrow ou une légende. Rien en `text-xs` (12px) nulle part dans `src/`.
+
+Eyebrow : `text-[13px] uppercase tracking-caps text-terracotta font-semibold` (ou `text-ink-soft` hors contexte d'accent).
+
+## 3. Les neuf primitives
+
+Tout écran se compose à partir de `src/components/ui/*` et `src/components/ModalShell.tsx`. Une nouvelle UI n'invente pas de nouveau motif de carte, de liste ou de bouton — elle réutilise l'existant.
+
+| Primitive | Fichier | Rôle |
+|---|---|---|
+| `Button` | `ui/Button.tsx` | Trois variantes : `principal` (plein terracotta, action par défaut), `discret` (contour, action secondaire **et tout déclencheur destructeur inline**), `danger` (plein terracotta, réservé au bouton qui **confirme** dans un dialogue — voir §5). `lienBoutonClasses` donne le même rendu à un `<Link>`. |
+| `Card` | `ui/Card.tsx` | Conteneur de base, filet optionnel (`filet={false}` en liste dense). |
+| `EmptyState` | `ui/EmptyState.tsx` | État vide standard : titre, message, action optionnelle. |
+| `Field` | `ui/Field.tsx` | Label + aide/erreur pour un champ de formulaire ; `champClasses` pose le style du contrôle enfant. |
+| `Badge` | `ui/Badge.tsx` | Pastille d'état : `neutre` / `complet` / `alerte`. |
+| `Row` | `ui/Row.tsx` | Ligne de liste (titre, sous-titre, contenu de droite, chevron) ; rend un `<Link>`, un `<button>` ou un `<div>` selon les props reçues. |
+| `Sheet` | `ui/Sheet.tsx` | Tiroir mobile ancré en bas, portalé, fermeture Échap et tap sur le voile. |
+| `TabBar` | `ui/TabBar.tsx` | Barre d'onglets basse (voir §4). |
+| `ModalShell` | `ModalShell.tsx` | Chrome commun à tous les dialogues : portail, animation, accent (`danger`/`warning`/`success`/`info`), Échap. `ConfirmDeleteModal` et `NoticeModal` s'appuient dessus plutôt que de le dupliquer. |
+
+## 4. Navigation — barre d'onglets basse
+
+`TabBar` (`src/components/ui/TabBar.tsx`) est fixée en bas de l'écran (`fixed bottom-0`), quatre entrées : Soirée, Cave, Cocktails, Moi. Aucune navigation en pilules ni tiroir hamburger — remplacés par cette barre. L'onglet actif se détermine par préfixe de chemin (`/soirees/xyz` garde « Soirée » allumé) et porte un anneau `focus-visible` clavier.
+
+## 5. Danger vs. principal — la règle de confirmation
+
+`danger` et `principal` sont **visuellement identiques** (plein terracotta) par choix : dans un dialogue de confirmation, « Annuler » (`discret`, contour) doit se distinguer d'un seul bouton plein qui confirme, qu'il soit positif ou destructeur. Cela ne fonctionne que si `danger` reste **exclusivement** ce bouton de confirmation.
+
+- Un déclencheur inline qui ouvre un dialogue, ou qui agit directement sans confirmation, est en **`discret`** — jamais `danger`. Sinon il devient indiscernable d'un `principal` voisin (le bug qui a motivé cette règle : « Retirer VIP » et « Révoquer » côte à côte, tous deux pleins terracotta).
+- Toute action irréversible ou de forte conséquence passe par `ConfirmDeleteModal` (ou `ModalShell` directement) plutôt que par un `confirm()` natif ou une exécution immédiate.
+
+Le principe est documenté en commentaire au-dessus de la table `VARIANTS` dans `Button.tsx` — ne pas le laisser se reperdre.
+
+## 6. Règles mobile obligatoires
+
+L'application est consultée au téléphone pendant les soirées : **toute nouvelle UI doit être vérifiée à 390 px avant d'être considérée terminée.**
+
+- **Cibles tactiles — 44px, sans exception.** `.tap-target` (`min-height: 44px; min-width: 44px`) est global, pas conditionné à `@media (pointer: coarse)` : un audit doit pouvoir le vérifier dans n'importe quel navigateur. `Button`, `Row` et les contrôles de `Field` l'appliquent déjà ; tout élément interactif ajouté à la main doit le porter.
+- **Champs de formulaire** : en dessous de `sm` (640px), tout `input/select/textarea` passe à 16px automatiquement (`globals.css`) — en dessous, iOS zoome le viewport au focus. Ne pas contourner.
+- **Troncature** : `truncate` n'a d'effet que si **tous** les parents flex portent `min-w-0`.
 - **Lignes denses** : `flex-col sm:flex-row` pour les listes, `flex-wrap` pour les groupes de badges et de boutons d'action.
-- **Survol** : les effets qui déplacent ou éclairent un élément sont enfermés dans `@media (hover: hover) and (pointer: fine)` — sinon un tap laisse la carte figée dans son état survolé.
+- **`.pb-safe` / `.pb-safe-0` / `.bottom-safe`** : `env(safe-area-inset-bottom)` pour l'encoche et la barre d'accueil iPhone — obligatoire sur `TabBar`, les tiroirs et les barres collantes.
+- **Superpositions** : `<main>` porte `relative z-10`, ce qui crée un contexte d'empilement — une superposition `fixed` rendue à l'intérieur y est plafonnée à `z-10` et passe sous l'en-tête. Toute superposition plein écran est donc portée dans `<body>` via `createPortal` (voir `ModalShell`, `Sheet`).
 
-### Superpositions (tiroirs et modales) — piège de contexte d'empilement
+## 7. Vérification
 
-`<main>` porte `relative z-10` et `<header>` porte `backdrop-blur` + `z-50`. Les deux créent un **contexte d'empilement**. Conséquence : une superposition `fixed` rendue à l'intérieur de `<main>` est plafonnée à `z-10` et passe **sous** l'en-tête, quel que soit son `z-index` ; à l'intérieur de `<header>` elle est en plus dimensionnée par rapport à l'en-tête et non au viewport.
+Deux harnais gardent ce document honnête :
 
-**Toute superposition plein écran doit donc être portée dans `<body>` via `createPortal`.** Voir `ConfirmDeleteModal`, `ManageAlertsModal`, `CreateRecipeModal`, `StockStudio`, `CocktailStudio` et `Navigation`.
+- **`npm test`** (Vitest) — contrastes de la palette (`src/lib/contrast.test.ts`, y compris le balayage anti-opacité du §1) et autres unités pures.
+- **`npm run audit`** (Playwright, `e2e/audit.spec.ts`) — parcourt les écrans réels (comptes `audit-bot` et `audit-admin`) et vérifie cibles tactiles ≥ 44px, plancher de texte 13px, et l'absence de tokens hors palette. Le commentaire en tête du fichier prévient : une page absente de la liste couverte n'est pas auditée, donc pas terminée — toute nouvelle route s'y ajoute.
 
-Compléter chaque tiroir par : `h-dvh` (et non `h-screen`, qui ignore la barre d'URL mobile), `overflow-y-auto overscroll-contain`, un verrouillage du défilement de `document.body` à l'ouverture, et `pb-safe`.
+Les deux doivent passer avant qu'un écran soit considéré fini.

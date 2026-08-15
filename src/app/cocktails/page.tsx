@@ -24,15 +24,12 @@ export default async function CocktailsPage() {
 
   return (
     <PageTransition className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-orange/15">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-rule">
         <div>
-          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-caps text-gold mb-2">
-            <span className="w-2 h-2 rounded-full bg-orange animate-pulse" />
-            <span>Mixologie & Recettes</span>
-          </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-cream tracking-tight">
-            La Carte des Cocktails
-          </h1>
+          <span className="text-[13px] uppercase tracking-caps text-terracotta font-semibold">
+            Mixologie & Recettes
+          </span>
+          <h1 className="font-display text-[27px] text-ink mt-1">La Carte des Cocktails</h1>
         </div>
       </div>
 

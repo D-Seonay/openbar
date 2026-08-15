@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { changePasswordAction } from "./actions";
+import { Button, Field, champClasses } from "@/components/ui";
 
 export default function ChangePasswordForm() {
   const [isPending, startTransition] = useTransition();
@@ -16,41 +17,46 @@ export default function ChangePasswordForm() {
   };
 
   return (
-    <form action={handleSubmit} className="space-y-3">
-      <input
-        name="currentPassword"
-        type="password"
-        placeholder="Mot de passe temporaire actuel"
-        required
-        autoComplete="current-password"
-        className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-3 text-sm sm:text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-      />
-      <input
-        name="newPassword"
-        type="password"
-        placeholder="Nouveau mot de passe (6 caractères min.)"
-        required
-        minLength={6}
-        autoComplete="new-password"
-        className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-3 text-sm sm:text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-      />
-      <input
-        name="confirmPassword"
-        type="password"
-        placeholder="Confirmer le nouveau mot de passe"
-        required
-        minLength={6}
-        autoComplete="new-password"
-        className="w-full bg-ink border border-orange/15 rounded-xl px-4 py-3 text-sm sm:text-xs text-center placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
-      />
-      {error && <p className="text-xs text-red-400 text-center">{error}</p>}
-      <button
-        type="submit"
-        disabled={isPending}
-        className="w-full bg-orange text-white font-medium rounded-xl py-3 hover:bg-orange-hover box-orange-glow transition-all uppercase tracking-wider text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
-      >
+    <form action={handleSubmit}>
+      <Field label="Mot de passe temporaire actuel" htmlFor="change-current-password">
+        <input
+          id="change-current-password"
+          name="currentPassword"
+          type="password"
+          placeholder="Mot de passe temporaire actuel"
+          required
+          autoComplete="current-password"
+          className={champClasses}
+        />
+      </Field>
+      <Field label="Nouveau mot de passe" htmlFor="change-new-password" aide="6 caractères min.">
+        <input
+          id="change-new-password"
+          name="newPassword"
+          type="password"
+          placeholder="Nouveau mot de passe (6 caractères min.)"
+          required
+          minLength={6}
+          autoComplete="new-password"
+          className={champClasses}
+        />
+      </Field>
+      <Field label="Confirmer le nouveau mot de passe" htmlFor="change-confirm-password">
+        <input
+          id="change-confirm-password"
+          name="confirmPassword"
+          type="password"
+          placeholder="Confirmer le nouveau mot de passe"
+          required
+          minLength={6}
+          autoComplete="new-password"
+          className={champClasses}
+        />
+      </Field>
+      {error && <p className="text-[13px] text-terracotta text-center mb-4">{error}</p>}
+      <Button type="submit" pleineLargeur disabled={isPending}>
         {isPending ? "Modification en cours..." : "Changer mon mot de passe"}
-      </button>
+      </Button>
     </form>
   );
 }

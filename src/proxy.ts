@@ -11,10 +11,6 @@ export async function proxy(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const session = token ? await verifySessionToken(token) : null;
 
-  if (pathname.endsWith("/bilan") && session?.role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
   if (session?.mustChangePassword && !ALLOWED_WHILE_MUST_CHANGE_PASSWORD.has(pathname)) {
     return NextResponse.redirect(new URL(CHANGE_PASSWORD_PATH, request.url));
   }

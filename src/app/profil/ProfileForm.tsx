@@ -5,6 +5,7 @@ import type { MyProfile } from "@/lib/types";
 import { uploadProfileImage } from "@/app/actions";
 import ImagePicker from "@/components/ImagePicker";
 import { updateProfileAction } from "./actions";
+import { Button, Field, champClasses } from "@/components/ui";
 
 export default function ProfileForm({ profile }: { profile: MyProfile }) {
   const [isPending, startTransition] = useTransition();
@@ -35,54 +36,48 @@ export default function ProfileForm({ profile }: { profile: MyProfile }) {
         label="Photo de profil"
       />
 
-      <div>
-        <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">
-          Anniversaire
-        </label>
+      <Field label="Anniversaire" htmlFor="birthday">
         <input
+          id="birthday"
           name="birthday"
           type="date"
           defaultValue={profile.birthday ? profile.birthday.slice(0, 10) : ""}
-          className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+          className={champClasses}
         />
-      </div>
+      </Field>
 
-      <div>
-        <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">
-          Boisson préférée
-        </label>
+      <Field label="Boisson préférée" htmlFor="favoriteDrink">
         <input
+          id="favoriteDrink"
           name="favoriteDrink"
           defaultValue={profile.favoriteDrink ?? ""}
           placeholder="Ex: Mojito"
-          className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+          className={champClasses}
         />
-      </div>
+      </Field>
 
-      <div>
-        <label className="text-xs uppercase tracking-caps text-gold-dim mb-1.5 block">
-          Allergies / restrictions
-        </label>
+      <Field label="Allergies / restrictions" htmlFor="allergies">
         <input
+          id="allergies"
           name="allergies"
           defaultValue={profile.allergies ?? ""}
           placeholder="Ex: Fruits à coque, sans alcool..."
-          className="w-full bg-ink border border-orange/20 rounded-lg px-3 py-2 text-sm placeholder:text-muted/40 focus:outline-none focus:border-orange focus:bg-ink-2/30 transition-all text-cream"
+          className={champClasses}
         />
-      </div>
+      </Field>
 
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && (
+        <p className="text-[13px] text-terracotta" role="alert">
+          {error}
+        </p>
+      )}
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="w-full bg-orange text-ink font-semibold rounded-lg py-2.5 hover:bg-cream transition-colors uppercase tracking-caps text-xs cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-      >
+      <Button type="submit" disabled={isPending} pleineLargeur>
         {isPending ? "Enregistrement..." : "Enregistrer mon profil"}
-      </button>
+      </Button>
 
       {saved && (
-        <div className="text-xs bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-emerald-300 text-center font-semibold uppercase tracking-caps">
+        <div className="text-[13px] bg-paper-sunk border border-done/35 rounded-xl p-3 text-done text-center font-semibold uppercase tracking-caps">
           ✓ Profil enregistré !
         </div>
       )}

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { announceOnDiscordAction, createDiscordPollAction } from "@/app/actions";
+import { Button, Field, champClasses } from "@/components/ui";
 
 /**
  * The host's two Discord actions on a soirée: announce it by DM, and open a
@@ -62,80 +63,65 @@ export default function DiscordActions({ slug, barId }: { slug: string; barId: s
     });
   };
 
-  const inputClass =
-    "w-full bg-ink border border-white/[0.12] rounded-xl px-3 py-2 text-xs text-cream placeholder:text-muted/60 focus:outline-none focus:border-orange";
-
   return (
-    <section className="rounded-2xl border border-white/[0.08] bg-ink-2/80 p-5 sm:p-6 space-y-4 shadow-xl">
-      <div className="flex items-center gap-2 border-b border-white/[0.08] pb-3">
-        <span className="text-xl">🎮</span>
-        <h2 className="font-display text-xl font-bold text-cream">Discord</h2>
-      </div>
+    <section className="rounded-xl bg-paper border border-rule p-4 space-y-4">
+      <h2 className="font-display text-[17px] text-ink">Discord</h2>
 
       <div className="flex flex-wrap gap-2">
-        <button
-          onClick={announce}
-          disabled={isPending}
-          className="tap-target-sm flex items-center px-3.5 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-60"
-        >
+        <Button onClick={announce} disabled={isPending} variant="discret">
           {isPending ? "…" : "📩 Annoncer en MP"}
-        </button>
-        <button
-          onClick={() => setPollOpen((o) => !o)}
-          className="tap-target-sm flex items-center px-3.5 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-xs text-cream font-bold uppercase tracking-wider transition-colors cursor-pointer"
-        >
+        </Button>
+        <Button onClick={() => setPollOpen((o) => !o)} variant="discret">
           📊 {pollOpen ? "Fermer" : "Lancer un sondage"}
-        </button>
+        </Button>
       </div>
 
       {pollOpen && (
-        <div className="space-y-2.5 p-4 rounded-xl bg-ink border border-white/[0.08]">
-          <div>
-            <label className="text-[10px] uppercase tracking-caps text-muted mb-1 block">Question</label>
-            <input value={question} onChange={(e) => setQuestion(e.target.value)} className={inputClass} />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-caps text-muted mb-1 block">
-              Réponses — une par ligne, 2 à 10
-            </label>
+        <div className="space-y-1 p-4 rounded-xl bg-paper-sunk border border-rule">
+          <Field label="Question" htmlFor="poll-question">
+            <input
+              id="poll-question"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              className={champClasses}
+            />
+          </Field>
+          <Field label="Réponses — une par ligne, 2 à 10" htmlFor="poll-answers">
             <textarea
+              id="poll-answers"
               value={answers}
               onChange={(e) => setAnswers(e.target.value)}
               rows={4}
-              className={`${inputClass} resize-y`}
+              className={`${champClasses} h-auto py-2 resize-y`}
             />
-          </div>
+          </Field>
           <div className="flex flex-wrap items-end gap-2">
-            <div>
-              <label className="text-[10px] uppercase tracking-caps text-muted mb-1 block">Durée (heures)</label>
+            <Field label="Durée (heures)" htmlFor="poll-hours">
               <input
+                id="poll-hours"
                 type="number"
                 min="1"
                 max="768"
                 inputMode="numeric"
                 value={hours}
                 onChange={(e) => setHours(e.target.value)}
-                className={`${inputClass} w-24`}
+                className={`w-24 ${champClasses}`}
               />
-            </div>
-            <button
-              onClick={sendPoll}
-              disabled={isPending}
-              className="tap-target-sm flex items-center px-4 py-2 rounded-xl bg-orange text-ink text-xs font-bold uppercase tracking-wider hover:bg-orange-hover transition-colors cursor-pointer disabled:opacity-60"
-            >
+            </Field>
+            <Button onClick={sendPoll} disabled={isPending} className="mb-4">
               {isPending ? "…" : "Publier"}
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {feedback && (
-        <p className={`text-[11px] ${feedback.tone === "ok" ? "text-emerald-400" : "text-red-400"}`}>
+        <p className={`text-[13px] ${feedback.tone === "ok" ? "text-done" : "text-terracotta"}`}>
           {feedback.text}
         </p>
       )}
 
-      <p className="text-[10px] text-muted/70 leading-relaxed">
+      <p className="text-[13px] text-ink-soft leading-relaxed">
         Le MP n&apos;atteint que les invités ayant lié leur Discord, partageant un
         serveur avec le bot et acceptant les messages privés.
       </p>

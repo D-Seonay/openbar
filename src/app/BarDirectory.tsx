@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { BarDirectoryEntry } from "@/lib/types";
 import { requestToJoinBarAction } from "@/app/bar-actions";
+import { Badge, Button, Row, lienBoutonClasses } from "@/components/ui";
 
 export default function BarDirectory({
   entries,
@@ -29,63 +30,56 @@ export default function BarDirectory({
   };
 
   return (
-    <div className="rounded-2xl bg-ink-2/80 border border-white/[0.08] p-5 sm:p-6 shadow-xl">
-      <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 mb-4">
-        <span className="text-xs uppercase tracking-caps text-gold font-bold">Annuaire des Bars</span>
-        <span className="text-[11px] text-muted bg-white/[0.05] px-2.5 py-0.5 rounded-full">
+    <div className="rounded-2xl bg-paper border border-rule p-5 sm:p-6">
+      <div className="flex items-center justify-between border-b border-rule pb-3 mb-4">
+        <span className="text-[13px] uppercase tracking-caps text-terracotta font-bold">Annuaire des Bars</span>
+        <span className="text-[13px] text-ink-soft bg-paper-sunk px-2.5 py-0.5 rounded-full">
           {entries.length} bar{entries.length > 1 ? "s" : ""}
         </span>
       </div>
 
       {entries.length === 0 ? (
-        <p className="text-sm text-muted/70 italic py-4">Aucun bar sur la plateforme pour le moment.</p>
+        <p className="text-[15px] text-ink-soft italic py-4">Aucun bar sur la plateforme pour le moment.</p>
       ) : (
         <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
           {entries.map((entry) => (
             <div
               key={entry.id}
-              className="flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 p-3.5 rounded-xl bg-ink/70 border border-white/[0.06] hover:border-orange/30 transition-colors"
+              className="rounded-xl border border-rule bg-paper-sunk/70 px-3.5 hover:border-terracotta/30 transition-colors"
             >
-              <div className="min-w-0">
-                <p className="font-semibold text-sm text-cream">{entry.name}</p>
-                <p className="text-xs text-muted">
-                  Par {entry.ownerUsername} · {entry.memberCount} membre{entry.memberCount > 1 ? "s" : ""}
-                </p>
-                {errors[entry.id] && <p className="text-xs text-red-400 mt-1">{errors[entry.id]}</p>}
-              </div>
-
-              {entry.myStatus === "OWNER" && (
-                <span className="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-gold/15 text-gold border border-gold/30">
-                  Propriétaire
-                </span>
+              <Row
+                titre={entry.name}
+                sousTitre={
+                  <>
+                    Par {entry.ownerUsername} · {entry.memberCount} membre
+                    {entry.memberCount > 1 ? "s" : ""}
+                  </>
+                }
+                droite={
+                  <>
+                    {entry.myStatus === "OWNER" && <Badge ton="complet">Propriétaire</Badge>}
+                    {entry.myStatus === "MEMBER" && <Badge>Membre</Badge>}
+                    {entry.myStatus === "PENDING" && <Badge ton="alerte">Demande envoyée</Badge>}
+                    {entry.myStatus === "NONE" &&
+                      (guestMode ? (
+                        <Link href="/signup" className={lienBoutonClasses("principal")}>
+                          Créer un compte pour rejoindre
+                        </Link>
+                      ) : (
+                        <Button
+                          variant="principal"
+                          disabled={isPending && pendingId === entry.id}
+                          onClick={() => handleRequest(entry.id)}
+                        >
+                          Demander à rejoindre
+                        </Button>
+                      ))}
+                  </>
+                }
+              />
+              {errors[entry.id] && (
+                <p className="text-[13px] text-terracotta pb-2.5 -mt-1">{errors[entry.id]}</p>
               )}
-              {entry.myStatus === "MEMBER" && (
-                <span className="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-white/[0.05] text-muted border border-white/[0.08]">
-                  Membre
-                </span>
-              )}
-              {entry.myStatus === "PENDING" && (
-                <span className="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-orange/10 text-orange border border-orange/30">
-                  Demande envoyée
-                </span>
-              )}
-              {entry.myStatus === "NONE" &&
-                (guestMode ? (
-                  <Link
-                    href="/signup"
-                    className="tap-target shrink-0 flex items-center justify-center text-center text-xs px-3 py-2 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-orange font-semibold transition-colors"
-                  >
-                    Créer un compte pour rejoindre
-                  </Link>
-                ) : (
-                  <button
-                    disabled={isPending && pendingId === entry.id}
-                    onClick={() => handleRequest(entry.id)}
-                    className="tap-target shrink-0 flex items-center justify-center text-center text-xs px-3 py-2 rounded-xl bg-orange/15 hover:bg-orange/25 border border-orange/40 text-orange font-semibold transition-colors cursor-pointer"
-                  >
-                    Demander à rejoindre
-                  </button>
-                ))}
             </div>
           ))}
         </div>

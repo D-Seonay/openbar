@@ -63,3 +63,11 @@ api/dist
 # Throwaway seed/scratch scripts used while testing locally.
 *-tmp.js
 *-tmp.ts
+
+# Playwright
+/test-results/
+/playwright-report/
+/e2e/.auth/
+
+# Brainstorming visual companion scratch files.
+.superpowers/

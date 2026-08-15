@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { setBarDiscordChannelAction } from "./actions";
+import { Button } from "@/components/ui";
 
 /**
  * Bind the bar to a Discord channel.
@@ -41,10 +42,10 @@ export default function DiscordChannelBinding({
   };
 
   return (
-    <section className="rounded-xl border border-white/[0.08] bg-ink-2/40 p-5 space-y-3">
+    <section className="rounded-xl border border-rule bg-paper-sunk/40 p-5 space-y-3">
       <div>
-        <h2 className="font-display text-lg text-cream">Salon Discord</h2>
-        <p className="text-xs text-muted mt-1 leading-relaxed">
+        <h2 className="font-display text-[17px] text-ink">Salon Discord</h2>
+        <p className="text-[13px] text-ink-soft mt-1 leading-relaxed">
           Le tableau « à ramener » de chaque soirée y est publié, puis mis à jour à
           chaque changement. Laisse vide pour ne rien publier.
         </p>
@@ -56,24 +57,20 @@ export default function DiscordChannelBinding({
           onChange={(e) => setValue(e.target.value)}
           placeholder="Identifiant du salon"
           inputMode="numeric"
-          className="flex-1 min-w-0 bg-ink border border-white/[0.12] rounded-xl px-3.5 py-2 text-xs text-cream placeholder:text-muted/60 focus:outline-none focus:border-orange font-mono"
+          className="flex-1 min-w-0 min-h-[44px] bg-paper-sunk border border-rule rounded-xl px-3.5 py-2 text-[13px] text-ink placeholder:text-ink-soft focus:outline-none focus:border-terracotta font-mono"
         />
-        <button
-          onClick={save}
-          disabled={isPending}
-          className="tap-target-sm shrink-0 flex items-center px-4 py-2 rounded-xl bg-orange text-ink text-xs font-bold uppercase tracking-wider hover:bg-orange-hover transition-colors cursor-pointer disabled:opacity-60"
-        >
+        <Button variant="principal" onClick={save} disabled={isPending} className="shrink-0">
           {isPending ? "…" : "Enregistrer"}
-        </button>
+        </Button>
       </div>
 
       {feedback && (
-        <p className={`text-[11px] ${feedback.tone === "ok" ? "text-emerald-400" : "text-red-400"}`}>
+        <p className={`text-[13px] ${feedback.tone === "ok" ? "text-done" : "text-terracotta"}`}>
           {feedback.text}
         </p>
       )}
 
-      <p className="text-[10px] text-muted/70 leading-relaxed">
+      <p className="text-[13px] text-ink-soft leading-relaxed">
         Dans Discord : Paramètres → Avancés → Mode développeur, puis clic droit sur le
         salon → « Copier l&apos;identifiant ». Le bot doit pouvoir y écrire.
       </p>

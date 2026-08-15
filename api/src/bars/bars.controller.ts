@@ -92,6 +92,7 @@ export class BarsController {
     return this.barsService.setDiscordChannel(id, user.sub, dto.channelId ?? null);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id/members')
   findMembers(@Req() req: Request, @Param('id') id: string) {
     const user = req.user as JwtPayload;
