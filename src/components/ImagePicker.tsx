@@ -149,7 +149,7 @@ export default function ImagePicker({
               onChange("");
               onCommit?.("");
             }}
-            className="tap-target shrink-0 flex items-center text-[13px] text-terracotta hover:text-terracotta/80 bg-paper px-2.5 rounded-lg border border-terracotta/25 cursor-pointer"
+            className="tap-target shrink-0 flex items-center text-[13px] text-terracotta hover:opacity-80 bg-paper px-2.5 rounded-lg border border-terracotta/25 cursor-pointer"
           >
             Retirer
           </button>

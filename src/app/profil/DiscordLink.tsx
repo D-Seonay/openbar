@@ -51,7 +51,7 @@ export default function DiscordLink({
       )}
 
       {!configured && !profile.discordUserId ? (
-        <p className="text-[13px] text-ink-soft/80 leading-relaxed">
+        <p className="text-[13px] text-ink-soft leading-relaxed">
           Discord n&apos;est pas configuré sur ce serveur. L&apos;hôte doit renseigner
           <span className="font-mono text-ink"> DISCORD_CLIENT_ID</span>,
           <span className="font-mono text-ink"> DISCORD_CLIENT_SECRET</span> et

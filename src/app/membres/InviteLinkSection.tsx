@@ -53,7 +53,7 @@ export default function InviteLinkSection({ barId, inviteToken }: { barId: strin
           </Button>
         </div>
       ) : (
-        <p className="text-[13px] text-ink-soft/70 italic">Aucun lien généré pour le moment.</p>
+        <p className="text-[13px] text-ink-soft italic">Aucun lien généré pour le moment.</p>
       )}
       {error && <p className="text-[13px] text-terracotta">{error}</p>}
       <Button variant="discret" disabled={isPending} onClick={handleGenerate}>

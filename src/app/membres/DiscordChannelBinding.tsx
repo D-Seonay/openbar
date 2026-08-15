@@ -70,7 +70,7 @@ export default function DiscordChannelBinding({
         </p>
       )}
 
-      <p className="text-[13px] text-ink-soft/70 leading-relaxed">
+      <p className="text-[13px] text-ink-soft leading-relaxed">
         Dans Discord : Paramètres → Avancés → Mode développeur, puis clic droit sur le
         salon → « Copier l&apos;identifiant ». Le bot doit pouvoir y écrire.
       </p>

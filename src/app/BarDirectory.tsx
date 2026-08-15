@@ -39,7 +39,7 @@ export default function BarDirectory({
       </div>
 
       {entries.length === 0 ? (
-        <p className="text-[15px] text-ink-soft/70 italic py-4">Aucun bar sur la plateforme pour le moment.</p>
+        <p className="text-[15px] text-ink-soft italic py-4">Aucun bar sur la plateforme pour le moment.</p>
       ) : (
         <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
           {entries.map((entry) => (
