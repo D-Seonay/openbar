@@ -2,21 +2,33 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
-  // Un seul worker : les tests partagent une base et une session.
+  // Un seul worker : les tests partagent une base de données.
   workers: 1,
-  // Chaque test se reconnecte via la fixture, et la suite est séquentielle :
-  // sous charge, une de ces navigations dépasse les 30 s par défaut. Le seul
-  // échec observé était un `page.goto("/login")` expiré, jamais une assertion.
-  // On relève donc le plafond plutôt que de compter sur une reprise.
-  timeout: 60_000,
-  // Filet de sécurité résiduel. Une régression réelle échoue aux deux essais :
-  // une reprise ne peut pas transformer un débordement en absence de débordement.
-  retries: 1,
   reporter: [["list"]],
   use: {
     baseURL: process.env.AUDIT_BASE_URL ?? "http://localhost:3000",
-    navigationTimeout: 45_000,
     // 390px est la largeur de l'iPhone 14/15. La spec conçoit à cette taille.
     ...devices["iPhone 14"],
   },
+  projects: [
+    {
+      // Se connecte une fois par compte et écrit l'état de session dans
+      // `e2e/.auth/` (voir e2e/fixtures.ts et e2e/auth.setup.ts). Les tests
+      // du projet `audit` rejouent cet état au lieu de repasser par
+      // `page.goto("/login")` à chacun des 66 tests : c'était cette
+      // connexion répétée, sous 66 tests séquentiels sur un seul worker, qui
+      // faisait expirer le dernier `goto` d'une série sous charge — pas un
+      // défaut applicatif (Postgres restait à 13/100 connexions, le serveur
+      // répondait en 46 ms juste après l'échec, et le test passait 3/3 en
+      // isolement). Une seule connexion par compte supprime la cause plutôt
+      // que d'en compenser les symptômes par des délais ou des reprises.
+      name: "setup",
+      testMatch: /auth\.setup\.ts/,
+    },
+    {
+      name: "audit",
+      testMatch: /audit\.spec\.ts/,
+      dependencies: ["setup"],
+    },
+  ],
 });
