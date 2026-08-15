@@ -30,14 +30,14 @@ export default async function MoiPage() {
             {activeBar.name}
           </h2>
           <Row titre="Membres" href="/membres" chevron />
-          {/* Comptes et journal sont des outils de gestion : le propriétaire
-              seul les voit, comme le veut la spec. */}
-          {estProprietaire ? (
-            <>
-              <Row titre="Comptes" href="/comptes" chevron />
-              <Row titre="Journal" href="/journal" chevron />
-            </>
-          ) : null}
+          {/* Comptes est réservé au rôle ADMIN global : /comptes exige
+              isAdminLoggedIn(), pas la propriété d'un bar (voir
+              src/app/comptes/page.tsx). AccountMenu applique déjà cette
+              même règle ; les deux navigations doivent s'accorder. Journal
+              reste au propriétaire du bar : /journal l'autorise via
+              session.role === "ADMIN" || activeBar.myRole === "OWNER". */}
+          {session.role === "ADMIN" ? <Row titre="Comptes" href="/comptes" chevron /> : null}
+          {estProprietaire ? <Row titre="Journal" href="/journal" chevron /> : null}
         </section>
       ) : null}
 
