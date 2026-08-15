@@ -5,12 +5,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { BarDirectoryEntry } from "@/lib/types";
 import { requestToJoinBarAction } from "@/app/bar-actions";
-import { Badge, Button, Row } from "@/components/ui";
-
-const ACTION_LINK_CLASSES =
-  "min-h-[44px] px-4 rounded-lg border text-[15px] font-semibold " +
-  "inline-flex items-center justify-center gap-2 transition-colors " +
-  "bg-terracotta text-paper hover:bg-terracotta/90 border-transparent";
+import { Badge, Button, Row, lienBoutonClasses } from "@/components/ui";
 
 export default function BarDirectory({
   entries,
@@ -58,9 +53,6 @@ export default function BarDirectory({
                   <>
                     Par {entry.ownerUsername} · {entry.memberCount} membre
                     {entry.memberCount > 1 ? "s" : ""}
-                    {errors[entry.id] && (
-                      <span className="block text-terracotta mt-1">{errors[entry.id]}</span>
-                    )}
                   </>
                 }
                 droite={
@@ -70,7 +62,7 @@ export default function BarDirectory({
                     {entry.myStatus === "PENDING" && <Badge ton="alerte">Demande envoyée</Badge>}
                     {entry.myStatus === "NONE" &&
                       (guestMode ? (
-                        <Link href="/signup" className={ACTION_LINK_CLASSES}>
+                        <Link href="/signup" className={lienBoutonClasses("principal")}>
                           Créer un compte pour rejoindre
                         </Link>
                       ) : (
@@ -85,6 +77,9 @@ export default function BarDirectory({
                   </>
                 }
               />
+              {errors[entry.id] && (
+                <p className="text-[13px] text-terracotta pb-2.5 -mt-1">{errors[entry.id]}</p>
+              )}
             </div>
           ))}
         </div>

@@ -31,7 +31,7 @@ export default function UserRow({ user }: { user: AccountUser }) {
           droite={
             <span className="flex flex-wrap items-center justify-end gap-1.5">
               <Badge>{user.role}</Badge>
-              {user.vip && <Badge ton="alerte">VIP</Badge>}
+              {user.vip && <Badge ton="complet">VIP</Badge>}
               {user.isArchived && <Badge ton="alerte">Archivé</Badge>}
             </span>
           }
