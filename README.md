@@ -37,7 +37,7 @@ Sans configuration Discord, ces fonctions sont simplement absentes.
 
 ### Administration
 
-- **Comptes** (`/comptes`), **membres du bar** (`/membres`), **annuaire** (`/annuaire`), **découverte des bars publics** (`/decouvrir`).
+- **Comptes** (`/comptes`), **membres du bar** (`/membres` — `/annuaire` y redirige de façon permanente, les deux montraient les mêmes personnes), **découverte des bars publics** (`/decouvrir`).
 - **Journal** (`/journal`) — qui a fait quoi : bouteilles ajoutées ou retirées, quantités ajustées, soirées créées, bilans validés. Réservé au propriétaire du bar.
 
 ## Architecture
@@ -120,10 +120,14 @@ Le bot n'a **pas besoin d'être joignable depuis Internet** : il n'utilise que l
 ## Tests
 
 ```bash
+npm test                   # web — unitaires (Vitest), dont les contrastes de palette
+npm run audit               # web — audit navigateur (Playwright) : cibles tactiles, plancher de texte, palette
+npm run lint                # web
 cd api && npx jest         # tests unitaires de l'API
-npm run lint               # web
 cd api && npm run lint     # api
 ```
+
+`npm run audit` s'exécute contre un build (`npm run build && npx next start`) et attend deux comptes de test : un `USER` propriétaire d'un bar et un `ADMIN` global (voir `e2e/fixtures.ts`). Le commentaire en tête d'`e2e/audit.spec.ts` prévient : une page absente de la liste couverte n'est pas auditée, donc pas terminée.
 
 ## Documents
 
