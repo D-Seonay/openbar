@@ -7,7 +7,7 @@ import { listMyBars, getMyProfile } from "@/lib/api-client";
 import { resolveActiveBar } from "@/lib/active-bar";
 import AccountMenu from "@/components/AccountMenu";
 import BarSwitcher from "@/components/BarSwitcher";
-import { TabBar } from "@/components/ui";
+import { TabBar, HeaderNav } from "@/components/ui";
 
 /**
  * Fonts are served from the repo, not fetched from Google at build time.
@@ -79,7 +79,7 @@ export default async function RootLayout({
     <html lang="fr" className={`h-full ${lora.variable} ${jakarta.variable}`}>
       <body className="min-h-full flex flex-col bg-paper text-ink font-sans antialiased overflow-x-hidden">
         <header className="border-b border-rule bg-paper sticky top-0 z-40">
-          <div className="max-w-3xl mx-auto px-4 h-[52px] flex items-center justify-between gap-3">
+          <div className="max-w-3xl md:max-w-[1100px] mx-auto px-4 h-[52px] flex items-center justify-between gap-3">
             <Link
               href="/"
               className="min-h-[44px] flex items-center font-display text-[17px] text-ink truncate"
@@ -87,6 +87,11 @@ export default async function RootLayout({
               {activeBar?.name ?? "OpenBar"}
             </Link>
             <div className="flex items-center gap-2 shrink-0">
+              {/* La navigation ne s'affiche dans le bandeau (768px+) que pour
+                  une session ouverte — même garde que TabBar, pour qu'un
+                  visiteur non connecté ne voie jamais de lien vers une page
+                  protégée. */}
+              {session && <HeaderNav />}
               {session && !activeBar && (
                 <Link
                   href="/creer"
@@ -104,8 +109,10 @@ export default async function RootLayout({
         </header>
 
         {/* pb-24 réserve la hauteur de la TabBar : sans cela le dernier élément
-            de chaque page passe dessous et devient intouchable. */}
-        <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-5 pb-24">
+            de chaque page passe dessous et devient intouchable. À partir de
+            768px la barre basse disparaît (voir TabBar.tsx) : md:pb-5 annule
+            la réserve pour retrouver le padding normal de py-5. */}
+        <main className="flex-1 w-full max-w-3xl md:max-w-[1100px] mx-auto px-4 py-5 pb-24 md:pb-5">
           {children}
         </main>
 
