@@ -27,9 +27,10 @@ export async function seConnecter(
 const IDENTIFIANT = process.env.AUDIT_USERNAME;
 const MOT_DE_PASSE = process.env.AUDIT_PASSWORD;
 
-// Compte ADMIN, distinct du compte de test générique : certaines pages (le
-// bilan de soirée) sont réservées au rôle ADMIN par `src/proxy.ts` et restent
-// hors de portée du compte `test` ci-dessous.
+// Compte ADMIN, distinct du compte de test générique : le bilan de soirée
+// est réservé au propriétaire du bar et à l'ADMIN global (garde posée dans
+// la page elle-même), donc hors de portée du compte `test` ci-dessous s'il
+// n'est pas propriétaire du bar audité.
 const IDENTIFIANT_ADMIN = process.env.AUDIT_ADMIN_USERNAME;
 const MOT_DE_PASSE_ADMIN = process.env.AUDIT_ADMIN_PASSWORD;
 

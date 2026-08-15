@@ -130,10 +130,11 @@ for (const chemin of PAGES_PUBLIQUES) {
   });
 }
 
-// Le bilan est réservé au rôle ADMIN par `src/proxy.ts` : le compte de test
-// générique (rôle USER) n'y a jamais accès, d'où la fixture `testAdmin`
-// dédiée. Le chemin est celui d'une soirée passée provisionnée pour cet
-// audit, afin que le bilan ait un sens à remplir.
+// Le bilan est réservé au propriétaire du bar et à l'ADMIN global (garde
+// posée dans la page elle-même, pas dans `src/proxy.ts`) ; on audite ici
+// via le compte ADMIN, d'où la fixture `testAdmin` dédiée. Le chemin est
+// celui d'une soirée passée provisionnée pour cet audit, afin que le bilan
+// ait un sens à remplir.
 const BILAN_PATH = "/soirees/soiree-passee-a-bilanter-9b3aa64d/bilan";
 
 testAdmin.describe(BILAN_PATH, () => {

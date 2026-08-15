@@ -16,6 +16,12 @@ export default async function BilanPage({ params }: { params: Promise<{ slug: st
   const activeBar = await resolveActiveBar(bars);
   if (!activeBar) redirect("/");
 
+  // Le bilan est réservé au propriétaire du bar et à l'ADMIN global : le proxy
+  // ne connaît pas l'appartenance au bar, donc cette garde vit ici plutôt que
+  // dans src/proxy.ts.
+  const canViewBilan = session.role === "ADMIN" || activeBar.myRole === "OWNER";
+  if (!canViewBilan) redirect(`/soirees/${slug}`);
+
   const [bottles, adjustments] = await Promise.all([
     listBottles(activeBar.id),
     listStockAdjustments(slug),
