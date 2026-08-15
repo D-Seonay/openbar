@@ -34,6 +34,10 @@ export async function seConnecter(
 export const AUTH_DIR = path.join(__dirname, ".auth");
 export const USER_AUTH_FILE = path.join(AUTH_DIR, "audit-bot.json");
 export const ADMIN_AUTH_FILE = path.join(AUTH_DIR, "audit-admin.json");
+// Compte sans bar (`audit-sansbar`) : seul état qui laisse /creer afficher son
+// formulaire plutôt que rediriger vers / — les deux autres comptes possèdent
+// déjà un bar. Voir `e2e/auth.setup.ts` pour la connexion qui produit ce fichier.
+export const NOBAR_AUTH_FILE = path.join(AUTH_DIR, "audit-sansbar.json");
 
 // `storageState` est le fixture d'options standard de Playwright (celui que
 // `test.use({ storageState: ... })` renseigne d'habitude) : le surcharger ici
@@ -48,6 +52,12 @@ export const test = base.extend({
 export const testAdmin = base.extend({
   storageState: async ({}, use) => {
     await use(ADMIN_AUTH_FILE);
+  },
+});
+
+export const testNoBar = base.extend({
+  storageState: async ({}, use) => {
+    await use(NOBAR_AUTH_FILE);
   },
 });
 

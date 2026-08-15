@@ -1,14 +1,20 @@
 import { test as base } from "@playwright/test";
-import { test, testAdmin } from "./fixtures";
+import { test, testAdmin, testNoBar } from "./fixtures";
 import {
   PAGES,
   PAGES_PUBLIQUES,
   BILAN_PATH,
   ADMIN_PAGES,
   ADMIN_BAR_SOUS_PAGES,
+  ANNUAIRE_PATH,
+  CREER_PATH,
+  CHANGER_MDP_PATH,
+  REJOINDRE_TOKEN,
+  cheminRejoindre,
   verifierDebordement,
   verifierTaillesTexte,
   verifierNavigationDesktop,
+  verifierRedirectionAnnuaire,
   resoudrePremiereSoiree,
   resoudrePremierBarAdmin,
 } from "./audit-helpers";
@@ -140,3 +146,69 @@ for (const suffixe of ADMIN_BAR_SOUS_PAGES) {
     });
   });
 }
+
+// /annuaire ne rend jamais de page : voir le commentaire équivalent dans
+// audit.spec.ts. Une seule mesure, indépendante de la largeur — on l'audite
+// ici aussi car le projet `audit-desktop` a son propre contexte navigateur
+// (Desktop Chrome vs iPhone 14), pas par redondance avec le mobile.
+// `test` (audit-bot), pas `base` : voir ANNUAIRE_PATH dans audit-helpers.ts.
+test.describe(ANNUAIRE_PATH, () => {
+  test("redirige en permanence vers /membres", async ({ page }) => {
+    await verifierRedirectionAnnuaire(page);
+  });
+});
+
+// /creer : `testNoBar` uniquement, voir le commentaire dans audit.spec.ts.
+testNoBar.describe(CREER_PATH, () => {
+  testNoBar("ne déborde pas horizontalement (1440px)", async ({ page }) => {
+    await page.goto(CREER_PATH);
+    await verifierDebordement(page);
+  });
+
+  testNoBar("n'affiche aucun texte sous 13px (1440px)", async ({ page }) => {
+    await page.goto(CREER_PATH);
+    await verifierTaillesTexte(page);
+  });
+
+  testNoBar("bandeau visible, barre basse absente (1440px)", async ({ page }) => {
+    await page.goto(CREER_PATH);
+    await verifierNavigationDesktop(page);
+  });
+});
+
+// /changer-mot-de-passe : accessible à n'importe quelle session, le compte de
+// test générique suffit.
+test.describe(CHANGER_MDP_PATH, () => {
+  test("ne déborde pas horizontalement (1440px)", async ({ page }) => {
+    await page.goto(CHANGER_MDP_PATH);
+    await verifierDebordement(page);
+  });
+
+  test("n'affiche aucun texte sous 13px (1440px)", async ({ page }) => {
+    await page.goto(CHANGER_MDP_PATH);
+    await verifierTaillesTexte(page);
+  });
+
+  test("bandeau visible, barre basse absente (1440px)", async ({ page }) => {
+    await page.goto(CHANGER_MDP_PATH);
+    await verifierNavigationDesktop(page);
+  });
+});
+
+// /rejoindre/[token] : visiteur SANS session (`base`), voir le commentaire
+// dans audit.spec.ts. Pas de vérification de navigation : comme pour
+// PAGES_PUBLIQUES, un visiteur anonyme n'a ni bandeau ni barre basse à voir.
+// Sauté explicitement si AUDIT_INVITE_TOKEN est absent.
+base.describe("/rejoindre/[token]", () => {
+  base("ne déborde pas horizontalement (1440px)", async ({ page }) => {
+    base.skip(!REJOINDRE_TOKEN, "AUDIT_INVITE_TOKEN absent : /rejoindre/[token] non audité.");
+    await page.goto(cheminRejoindre());
+    await verifierDebordement(page);
+  });
+
+  base("n'affiche aucun texte sous 13px (1440px)", async ({ page }) => {
+    base.skip(!REJOINDRE_TOKEN, "AUDIT_INVITE_TOKEN absent : /rejoindre/[token] non audité.");
+    await page.goto(cheminRejoindre());
+    await verifierTaillesTexte(page);
+  });
+});

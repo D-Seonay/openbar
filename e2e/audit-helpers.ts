@@ -154,6 +154,56 @@ export async function resoudrePremiereSoiree(page: Page): Promise<string> {
   return chemin;
 }
 
+// /annuaire ne rend jamais de page : `permanentRedirect("/membres")` s'exécute
+// avant tout rendu (voir src/app/annuaire/page.tsx). Mesurer sa mise en page
+// n'a donc aucun sens — il n'y en a pas — on vérifie la redirection elle-même.
+// La redirection elle-même ne dépend d'aucune session, mais sa destination
+// si : /membres a sa propre garde (`if (!session) redirect("/login")`), donc
+// un visiteur anonyme atterrit sur /login après un second saut invisible
+// depuis /annuaire. Vérifier « la redirection vers /membres fonctionne »
+// exige donc une session active — `test` (audit-bot), pas `base`.
+export const ANNUAIRE_PATH = "/annuaire";
+
+// /creer redirige vers / dès que le compte possède déjà un bar
+// (creer/page.tsx:16) : il faut un compte SANS bar pour voir le formulaire,
+// d'où la fixture `testNoBar` plutôt que `test`.
+export const CREER_PATH = "/creer";
+
+// /changer-mot-de-passe n'a aucune garde propre au-delà d'une session : la
+// fixture `test` (audit-bot) suffit.
+export const CHANGER_MDP_PATH = "/changer-mot-de-passe";
+
+// /rejoindre/[token] exige un jeton d'invitation actif. Provisionné pour cet
+// audit via la variable d'environnement `AUDIT_INVITE_TOKEN` plutôt qu'en
+// dur : un jeton est un secret d'accès, au même titre qu'un mot de passe.
+export const REJOINDRE_TOKEN = process.env.AUDIT_INVITE_TOKEN;
+
+export function cheminRejoindre(): string {
+  return `/rejoindre/${REJOINDRE_TOKEN}`;
+}
+
+// Le rendu de /rejoindre/[token] dépend de la session : avec une session, la
+// page rejoint le bar puis redirige vers / sans jamais afficher la carte
+// « Rejoindre {barName} ». Seul un visiteur SANS session voit cette carte,
+// donc seule `base` (non connectée) a un sens ici — comme pour
+// PAGES_PUBLIQUES.
+
+// Mesure propre à /annuaire : vérifie que la redirection permanente (308)
+// atterrit bien sur /membres, plutôt que les mesures de mise en page
+// utilisées partout ailleurs — cette page ne rend jamais rien à mesurer.
+export async function verifierRedirectionAnnuaire(page: Page) {
+  const reponse = await page.goto(ANNUAIRE_PATH);
+
+  expect(new URL(page.url()).pathname, "/annuaire doit atterrir sur /membres").toBe("/membres");
+
+  const premiereRequete = reponse?.request().redirectedFrom();
+  const premiereReponse = await premiereRequete?.response();
+  expect(
+    premiereReponse?.status(),
+    "/annuaire doit rediriger avec un 308 (permanentRedirect), pas un 307/302",
+  ).toBe(308);
+}
+
 // /admin/bars/[id] et ses sous-pages : même logique de résolution dynamique
 // que /soirees/[slug], depuis le premier bar listé par /admin/bars.
 export async function resoudrePremierBarAdmin(page: Page): Promise<string> {
