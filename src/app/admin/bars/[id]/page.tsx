@@ -34,7 +34,7 @@ export default async function AdminBarDetailPage({
           <span className="w-2 h-2 rounded-full bg-terracotta animate-pulse" />
           <span>Espace Administrateur</span>
         </div>
-        <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
+        <h1 className="font-display text-[27px] text-ink mt-1">
           Gestion de {bar.name}
         </h1>
       </div>
@@ -54,7 +54,12 @@ export default async function AdminBarDetailPage({
       <PendingRequests barId={id} requests={pendingRequests} />
 
       <div className="grid lg:grid-cols-12 gap-8 items-start">
-        <div className="lg:col-span-4 space-y-6">
+        {/* min-w-0 : sans lui, un grid item mesure ses enfants à leur largeur
+            de contenu (min-width: auto par défaut) plutôt qu'à la largeur de
+            la colonne, ce qui pousse toute la grille — et donc la page — au-
+            delà du viewport en mobile. Même correctif que membres/page.tsx et
+            soirees/page.tsx. */}
+        <div className="lg:col-span-4 space-y-6 min-w-0">
           <BarNameSection barId={id} name={bar.name} />
           <div className="rounded-2xl bg-paper-sunk border border-rule p-5 sm:p-6">
             <InviteMemberForm barId={id} />
@@ -63,7 +68,7 @@ export default async function AdminBarDetailPage({
           <InviteLinkSection barId={id} inviteToken={bar.inviteToken} />
         </div>
 
-        <div className="lg:col-span-8 rounded-2xl bg-paper-sunk border border-rule overflow-hidden divide-y divide-rule">
+        <div className="lg:col-span-8 min-w-0 rounded-2xl bg-paper-sunk border border-rule overflow-hidden divide-y divide-rule">
           {members.map((member) => (
             <MemberRow key={member.id} barId={id} member={member} canManage={true} />
           ))}

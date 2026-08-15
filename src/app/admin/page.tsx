@@ -32,7 +32,7 @@ export default async function AdminDashboardPage() {
             <span className="w-2 h-2 rounded-full bg-terracotta animate-pulse" />
             <span>Espace Administrateur</span>
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
+          <h1 className="font-display text-[27px] text-ink mt-1">
             Tableau de bord
           </h1>
         </div>
@@ -68,20 +68,23 @@ export default async function AdminDashboardPage() {
           href="/comptes"
           className="p-5 rounded-2xl bg-paper-sunk border border-rule hover:border-terracotta transition-colors"
         >
-          <p className="font-display font-bold text-lg text-ink">Comptes & Privilèges VIP</p>
+          <p className="font-display font-bold text-[17px] text-ink">Comptes & Privilèges VIP</p>
           <p className="text-[13px] text-ink-soft mt-1">Gérer les comptes, rôles et statuts VIP.</p>
         </Link>
         <Link
           href="/admin/bars"
           className="p-5 rounded-2xl bg-paper-sunk border border-rule hover:border-terracotta transition-colors"
         >
-          <p className="font-display font-bold text-lg text-ink">Tous les bars</p>
+          <p className="font-display font-bold text-[17px] text-ink">Tous les bars</p>
           <p className="text-[13px] text-ink-soft mt-1">Voir et gérer le contenu de chaque bar.</p>
         </Link>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-8">
-        <div>
+        {/* min-w-0 : un grid item n'a pas de min-width auto à 0 comme un flex
+            item — sans lui, un nom long dans un `truncate` imbriqué élargit
+            toute la colonne (voir la même remarque sur /soirees). */}
+        <div className="min-w-0">
           <h2 className="text-[13px] font-bold uppercase tracking-caps text-ink-soft mb-3">
             Derniers bars créés
           </h2>
@@ -108,7 +111,7 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <h2 className="text-[13px] font-bold uppercase tracking-caps text-ink-soft mb-3">
             Derniers comptes créés
           </h2>

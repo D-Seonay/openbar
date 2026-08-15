@@ -34,7 +34,7 @@ export default async function AdminBarStockPage({
             <span className="w-2 h-2 rounded-full bg-terracotta animate-pulse" />
             <span>Espace Administrateur</span>
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
+          <h1 className="font-display text-[27px] text-ink mt-1">
             Cave de {bar.name}
           </h1>
         </div>

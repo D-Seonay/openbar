@@ -3,10 +3,12 @@ import { test as base } from "@playwright/test";
 import { test, testAdmin, expect } from "./fixtures";
 
 /**
- * Les pages refondues. On en ajoute une à chaque tâche de la phase D —
- * une page absente de cette liste n'est pas auditée, donc pas terminée.
+ * Les pages refondues. On en ajoute une à chaque tâche de la phase D, et à
+ * chaque nouvel écran ensuite — une page absente d'ici ou des listes plus
+ * bas (soirée, administration) n'est pas auditée, donc pas terminée.
  */
 const PAGES = [
+  "/",
   "/soirees",
   "/stock",
   "/cocktails",
@@ -153,3 +155,104 @@ testAdmin.describe(BILAN_PATH, () => {
     await verifierTaillesTexte(page);
   });
 });
+
+// /soirees/[slug] n'a pas de slug fixe à auditer : on résout la première
+// soirée listée par /soirees pour le compte de test (compte USER, propriétaire
+// de « Bar Audit »), plutôt que d'en coder un en dur qui romprait au moindre
+// reseed. Le sélecteur exclut volontairement les liens à un segment
+// supplémentaire (.../bilan, .../calendar) rendus ailleurs sur la même page.
+async function resoudrePremiereSoiree(page: Page): Promise<string> {
+  await page.goto("/soirees");
+  await page.waitForLoadState("networkidle");
+  const chemin = await page.evaluate(() => {
+    const liens = Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"));
+    const lien = liens.find((a) => /^\/soirees\/[^/]+$/.test(new URL(a.href).pathname));
+    return lien ? new URL(lien.href).pathname : null;
+  });
+  if (!chemin) {
+    throw new Error("Aucune soirée trouvée pour auditer /soirees/[slug].");
+  }
+  return chemin;
+}
+
+test.describe("/soirees/[slug]", () => {
+  test("ne déborde pas horizontalement", async ({ page }) => {
+    const chemin = await resoudrePremiereSoiree(page);
+    await page.goto(chemin);
+    await verifierDebordement(page);
+  });
+
+  test("n'a aucune cible tactile sous 44px", async ({ page }) => {
+    const chemin = await resoudrePremiereSoiree(page);
+    await page.goto(chemin);
+    await verifierCiblesTactiles(page);
+  });
+
+  test("n'affiche aucun texte sous 13px", async ({ page }) => {
+    const chemin = await resoudrePremiereSoiree(page);
+    await page.goto(chemin);
+    await verifierTaillesTexte(page);
+  });
+});
+
+// Section administration : réservée au rôle ADMIN global, donc auditée avec
+// le compte `testAdmin` plutôt que le compte de test générique.
+const ADMIN_PAGES = ["/admin", "/admin/bars"];
+
+for (const chemin of ADMIN_PAGES) {
+  testAdmin.describe(chemin, () => {
+    testAdmin("ne déborde pas horizontalement", async ({ page }) => {
+      await page.goto(chemin);
+      await verifierDebordement(page);
+    });
+
+    testAdmin("n'a aucune cible tactile sous 44px", async ({ page }) => {
+      await page.goto(chemin);
+      await verifierCiblesTactiles(page);
+    });
+
+    testAdmin("n'affiche aucun texte sous 13px", async ({ page }) => {
+      await page.goto(chemin);
+      await verifierTaillesTexte(page);
+    });
+  });
+}
+
+// /admin/bars/[id] et ses sous-pages : même logique de résolution dynamique
+// que /soirees/[slug], depuis le premier bar listé par /admin/bars.
+async function resoudrePremierBarAdmin(page: Page): Promise<string> {
+  await page.goto("/admin/bars");
+  await page.waitForLoadState("networkidle");
+  const chemin = await page.evaluate(() => {
+    const lien = document.querySelector<HTMLAnchorElement>('a[href^="/admin/bars/"]');
+    return lien ? new URL(lien.href).pathname : null;
+  });
+  if (!chemin) {
+    throw new Error("Aucun bar trouvé pour auditer /admin/bars/[id].");
+  }
+  return chemin;
+}
+
+const ADMIN_BAR_SOUS_PAGES = ["", "/cocktails", "/soirees", "/stock"];
+
+for (const suffixe of ADMIN_BAR_SOUS_PAGES) {
+  testAdmin.describe(`/admin/bars/[id]${suffixe}`, () => {
+    testAdmin("ne déborde pas horizontalement", async ({ page }) => {
+      const base = await resoudrePremierBarAdmin(page);
+      await page.goto(`${base}${suffixe}`);
+      await verifierDebordement(page);
+    });
+
+    testAdmin("n'a aucune cible tactile sous 44px", async ({ page }) => {
+      const base = await resoudrePremierBarAdmin(page);
+      await page.goto(`${base}${suffixe}`);
+      await verifierCiblesTactiles(page);
+    });
+
+    testAdmin("n'affiche aucun texte sous 13px", async ({ page }) => {
+      const base = await resoudrePremierBarAdmin(page);
+      await page.goto(`${base}${suffixe}`);
+      await verifierTaillesTexte(page);
+    });
+  });
+}

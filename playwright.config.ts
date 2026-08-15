@@ -4,6 +4,10 @@ export default defineConfig({
   testDir: "./e2e",
   // Un seul worker : les tests partagent une base et une session.
   workers: 1,
+  // Une reprise : sur une suite longue et séquentielle, une navigation isolée
+  // peut expirer pour des raisons d'infrastructure (pas de code) sans que la
+  // reprise ne la fasse réussir si la régression est réelle.
+  retries: 1,
   reporter: [["list"]],
   use: {
     baseURL: process.env.AUDIT_BASE_URL ?? "http://localhost:3000",

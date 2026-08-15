@@ -36,7 +36,7 @@ export default async function AdminBarSoireesPage({
           <span className="w-2 h-2 rounded-full bg-terracotta animate-pulse" />
           <span>Espace Administrateur</span>
         </div>
-        <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
+        <h1 className="font-display text-[27px] text-ink mt-1">
           Soirées de {bar.name}
         </h1>
       </div>
@@ -44,7 +44,7 @@ export default async function AdminBarSoireesPage({
       <div className="grid md:grid-cols-3 gap-6 items-start">
         <Card className="md:col-span-1 space-y-4">
           <div>
-            <h2 className="font-display text-xl text-ink">Créer un Événement</h2>
+            <h2 className="font-display text-[17px] text-ink">Créer un Événement</h2>
             <p className="text-ink-soft text-[13px] mt-0.5">Configurez une nouvelle date.</p>
           </div>
           <form action={createEvent.bind(null, id)}>
@@ -69,7 +69,7 @@ export default async function AdminBarSoireesPage({
         <section className="md:col-span-2 space-y-4">
           <div className="flex items-center gap-3 border-b border-rule pb-2">
             <span className="w-1.5 h-3 bg-terracotta rounded-full" />
-            <h2 className="font-display text-xl text-ink">Historique & Événements à venir</h2>
+            <h2 className="font-display text-[17px] text-ink">Historique & Événements à venir</h2>
           </div>
 
           {sorted.length === 0 ? (
