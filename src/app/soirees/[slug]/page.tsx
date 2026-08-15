@@ -77,12 +77,14 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             })}
           </p>
         </div>
-        <Link
-          href={`/soirees/${slug}/bilan`}
-          className="tap-target shrink-0 inline-flex items-center justify-center px-4 rounded-lg border border-terracotta/40 bg-terracotta/10 text-terracotta hover:bg-terracotta hover:text-paper transition-colors text-[13px] font-semibold text-center"
-        >
-          📝 Faire / Modifier le bilan
-        </Link>
+        {canManageWishlist && (
+          <Link
+            href={`/soirees/${slug}/bilan`}
+            className="tap-target shrink-0 inline-flex items-center justify-center px-4 rounded-lg border border-terracotta/40 bg-terracotta/10 text-terracotta hover:bg-terracotta hover:text-paper transition-colors text-[13px] font-semibold text-center"
+          >
+            📝 Faire / Modifier le bilan
+          </Link>
+        )}
       </div>
 
       {/* "À ramener" en premier : c'est la question qu'on se pose pendant la

@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { getEvent, listBottles, listStockAdjustments, listMyBars } from "@/lib/api-client";
 import { getSession } from "@/lib/session";
-import { resolveActiveBar } from "@/lib/active-bar";
 import BilanClientForm from "./BilanClientForm";
 
 export default async function BilanPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -12,18 +11,23 @@ export default async function BilanPage({ params }: { params: Promise<{ slug: st
   const event = await getEvent(slug);
   if (!event) notFound();
 
+  // Le bilan porte sur le bar hôte de la soirée, pas sur le bar actuellement
+  // sélectionné dans le switcher : sinon un propriétaire perd le contrôle de
+  // sa propre soirée dès qu'il bascule sur un autre bar (faux négatif), et
+  // peut à l'inverse écraser le stock d'un autre bar sous le titre d'une
+  // soirée dont il n'est pas l'hôte (faux positif). Même résolution que la
+  // page sœur src/app/soirees/[slug]/page.tsx.
   const bars = await listMyBars();
-  const activeBar = await resolveActiveBar(bars);
-  if (!activeBar) redirect("/");
+  const hostBar = bars.find((bar) => bar.id === event.barId) ?? null;
 
-  // Le bilan est réservé au propriétaire du bar et à l'ADMIN global : le proxy
-  // ne connaît pas l'appartenance au bar, donc cette garde vit ici plutôt que
-  // dans src/proxy.ts.
-  const canViewBilan = session.role === "ADMIN" || activeBar.myRole === "OWNER";
+  // Le bilan est réservé au propriétaire du bar hôte et à l'ADMIN global : le
+  // proxy ne connaît pas l'appartenance au bar, donc cette garde vit ici
+  // plutôt que dans src/proxy.ts.
+  const canViewBilan = session.role === "ADMIN" || hostBar?.myRole === "OWNER";
   if (!canViewBilan) redirect(`/soirees/${slug}`);
 
   const [bottles, adjustments] = await Promise.all([
-    listBottles(activeBar.id),
+    listBottles(event.barId),
     listStockAdjustments(slug),
   ]);
 
