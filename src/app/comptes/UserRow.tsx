@@ -76,7 +76,7 @@ export default function UserRow({ user }: { user: AccountUser }) {
           Réinitialiser MDP
         </Button>
         <Button
-          variant="danger"
+          variant="discret"
           disabled={isPending || user.isArchived}
           onClick={() => setIsConfirmingArchive(true)}
         >

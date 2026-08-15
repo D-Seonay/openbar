@@ -131,7 +131,7 @@ export default function FicheBouteilleSheet({
 
           <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-rule">
             {isAdmin ? (
-              <Button variant="danger" onClick={() => onSupprimer(bouteille)}>
+              <Button variant="discret" onClick={() => onSupprimer(bouteille)}>
                 Supprimer
               </Button>
             ) : (

@@ -48,7 +48,7 @@ export default function PendingRequests({ barId, requests }: { barId: string; re
               Accepter
             </Button>
             <Button
-              variant="danger"
+              variant="discret"
               disabled={isPending}
               className="flex-1 xs:flex-none"
               onClick={() =>

@@ -292,7 +292,7 @@ export default function CocktailStudio({
                       Modifier
                     </Button>
                     <Button
-                      variant="danger"
+                      variant="discret"
                       onClick={() => setDeleteTarget({ id: selectedItem.recipe.id, name: selectedItem.recipe.name })}
                     >
                       Supprimer

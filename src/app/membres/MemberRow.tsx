@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import type { BarMember } from "@/lib/types";
 import { toggleMemberVipAction, removeMemberAction, changeMemberRoleAction } from "@/app/bar-actions";
+import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import { Badge, Button, Row } from "@/components/ui";
 
 function formatBirthday(iso: string): string {
@@ -33,6 +34,7 @@ export default function MemberRow({
 }) {
   const [isPending, startTransition] = useTransition();
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isConfirmingRemove, setIsConfirmingRemove] = useState(false);
 
   const details = [
     member.user.birthday ? `🎂 ${formatBirthday(member.user.birthday)}` : null,
@@ -96,20 +98,32 @@ export default function MemberRow({
             {member.vip ? "Retirer VIP" : "Accorder VIP"}
           </Button>
           <Button
-            variant="danger"
+            variant="discret"
             disabled={isPending}
-            onClick={() =>
-              startTransition(async () => {
-                setDeleteError(null);
-                const result = await removeMemberAction(barId, member.id);
-                if (result.error) setDeleteError(result.error);
-              })
-            }
+            onClick={() => setIsConfirmingRemove(true)}
           >
             Révoquer
           </Button>
         </div>
       )}
+
+      <ConfirmDeleteModal
+        isOpen={isConfirmingRemove}
+        title="Révoquer ce membre ?"
+        description={`${member.user.username} perdra l'accès à ce bar.`}
+        confirmLabel="Révoquer"
+        pendingLabel="Révocation..."
+        isPending={isPending}
+        onCancel={() => setIsConfirmingRemove(false)}
+        onConfirm={() =>
+          startTransition(async () => {
+            setDeleteError(null);
+            const result = await removeMemberAction(barId, member.id);
+            if (result.error) setDeleteError(result.error);
+            setIsConfirmingRemove(false);
+          })
+        }
+      />
     </div>
   );
 }

@@ -157,7 +157,7 @@ export default function ManageAlertsModal({
                       ⚡ +1
                     </Button>
                     <Button
-                      variant="danger"
+                      variant="discret"
                       onClick={() => handleDismissAlert(b.id)}
                       disabled={isPending}
                       className="flex-1 sm:flex-none text-[13px] px-3"
@@ -174,7 +174,7 @@ export default function ManageAlertsModal({
           {/* Footer actions */}
           <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 border-t border-rule pt-4 pb-safe-0">
             {alertedBottles.length > 0 ? (
-              <Button variant="danger" onClick={handleDismissAllAlerts} disabled={isPending}>
+              <Button variant="discret" onClick={handleDismissAllAlerts} disabled={isPending}>
                 🔕 Supprimer toutes les alertes ({alertedBottles.length})
               </Button>
             ) : (

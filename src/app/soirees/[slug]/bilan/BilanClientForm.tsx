@@ -221,7 +221,7 @@ export default function BilanClientForm({ slug, bottles }: BilanClientFormProps)
                 <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-rule shrink-0">
                   <Button
                     type="button"
-                    variant="danger"
+                    variant="discret"
                     onClick={() => handleAdjust(b.id, -1)}
                     disabled={currentQty <= 0}
                     className="px-3 text-[13px]"

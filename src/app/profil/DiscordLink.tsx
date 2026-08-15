@@ -73,7 +73,7 @@ export default function DiscordLink({
             </span>
           </span>
           <Button
-            variant="danger"
+            variant="discret"
             onClick={() =>
               startTransition(async () => {
                 await unlinkDiscordAction();

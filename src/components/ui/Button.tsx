@@ -2,6 +2,12 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 type Variant = "principal" | "discret" | "danger";
 
+// `danger` est plein terracotta — au même titre que `principal` — pour porter
+// le bouton qui CONFIRME une action destructrice dans un dialogue (à côté
+// d'un « Annuler » en `discret`). Un déclencheur inline qui ouvre ce
+// dialogue, ou qui agit directement sans confirmation, doit rester en
+// `discret` : sinon il devient visuellement indiscernable d'un `principal`
+// voisin (ex. « Retirer VIP » / « Révoquer »).
 const VARIANTS: Record<Variant, string> = {
   principal: "bg-terracotta text-paper hover:bg-terracotta/90 border-transparent",
   discret: "bg-transparent text-ink border-rule hover:bg-paper-sunk",
