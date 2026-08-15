@@ -14,13 +14,6 @@ async function requireAdmin() {
   }
 }
 
-async function requireVipOrAdmin() {
-  const session = await getSession();
-  if (!session || !(session.vip || session.role === "ADMIN")) {
-    redirect("/login");
-  }
-}
-
 async function requireLoggedIn() {
   const session = await getSession();
   if (!session) redirect("/login");
@@ -182,7 +175,9 @@ export async function createRecipe(barId: string, formData: FormData) {
 }
 
 export async function updateRecipe(id: string, formData: FormData) {
-  await requireVipOrAdmin();
+  // Autorisation réelle faite par l'API (assertOwnerOrAdmin) : elle seule sait
+  // si `id` appartient au demandeur, donc on ne fait ici que vérifier la session.
+  await requireLoggedIn();
   const input = parseRecipeFormData(formData);
   if (!input.name || input.tags.length === 0 || input.ingredientsList.length === 0 || input.instructions.length === 0) {
     return;
@@ -192,7 +187,9 @@ export async function updateRecipe(id: string, formData: FormData) {
 }
 
 export async function deleteRecipeAction(id: string) {
-  await requireVipOrAdmin();
+  // Autorisation réelle faite par l'API (assertOwnerOrAdmin) : elle seule sait
+  // si `id` appartient au demandeur, donc on ne fait ici que vérifier la session.
+  await requireLoggedIn();
   await api.deleteRecipe(id);
   revalidatePath("/cocktails");
 }
