@@ -30,5 +30,16 @@ export default defineConfig({
       testMatch: /audit\.spec\.ts/,
       dependencies: ["setup"],
     },
+    {
+      // 1440x900 : la largeur à laquelle la refonte papier-chaud remonte la
+      // navigation dans le bandeau (voir HeaderNav.tsx) et élargit <main>.
+      // `devices["Desktop Chrome"]` remplace entièrement le device iPhone 14
+      // hérité de `use` ci-dessus (UA, tactile, viewport) — sinon la page se
+      // croirait toujours sur mobile malgré la largeur.
+      name: "audit-desktop",
+      testMatch: /audit\.desktop\.spec\.ts/,
+      dependencies: ["setup"],
+      use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
+    },
   ],
 });

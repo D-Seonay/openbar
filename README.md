@@ -127,7 +127,16 @@ cd api && npx jest         # tests unitaires de l'API
 cd api && npm run lint     # api
 ```
 
-`npm run audit` s'exécute contre un build (`npm run build && npx next start`) et attend deux comptes de test : un `USER` propriétaire d'un bar et un `ADMIN` global (voir `e2e/fixtures.ts`). Le commentaire en tête d'`e2e/audit.spec.ts` prévient : une page absente de la liste couverte n'est pas auditée, donc pas terminée.
+`npm run audit` s'exécute contre un build (`npm run build && npx next start`) et attend trois comptes de test (voir `e2e/fixtures.ts`) plus un jeton d'invitation actif :
+
+| Variable | Rôle |
+|---|---|
+| `AUDIT_USERNAME` / `AUDIT_PASSWORD` | Compte `USER`, propriétaire d'un bar. |
+| `AUDIT_ADMIN_USERNAME` / `AUDIT_ADMIN_PASSWORD` | Compte `ADMIN` global, pour `/admin` et le bilan. |
+| `AUDIT_NOBAR_USERNAME` / `AUDIT_NOBAR_PASSWORD` | Compte sans aucun bar, seul état qui laisse `/creer` afficher son formulaire plutôt que rediriger vers `/`. |
+| `AUDIT_INVITE_TOKEN` | Jeton d'invitation actif, pour auditer `/rejoindre/[token]`. Absent, les tests concernés se sautent explicitement plutôt que d'échouer. |
+
+Le commentaire en tête d'`e2e/audit.spec.ts` prévient : une page absente de la liste couverte n'est pas auditée, donc pas terminée.
 
 ## Documents
 

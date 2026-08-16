@@ -53,7 +53,15 @@ export default async function BilanPage({ params }: { params: Promise<{ slug: st
   enrichedBottles.sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <div className="space-y-8">
+    // max-w-3xl : contrairement à /creer, /login, etc. (déjà bornées par leur
+    // propre `max-w-sm`), cet écran n'avait aucune largeur propre — il
+    // héritait de celle de <main>. Sans cette contrainte locale, il
+    // s'élargirait avec elle jusqu'à 1100px, ce que l'utilisateur exclut
+    // explicitement pour un formulaire. On reprend l'ancienne largeur de
+    // <main> (768px) plutôt que max-w-sm : ce n'est pas un simple champ,
+    // c'est une liste de bouteilles avec compteur, filtres et barre
+    // collante — max-w-sm la rendrait illisible.
+    <div className="max-w-3xl mx-auto space-y-8">
       <div>
         <span className="text-[13px] uppercase tracking-caps text-terracotta font-semibold">
           Bilan de fin de soirée

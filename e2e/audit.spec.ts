@@ -1,91 +1,31 @@
-import type { Page } from "@playwright/test";
 import { test as base } from "@playwright/test";
-import { test, testAdmin, expect } from "./fixtures";
+import { test, testAdmin, testNoBar } from "./fixtures";
+import {
+  PAGES,
+  PAGES_PUBLIQUES,
+  BILAN_PATH,
+  ADMIN_PAGES,
+  ADMIN_BAR_SOUS_PAGES,
+  ANNUAIRE_PATH,
+  CREER_PATH,
+  CHANGER_MDP_PATH,
+  REJOINDRE_TOKEN,
+  cheminRejoindre,
+  verifierDebordement,
+  verifierCiblesTactiles,
+  verifierTaillesTexte,
+  verifierRedirectionAnnuaire,
+  resoudrePremiereSoiree,
+  resoudrePremierBarAdmin,
+} from "./audit-helpers";
 
 /**
- * Les pages refondues. On en ajoute une à chaque tâche de la phase D, et à
- * chaque nouvel écran ensuite — une page absente d'ici ou des listes plus
- * bas (soirée, administration) n'est pas auditée, donc pas terminée.
+ * Audit mobile — 390px (iPhone 14, voir playwright.config.ts). Les pages et
+ * les mesures viennent de `./audit-helpers.ts`, partagé avec
+ * `audit.desktop.spec.ts` (1440x900) : une page absente des listes de ce
+ * fichier n'est pas auditée, donc pas terminée — sur aucune des deux
+ * largeurs.
  */
-const PAGES = [
-  "/",
-  "/soirees",
-  "/stock",
-  "/cocktails",
-  "/moi",
-  "/profil",
-  "/membres",
-  "/comptes",
-  "/journal",
-  "/decouvrir",
-];
-
-// Les trois mesures de la spec, factorisées pour être appliquées identiquement
-// à la boucle PAGES (compte de test générique) et au bilan (compte ADMIN).
-async function verifierDebordement(page: Page) {
-  await page.waitForLoadState("networkidle");
-
-  const debordement = await page.evaluate(() => {
-    const el = document.documentElement;
-    return { scroll: el.scrollWidth, client: el.clientWidth };
-  });
-
-  // Un pixel de tolérance : les sous-pixels d'arrondi ne sont pas un bug.
-  expect(
-    debordement.scroll - debordement.client,
-    `débordement de ${debordement.scroll - debordement.client}px`,
-  ).toBeLessThanOrEqual(1);
-}
-
-async function verifierCiblesTactiles(page: Page) {
-  await page.waitForLoadState("networkidle");
-
-  const trop_petits = await page.evaluate(() => {
-    const selecteur = "a[href], button, input, select, textarea, [role=button]";
-    const fautifs: Array<{ balise: string; texte: string; h: number; w: number }> = [];
-
-    for (const el of document.querySelectorAll(selecteur)) {
-      const r = el.getBoundingClientRect();
-      // Les éléments masqués n'ont pas de cible à mesurer.
-      if (r.width === 0 || r.height === 0) continue;
-      // Un lien à l'intérieur d'un paragraphe n'est pas un contrôle : sa
-      // hauteur est celle de la ligne de texte, la règle ne s'y applique pas.
-      if (el.tagName === "A" && el.closest("p")) continue;
-      if (r.height < 44 || r.width < 44) {
-        fautifs.push({
-          balise: el.tagName,
-          texte: (el.textContent ?? "").trim().slice(0, 40),
-          h: Math.round(r.height),
-          w: Math.round(r.width),
-        });
-      }
-    }
-    return fautifs;
-  });
-
-  expect(trop_petits, JSON.stringify(trop_petits, null, 2)).toEqual([]);
-}
-
-async function verifierTaillesTexte(page: Page) {
-  await page.waitForLoadState("networkidle");
-
-  const trop_petits = await page.evaluate(() => {
-    const fautifs: Array<{ texte: string; taille: string }> = [];
-    const parcours = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    let noeud: Node | null;
-    while ((noeud = parcours.nextNode())) {
-      const texte = (noeud.textContent ?? "").trim();
-      if (!texte) continue;
-      const parent = noeud.parentElement;
-      if (!parent) continue;
-      const taille = parseFloat(getComputedStyle(parent).fontSize);
-      if (taille < 13) fautifs.push({ texte: texte.slice(0, 40), taille: `${taille}px` });
-    }
-    return fautifs;
-  });
-
-  expect(trop_petits, JSON.stringify(trop_petits, null, 2)).toEqual([]);
-}
 
 for (const chemin of PAGES) {
   test.describe(chemin, () => {
@@ -106,13 +46,6 @@ for (const chemin of PAGES) {
   });
 }
 
-// /login et /signup s'affichent sans session : elles ne passent pas par la
-// fixture connectée (celle-ci se connecte via `/login` elle-même, s'y
-// auditer par-dessus serait circulaire). Chaque état est vérifié — vierge et
-// en erreur — car un audit qui ne regarde que l'état vierge d'un formulaire
-// rate systématiquement le débordement introduit par le message d'erreur.
-const PAGES_PUBLIQUES = ["/login", "/signup", "/login?error=1", "/signup?error=1"];
-
 for (const chemin of PAGES_PUBLIQUES) {
   base.describe(chemin, () => {
     base("ne déborde pas horizontalement", async ({ page }) => {
@@ -132,13 +65,6 @@ for (const chemin of PAGES_PUBLIQUES) {
   });
 }
 
-// Le bilan est réservé au propriétaire du bar et à l'ADMIN global (garde
-// posée dans la page elle-même, pas dans `src/proxy.ts`) ; on audite ici
-// via le compte ADMIN, d'où la fixture `testAdmin` dédiée. Le chemin est
-// celui d'une soirée passée provisionnée pour cet audit, afin que le bilan
-// ait un sens à remplir.
-const BILAN_PATH = "/soirees/soiree-passee-a-bilanter-9b3aa64d/bilan";
-
 testAdmin.describe(BILAN_PATH, () => {
   testAdmin("ne déborde pas horizontalement", async ({ page }) => {
     await page.goto(BILAN_PATH);
@@ -155,25 +81,6 @@ testAdmin.describe(BILAN_PATH, () => {
     await verifierTaillesTexte(page);
   });
 });
-
-// /soirees/[slug] n'a pas de slug fixe à auditer : on résout la première
-// soirée listée par /soirees pour le compte de test (compte USER, propriétaire
-// de « Bar Audit »), plutôt que d'en coder un en dur qui romprait au moindre
-// reseed. Le sélecteur exclut volontairement les liens à un segment
-// supplémentaire (.../bilan, .../calendar) rendus ailleurs sur la même page.
-async function resoudrePremiereSoiree(page: Page): Promise<string> {
-  await page.goto("/soirees");
-  await page.waitForLoadState("networkidle");
-  const chemin = await page.evaluate(() => {
-    const liens = Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"));
-    const lien = liens.find((a) => /^\/soirees\/[^/]+$/.test(new URL(a.href).pathname));
-    return lien ? new URL(lien.href).pathname : null;
-  });
-  if (!chemin) {
-    throw new Error("Aucune soirée trouvée pour auditer /soirees/[slug].");
-  }
-  return chemin;
-}
 
 test.describe("/soirees/[slug]", () => {
   test("ne déborde pas horizontalement", async ({ page }) => {
@@ -195,10 +102,6 @@ test.describe("/soirees/[slug]", () => {
   });
 });
 
-// Section administration : réservée au rôle ADMIN global, donc auditée avec
-// le compte `testAdmin` plutôt que le compte de test générique.
-const ADMIN_PAGES = ["/admin", "/admin/bars"];
-
 for (const chemin of ADMIN_PAGES) {
   testAdmin.describe(chemin, () => {
     testAdmin("ne déborde pas horizontalement", async ({ page }) => {
@@ -217,23 +120,6 @@ for (const chemin of ADMIN_PAGES) {
     });
   });
 }
-
-// /admin/bars/[id] et ses sous-pages : même logique de résolution dynamique
-// que /soirees/[slug], depuis le premier bar listé par /admin/bars.
-async function resoudrePremierBarAdmin(page: Page): Promise<string> {
-  await page.goto("/admin/bars");
-  await page.waitForLoadState("networkidle");
-  const chemin = await page.evaluate(() => {
-    const lien = document.querySelector<HTMLAnchorElement>('a[href^="/admin/bars/"]');
-    return lien ? new URL(lien.href).pathname : null;
-  });
-  if (!chemin) {
-    throw new Error("Aucun bar trouvé pour auditer /admin/bars/[id].");
-  }
-  return chemin;
-}
-
-const ADMIN_BAR_SOUS_PAGES = ["", "/cocktails", "/soirees", "/stock"];
 
 for (const suffixe of ADMIN_BAR_SOUS_PAGES) {
   testAdmin.describe(`/admin/bars/[id]${suffixe}`, () => {
@@ -256,3 +142,79 @@ for (const suffixe of ADMIN_BAR_SOUS_PAGES) {
     });
   });
 }
+
+// /annuaire ne rend jamais de page (permanentRedirect immédiat vers
+// /membres) : aucune mise en page à mesurer, donc pas les trois mesures
+// habituelles. On vérifie à la place que la redirection elle-même fonctionne.
+// `test` (audit-bot), pas `base` : /membres a sa propre garde de session, un
+// visiteur anonyme y atterrirait sur /login après un second saut invisible
+// depuis /annuaire — voir le commentaire sur ANNUAIRE_PATH dans audit-helpers.ts.
+test.describe(ANNUAIRE_PATH, () => {
+  test("redirige en permanence vers /membres", async ({ page }) => {
+    await verifierRedirectionAnnuaire(page);
+  });
+});
+
+// /creer redirige vers / si le compte possède déjà un bar : `testNoBar`
+// (compte `audit-sansbar`, sans bar) est la seule fixture qui laisse
+// apparaître le formulaire.
+testNoBar.describe(CREER_PATH, () => {
+  testNoBar("ne déborde pas horizontalement", async ({ page }) => {
+    await page.goto(CREER_PATH);
+    await verifierDebordement(page);
+  });
+
+  testNoBar("n'a aucune cible tactile sous 44px", async ({ page }) => {
+    await page.goto(CREER_PATH);
+    await verifierCiblesTactiles(page);
+  });
+
+  testNoBar("n'affiche aucun texte sous 13px", async ({ page }) => {
+    await page.goto(CREER_PATH);
+    await verifierTaillesTexte(page);
+  });
+});
+
+// /changer-mot-de-passe n'a aucune garde propre au-delà d'une session : le
+// compte de test générique suffit.
+test.describe(CHANGER_MDP_PATH, () => {
+  test("ne déborde pas horizontalement", async ({ page }) => {
+    await page.goto(CHANGER_MDP_PATH);
+    await verifierDebordement(page);
+  });
+
+  test("n'a aucune cible tactile sous 44px", async ({ page }) => {
+    await page.goto(CHANGER_MDP_PATH);
+    await verifierCiblesTactiles(page);
+  });
+
+  test("n'affiche aucun texte sous 13px", async ({ page }) => {
+    await page.goto(CHANGER_MDP_PATH);
+    await verifierTaillesTexte(page);
+  });
+});
+
+// /rejoindre/[token] : le rendu de la carte « Rejoindre {barName} » n'existe
+// que pour un visiteur SANS session (avec une session, la page rejoint le
+// bar puis redirige vers /) — `base` plutôt que `test`. Le jeton vient de
+// `AUDIT_INVITE_TOKEN` ; absent, chaque test se saute explicitement au lieu
+// d'échouer ou de disparaître silencieusement de la liste.
+base.describe("/rejoindre/[token]", () => {
+  base("ne déborde pas horizontalement", async ({ page }) => {
+    base.skip(!REJOINDRE_TOKEN, "AUDIT_INVITE_TOKEN absent : /rejoindre/[token] non audité.");
+    await page.goto(cheminRejoindre());
+    await verifierDebordement(page);
+  });
+
+  base("n'a aucune cible tactile sous 44px", async ({ page }) => {
+    base.skip(!REJOINDRE_TOKEN, "AUDIT_INVITE_TOKEN absent : /rejoindre/[token] non audité.");
+    await page.goto(cheminRejoindre());
+    await verifierCiblesTactiles(page);
+  });
+
+  base("n'affiche aucun texte sous 13px", async ({ page }) => {
+    base.skip(!REJOINDRE_TOKEN, "AUDIT_INVITE_TOKEN absent : /rejoindre/[token] non audité.");
+    await page.goto(cheminRejoindre());
+    await verifierTaillesTexte(page);
+  });
+});
